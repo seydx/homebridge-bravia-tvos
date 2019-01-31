@@ -1,0 +1,31 @@
+ ```
+{
+ "bridge": {
+   ...
+},
+ "accessories": [
+    {
+      "accessory": "BraviaTVOS",
+      "name": "TV",
+      "interval": 10,
+      "ipadress": "192.168.1.1",
+      "port": 80,
+      "psk": "YourPSKhere",
+      "extraInputs":false,
+      "cecInputs":true,
+      "favApps": [
+        {
+          "title": "SmartTV",
+          "uri": "com.sony.dtv.eu.siptv.video.eu.siptv.atv.MainActivity"
+        },
+        {
+          "title": "YouTube",
+          "uri": "com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
+        }
+      ]
+    }
+],
+ "platforms": [
+   ...
+]
+}
