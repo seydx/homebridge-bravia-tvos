@@ -89,6 +89,10 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 * Apple Home _(partial)_
 * All 3rd party apps like Elgato Eve etc. _(recommended)_
 
+## Known issues | TODO
+
+- 
+
 ## Contributing
 
 You can contribute to this homebridge plugin in following ways:
