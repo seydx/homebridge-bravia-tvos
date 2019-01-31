@@ -1,0 +1,38 @@
+{
+  "name": "homebridge-bravia-tvos",
+  "version": "1.0.0",
+  "description": "homebridge-bravia-tvos",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SeydX/homebridge-bravia-tvos.git"
+  },
+  "author": "SeydX (https://github.com/SeydX/homebridge-bravia-tvos)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SeydX/homebridge-bravia-tvos/issues"
+  },
+  "homepage": "https://github.com/SeydX/homebridge-bravia-tvos#readme",
+  "keywords": [
+    "bravia",
+    "player",
+    "homebridge",
+    "homebridge-plugin",
+    "plugin",
+    "tv",
+    "android",
+    "tv",
+    "tvos"
+  ],
+  "engines": {
+    "node": "^8.9.1",
+    "homebridge": "^0.4.38"
+  },
+  "dependencies": {
+    "node-persist": "0.0.8"
+  }
+}
