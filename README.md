@@ -99,7 +99,7 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 
 ## Known issues | TODO
 
-- 
+- TODO: More Inputs (DVB:C, DVB:T)
 
 ## Contributing
 
