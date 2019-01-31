@@ -16,9 +16,9 @@ This plugin supports following functions:
 
 - **Power Switch** (on/off)
 - **Inputs** like HDMI, Scart, CEC Devices, AV, WIFI mirroring etc.
-- **Apps**
-- **Volume Control**
-- **Remote control**
+- **Apps** like YouTube, Prime Video etc.
+- **Volume Control** within Eve app i.e
+- **Remote control:** native iOS Remote control
 
 ## Installation instructions
 
@@ -79,6 +79,14 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 | extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
 | cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
 | favApps | **No** | List of your favourite apps to display as inputs in the TV accessory _(Default: false)_ |
+
+## Howto get Apps (uri)
+
+Open terminal and type following, for YouTube i.e.:
+
+```
+curl http://TVIPHERE/sony/appControl -H 'x-auth-psk: YOURPSKHERE' -d '{"id":3,"method":"getApplicationList","version":"1.0","params":["1.0"]}' | grep 'YouTube'
+```
 
 
 ## Supported clients
