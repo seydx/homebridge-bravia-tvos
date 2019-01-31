@@ -1,2 +1,101 @@
-# homebridge-bravia-tvos
-Homebridge plugin for Sony Bravia Android TVs (HomeKit TV)
+# homebridge-bravia-tvos v1
+Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) 
+
+[![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
+[![npm](https://img.shields.io/npm/dt/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
+[![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-bravia-tvos.svg?style=flat-square)](https://github.com/SeydX/homebridge-bravia-tvos)
+
+## Homebridge dynamic platform plugin for Sony Bravia Android TVs
+>_Note: If you are looking for the non dynamic version, install this! [homebridge-sonybravia-platform v2](https://github.com/SeydX/homebridge-sonybravia-platform) OR if you are looking for the dynamic version, install this! [homebridge-bravia-tv v3](https://github.com/SeydX/homebridge-bravia-tv)_ 
+
+<img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/master/images/homekit_overview.GIF" align="right" alt="HomeKit Overview" width="270px" height="541px">
+
+This is a plugin for [Homebridge](https://github.com/nfarina/homebridge) to control your **Sony Bravia Android TV**. 
+
+This plugin supports following functions:
+
+- **Power Switch** (on/off)
+- **Inputs** like HDMI, Scart, CEC Devices, AV, WIFI mirroring etc.
+- **Apps**
+- **Volume Control**
+- **Remote control**
+
+## Installation instructions
+
+After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
+
+-  ```sudo npm install -g homebridge-bravia-tvos```
+
+## Preparing the TV
+
+- Set **Remote start** to **ON** _(Settings -> Network -> Remote Start)_
+- Change **Authentication** to **Normal and Pre-Shared Key** _(Settings -> Network -> IP Control -> Authentication)_
+- Enter a **Pre-Shared Key** _(Settings -> Network -> IP control -> Pre-Shared Key)_
+
+## Basic configuration
+
+ ```
+{
+ "bridge": {
+   ...
+},
+ "accessories": [
+    {
+      "accessory": "BraviaTVOS",
+      "name": "TV",
+      "interval": 10,
+      "ipadress": "192.168.1.1",
+      "port": 80,
+      "psk": "YourPSKhere",
+      "extraInputs":false,
+      "cecInputs":true,
+      "favApps": [
+        {
+          "title": "SmartTV",
+          "uri": "com.sony.dtv.eu.siptv.video.eu.siptv.atv.MainActivity"
+        },
+        {
+          "title": "YouTube",
+          "uri": "com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
+        }
+      ]
+    }
+],
+ "platforms": [
+   ...
+]
+}
+ ```
+ 
+ ## Options
+
+| **Attributes** | **Required** | **Usage** |
+|------------|----------|-------|
+| name | **Yes** | **Unique Name** for the Accessory.   |
+| ipadress | **Yes** | IP adress from your Sony Bravia Android TV |
+| port | No | If you have problems with connecting to the TV, try a different port _(Default: 80)_ |
+| psk | **Yes** | Your PRE SHARED KEY _(see preparing the TV above)_ |
+| interval | **No** | Polling interval _(Default: 10s)_ |
+| extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
+| cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
+| favApps | **No** | List of your favourite apps to display as inputs in the TV accessory _(Default: false)_ |
+
+
+## Supported clients
+
+This plugin has been verified to work with the following apps on iOS 12.2:
+
+* iOS 12.2
+* Apple Home _(partial)_
+* All 3rd party apps like Elgato Eve etc. _(recommended)_
+
+## Contributing
+
+You can contribute to this homebridge plugin in following ways:
+
+- [Report issues](https://github.com/SeydX/homebridge-bravia-tv/issues) and help verify fixes as they are checked in.
+- Review the [source code changes](https://github.com/SeydX/homebridge-bravia-tv/pulls).
+- Contribute bug fixes.
+- Contribute changes to extend the capabilities
+
+Pull requests are accepted.
