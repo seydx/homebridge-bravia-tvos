@@ -107,8 +107,8 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 
 You can contribute to this homebridge plugin in following ways:
 
-- [Report issues](https://github.com/SeydX/homebridge-bravia-tv/issues) and help verify fixes as they are checked in.
-- Review the [source code changes](https://github.com/SeydX/homebridge-bravia-tv/pulls).
+- [Report issues](https://github.com/SeydX/homebridge-bravia-tvos/issues) and help verify fixes as they are checked in.
+- Review the [source code changes](https://github.com/SeydX/homebridge-bravia-tvos/pulls).
 - Contribute bug fixes.
 - Contribute changes to extend the capabilities
 
