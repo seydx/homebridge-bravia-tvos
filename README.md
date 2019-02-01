@@ -1,4 +1,4 @@
-# homebridge-bravia-tvos v1
+# homebridge-bravia-tvos v1.1
 Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) 
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -15,7 +15,7 @@ This is a plugin for [Homebridge](https://github.com/nfarina/homebridge) to cont
 This plugin supports following functions:
 
 - **Power Switch** (on/off)
-- **Inputs** like HDMI, Scart, CEC Devices, AV, WIFI mirroring etc.
+- **Inputs** like HDMI, Scart, CEC Devices, AV, WIFI, DVB:T, DVB:C etc.
 - **Apps** like YouTube, Prime Video etc.
 - **Volume Control** within Eve app i.e
 - **Remote control:** native iOS Remote control
@@ -99,7 +99,7 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 
 ## Known issues | TODO
 
-- TODO: More Inputs (DVB:C, DVB:T)
+- ~~TODO: More Inputs (DVB:C, DVB:T)~~
 
 ## Contributing
 
