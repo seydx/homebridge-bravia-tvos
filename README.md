@@ -49,6 +49,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
       "psk": "YourPSKhere",
       "extraInputs":false,
       "cecInputs":true,
+      "channelInputs":true,
       "favApps": [
         {
           "title": "SmartTV",
