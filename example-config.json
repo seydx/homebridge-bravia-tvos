@@ -1,4 +1,3 @@
- ```
 {
  "bridge": {
    ...
@@ -8,11 +7,12 @@
       "accessory": "BraviaTVOS",
       "name": "TV",
       "interval": 10,
-      "ipadress": "192.168.1.1",
+      "ipadress": "192.168.111.1",
       "port": 80,
       "psk": "YourPSKhere",
       "extraInputs":false,
       "cecInputs":true,
+      "channelInputs":true,
       "favApps": [
         {
           "title": "SmartTV",
@@ -21,11 +21,19 @@
         {
           "title": "YouTube",
           "uri": "com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
+        },
+        {
+          "title": "PrimeVideo",
+          "uri": "com.sony.dtv.com.amazon.amazonvideo.livingroom.com.amazon.ignition.IgnitionActivity"
+        },
+        {
+          "title": "Netflix",
+          "uri": "com.sony.dtv.com.netflix.ninja.com.netflix.ninja.MainActivity"
         }
       ]
     }
 ],
  "platforms": [
    ...
-]
+ ]
 }
