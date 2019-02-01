@@ -1,6 +1,7 @@
 'use strict';
 
 const http=require('http');
+const inherits = require('util').inherits;
 
 var Service,Characteristic,HomebridgeAPI;
 
@@ -20,6 +21,18 @@ function BraviaTVOS(log,config,api){
   this.log=log;
   this.api=api;
 
+  //Custom Characteristic (refresh button)
+  Characteristic.Refresh = function() {
+    Characteristic.call(this, 'Refresh', '0dd89185-f68c-4116-84fe-fcd28e49d215');
+    this.setProps({
+      format: Characteristic.Formats.BOOL,
+      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+    });
+    this.value = this.getDefaultValue();
+  };
+  inherits(Characteristic.Refresh, Characteristic);
+  Characteristic.Refresh.UUID = '0dd89185-f68c-4116-84fe-fcd28e49d215';
+
   //BASE
   this.name=config.name||'Television';
   this.psk=config.psk;
@@ -34,6 +47,7 @@ function BraviaTVOS(log,config,api){
   }
   this.extraInputs = config.extraInputs||false;
   this.cecInputs = config.cecInputs||false;
+  this.channelInputs = config.channelInputs||false;
   this.favApps = config.favApps||false;
   !this.state?this.state=false:this.state;
 
@@ -197,7 +211,6 @@ callback(null, state);
       .on('set',this.setRemote.bind(this));
 
     //Looking for Inputs if nothing in cache
-
     if(!this.storage.getItem('SonyInputs')){
       this.getAllInputs();
     }else{
@@ -216,6 +229,18 @@ callback(null, state);
             self.log(err);
           });
         callback(null);
+      });
+
+    this.Television.addCharacteristic(Characteristic.Refresh);
+    this.Television.getCharacteristic(Characteristic.Refresh)
+      .updateValue(false)
+      .on('set', function(state, callback) {
+        if(state){
+          self.log('Refreshing input list, please restart homebridge after refreshing!');
+          self.getAllInputs();
+          setTimeout(function(){self.Television.getCharacteristic(Characteristic.Refresh).setValue(false);},1000);
+        }
+        callback(null, false);
       });
 
     this.Services.push(this.Television);
@@ -255,7 +280,7 @@ callback(null, state);
     for(const i in this.Services){
       if(this.Services[i].UUID == '000000D8-0000-1000-8000-0026BB765291'){
         for(const j in this.Services[i].linkedServices){
-          if(this.Services[i].linkedServices[j].UUID!='00000113-0000-1000-8000-0026BB765291'){
+          if(this.Services[i].linkedServices[j].UUID!='00000113-0000-1000-8000-0026BB765291'&&this.Services[i].linkedServices[j].UUID!='000000D8-0000-1000-8000-0026BB765291'){
             identifierMax += 1;
           }
         }
@@ -265,7 +290,7 @@ callback(null, state);
     this.Television
       .getCharacteristic(Characteristic.ActiveIdentifier)
       .setProps({
-        maxValue: identifierMax,
+        maxValue: identifierMax-1,
         minValue: 0,
         minStep: 1
       });
@@ -434,8 +459,12 @@ callback(null, state);
             } else {
               inputsApps = inputList;
             }
-            self.storage.setItem('SonyInputs',inputsApps);
-            self.setNewInputs();
+            if(self.channelInputs){
+              self.getChannelSources(inputsApps);
+            } else {
+              self.storage.setItem('SonyInputs',inputsApps);
+              self.setNewInputs();
+            }
           }
         })
         .catch((err)=>{
@@ -446,6 +475,46 @@ callback(null, state);
           },10000);
         });
     },5000);
+  },
+
+  getChannelSources:function (currentList){
+    const self = this;
+    self.log('Channels enabled in config, writing channel sources in cache...');
+    self.getContent('/sony/avContent','getSourceList',{'scheme':'tv'},'1.0')
+      .then((data)=>{
+        const response=JSON.parse(data);
+        if('error'in response){
+          if(response.error[0]==7||response.error[0]==40005){
+            self.log('TV off');
+          }else if(response.error[0]==3||response.error[0]==5){
+            self.log('Illegal argument!');
+          }else{
+            self.log('ERROR: '+JSON.stringify(response));
+          }
+        }else{
+          const channelList = response.result[0];
+          const inputs = currentList;
+
+          for(const i in channelList){
+            const str = channelList[i].source;
+            const cap = str.split(':')[1].charAt(0).toUpperCase()+str.split(':')[1].slice(1);
+            inputs.push({
+              'title': cap,
+              'uri':str,
+              'icon':'meta:tv'
+            });
+          }
+          self.storage.setItem('SonyInputs',inputs);
+          self.setNewInputs();
+        }
+      })
+      .catch((err)=>{
+        self.log('An error occured by getting tv sources, trying again...');
+        self.log(err);
+        setTimeout(function (){
+          self.getChannelSources();
+        },10000);
+      });
   },
 
   setNewInputs:function (){
@@ -462,6 +531,8 @@ callback(null, state);
         newList.push(oldList[j]);
       } else if(self.favApps&&self.favApps.length>0&&oldList[j].icon=='meta:app'){
         newList.push(oldList[j]);
+      } else if(self.channelInputs&&oldList[j].icon=='meta:tv'){
+        newList.push(oldList[j]);
       }
     }
 
@@ -476,8 +547,11 @@ callback(null, state);
         self.createInputSource(newTitle,inputs[i].title,i,4,1);
       }else if(inputs[i].icon == 'meta:app'&&self.favApps&&self.favApps.length>0){
         self.createInputSource(newTitle,inputs[i].title,i,10,1);
-      } 
+      } else if(inputs[i].icon=='meta:tv'){
+        self.createInputSource(newTitle,inputs[i].title,i,2,3);
+      }
     }
+
     self.log('Inputlist finished');
   },
 
@@ -495,6 +569,8 @@ callback(null, state);
         newList.push(oldList[j]);
       } else if(self.favApps&&self.favApps.length>0&&oldList[j].icon=='meta:app'){
         newList.push(oldList[j]);
+      } else if(self.channelInputs&&oldList[j].icon=='meta:tv'){
+        newList.push(oldList[j]);
       }
     }
 
@@ -511,11 +587,13 @@ callback(null, state);
                   self.log('TV off');
                 }else if(response.error[0]==3||response.error[0]==5){
                   self.log('Illegal argument!');
+                }else if(response.error[0]==41001){
+                  self.log('Channel source doesnt exist!');
                 }else{
                   self.log('ERROR:'+JSON.stringify(response));
                 }
               }else{
-                self.log('Start:'+inputs[i].title);
+                self.log('Start: '+inputs[i].title);
               }
             })
             .catch((err)=>{
@@ -550,7 +628,26 @@ callback(null, state);
 
   getInputState:function(){
     const self = this;
-    const inputs = this.storage.getItem('SonyInputs');
+    const oldList = this.storage.getItem('SonyInputs');
+    const newList = [];
+
+    for(const j in oldList){
+      if(self.cecInputs&&oldList[j].icon=='meta:playbackdevice'){
+        newList.push(oldList[j]);
+      } else if(oldList[j].icon=='meta:hdmi'){
+        newList.push(oldList[j]);
+      } else if(self.extraInputs&&(oldList[j].icon=='meta:scart'||oldList[j].icon=='meta:composite'||oldList[j].icon=='meta:wifidisplay')){
+        newList.push(oldList[j]);
+      } else if(self.favApps&&self.favApps.length>0&&oldList[j].icon=='meta:app'){
+        newList.push(oldList[j]);
+      } else if(self.channelInputs&&oldList[j].icon=='meta:tv'){
+        newList.push(oldList[j]);
+      }
+    }
+
+    const inputs = newList;
+
+
     self.getContent('/sony/avContent','getPlayingContentInfo','1.0','1.0')
       .then((data)=>{
         const response=JSON.parse(data);
@@ -564,7 +661,16 @@ callback(null, state);
           }
         }else{
           for(const i in inputs){
-            if(inputs[i].title==response.result[0].title||inputs[i].uri==response.result[0].uri){
+
+            var source, str, cap;
+
+            if(self.channelInputs){
+              str = inputs[i].title;
+              cap = ['tv:',str.toLowerCase(str)];
+              source = cap.toString(cap).replace(',', '');
+            }
+
+            if(inputs[i].title==response.result[0].title||inputs[i].uri==response.result[0].uri||source==response.result[0].source){
               self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(i);
             }
           }
@@ -704,7 +810,6 @@ callback(null, state);
     }
     callback();
   },
-
 
   setRemote:function (newValue,callback){
     const self=this;
