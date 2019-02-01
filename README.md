@@ -79,6 +79,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 | interval | **No** | Polling interval _(Default: 10s)_ |
 | extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
 | cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
+| channelInputs | **No** | Inputs for channel inputs like DVB:C / DVB:T etc _(Default: false)_ |
 | favApps | **No** | List of your favourite apps to display as inputs in the TV accessory _(Default: false)_ |
 
 ## Howto get Apps (uri)
