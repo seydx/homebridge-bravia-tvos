@@ -20,6 +20,7 @@ function BraviaTVOS(log,config,api){
   this.config=config;
   this.log=log;
   this.api=api;
+  this.version='1.1';
 
   //Custom Characteristic (refresh button)
   Characteristic.Refresh = function() {
@@ -32,6 +33,18 @@ function BraviaTVOS(log,config,api){
   };
   inherits(Characteristic.Refresh, Characteristic);
   Characteristic.Refresh.UUID = '0dd89185-f68c-4116-84fe-fcd28e49d215';
+
+  //Custom Characteristic (identifier name)
+  Characteristic.IdentName = function() {
+    Characteristic.call(this, 'Active Identifier Name', '5f5818fb-677c-4648-9e78-4225b6f9db07');
+    this.setProps({
+      format: Characteristic.Formats.STRING,
+      perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+    });
+    this.value = this.getDefaultValue();
+  };
+  inherits(Characteristic.IdentName, Characteristic);
+  Characteristic.IdentName.UUID = '5f5818fb-677c-4648-9e78-4225b6f9db07';
 
   //BASE
   this.name=config.name||'Television';
@@ -64,26 +77,21 @@ function BraviaTVOS(log,config,api){
           'X-Auth-PSK':self.psk
         }
       };
-
       const post_data={
         'method':setMethod,
         'params':[setParams],
         'id':1,
         'version':setVersion
       };
-
       const req=http.request(options,function (res){
         if(res.statusCode<200||res.statusCode>299){
           reject(new Error('Failed to load data, status code:'+res.statusCode));
         }
-
         const body=[];
         res.on('data',(chunk)=>body.push(chunk));
         res.on('end',()=>resolve(body.join('')));
       });
-
       req.on('error',(err)=>reject(err));
-
       req.write(JSON.stringify(post_data));
       req.end();
     });
@@ -92,9 +100,7 @@ function BraviaTVOS(log,config,api){
   this.getIRCC = function(setIRCC) {
 
     return new Promise((resolve, reject) => {
-
       var post_data = '<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>' + setIRCC + '</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>';
-
       var options = {
         host: self.ipadress,
         path: '/sony/IRCC',
@@ -108,33 +114,23 @@ function BraviaTVOS(log,config,api){
           'Content-Length': Buffer.byteLength(post_data)
         }
       };
-
       var buffer = '';
-
       var req = http.request(options, function(res) {
-
         var buffer = '';
-
         if (res.statusCode < 200 || res.statusCode > 299) {
           reject(new Error('Failed to load data, status code: ' + res.statusCode));
         }
-
         const body = [];
         res.on('data', (chunk) => {
           buffer = buffer + chunk;
           body.push(buffer);
         });
         res.on('end', () => resolve(body.join(buffer)));
-
       });
-
       req.on('error', (err) => reject(err));
-
       req.write(post_data);
       req.end();
-
     });
-
   };
 
   //STORAGE
@@ -142,139 +138,139 @@ function BraviaTVOS(log,config,api){
   this.storage.initSync({
     dir:HomebridgeAPI.user.persistPath()
   });
+
+  this.Services=[];
+
+  //InformationService
+
+  this.informationService=new Service.AccessoryInformation()
+    .setCharacteristic(Characteristic.Name,self.name||'Television')
+    .setCharacteristic(Characteristic.Manufacturer,'SeydX')
+    .setCharacteristic(Characteristic.Model,'SonyTV')
+    .setCharacteristic(Characteristic.SerialNumber,'1234567890');
+
+  this.Services.push(this.informationService);
+
+  //TV
+
+  this.Television=new Service.Television(self.name||'Television');
+
+  this.Television
+    .setCharacteristic(Characteristic.ConfiguredName,self.name||'Television');
+
+  this.Television
+    .setCharacteristic(
+      Characteristic.SleepDiscoveryMode,
+      Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
+    );
+
+  this.Television
+    .getCharacteristic(Characteristic.Active)
+    .on('set',this.setPowerState.bind(this))
+    .updateValue(this.state);
+
+  this.Television
+    .getCharacteristic(Characteristic.ActiveIdentifier)
+    .on('set',this.setInput.bind(this));
+
+  //RemoteKeys
+
+  this.Television
+    .getCharacteristic(Characteristic.RemoteKey)
+    .on('set',this.setRemote.bind(this));
+
+  //Looking for Inputs if nothing in cache
+  if(!this.storage.getItem('SonyInputs')){
+    this.getAllInputs();
+  }else{
+    this.setNewInputs();
+  }
+
+  //WIP
+  this.Television
+    .getCharacteristic(Characteristic.PowerModeSelection)
+    .on('set',function (newValue,callback){
+      self.getIRCC('AAAAAgAAAJcAAAA2Aw==')
+        .then((data) => {
+          self.log('Open settings');
+        })
+        .catch((err) => {
+          self.log(err);
+        });
+      callback(null);
+    });
+
+  this.Television.addCharacteristic(Characteristic.IdentName);
+  this.Television.getCharacteristic(Characteristic.IdentName)
+    .updateValue('Unknown');
+
+  this.Television.addCharacteristic(Characteristic.Refresh);
+  this.Television.getCharacteristic(Characteristic.Refresh)
+    .updateValue(false)
+    .on('set', function(state, callback) {
+      if(state){
+        self.log('Refreshing input list, please restart homebridge after refreshing!');
+        self.getAllInputs();
+        setTimeout(function(){self.Television.getCharacteristic(Characteristic.Refresh).setValue(false);},1000);
+      }
+      callback(null, false);
+    });
+
+  this.Services.push(this.Television);
+
+  //Speaker
+
+  this.Speaker=new Service.TelevisionSpeaker(this.name+' Volume');
+
+  this.Speaker
+    .setCharacteristic(Characteristic.Active,Characteristic.Active.ACTIVE)
+    .setCharacteristic(Characteristic.VolumeControlType,Characteristic.VolumeControlType.ABSOLUTE);
+
+  this.Speaker
+    .getCharacteristic(Characteristic.VolumeSelector)
+    .on('set',this.setRemoteVolume.bind(this));
+
+  this.Speaker
+    .getCharacteristic(Characteristic.Mute)
+    .on('set',this.setMute.bind(this));
+
+  this.Speaker
+    .getCharacteristic(Characteristic.Volume)
+    .on('set',this.setVolume.bind(this));
+
+  this.Television.addLinkedService(this.Speaker);
+  this.Services.push(this.Speaker);
+
+  //PollingStates
+
+  this.getPowerState();
+  this.getVolumeState();
+  this.getInputState();
+
+  let identifierMax = 0;
+  for(const i in this.Services){
+    if(this.Services[i].UUID == '000000D8-0000-1000-8000-0026BB765291'){
+      for(const j in this.Services[i].linkedServices){
+        if(this.Services[i].linkedServices[j].UUID!='00000113-0000-1000-8000-0026BB765291'&&this.Services[i].linkedServices[j].UUID!='000000D8-0000-1000-8000-0026BB765291'){
+          identifierMax += 1;
+        }
+      }
+    }
+  }
+
+  this.Television
+    .getCharacteristic(Characteristic.ActiveIdentifier)
+    .setProps({
+      maxValue: identifierMax-1,
+      minValue: 0,
+      minStep: 1
+    });
+
 }
 
 BraviaTVOS.prototype={
 
   getServices:function (){
-
-    const self = this;
-
-    this.Services=[];
-
-    //InformationService
-
-    this.informationService=new Service.AccessoryInformation()
-      .setCharacteristic(Characteristic.Name,self.name||'Television')
-      .setCharacteristic(Characteristic.Manufacturer,'SeydX')
-      .setCharacteristic(Characteristic.Model,'SonyTV')
-      .setCharacteristic(Characteristic.SerialNumber,'1234567890');
-
-    this.Services.push(this.informationService);
-
-    //TV
-
-    this.Television=new Service.Television(self.name||'Television');
-
-    this.Television
-      .setCharacteristic(Characteristic.ConfiguredName,self.name||'Television');
-
-    this.Television
-      .setCharacteristic(
-        Characteristic.SleepDiscoveryMode,
-        Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
-      );
-
-    this.Television
-      .getCharacteristic(Characteristic.Active)
-      .on('set',this.setPowerState.bind(this))
-      .updateValue(this.state);
-
-    this.Television
-      .getCharacteristic(Characteristic.ActiveIdentifier)
-      .on('set',this.setInput.bind(this));
-
-    //RemoteKeys
-
-    this.Television
-      .getCharacteristic(Characteristic.RemoteKey)
-      .on('set',this.setRemote.bind(this));
-
-    //Looking for Inputs if nothing in cache
-    if(!this.storage.getItem('SonyInputs')){
-      this.getAllInputs();
-    }else{
-      this.setNewInputs();
-    }
-
-    //WIP
-    this.Television
-      .getCharacteristic(Characteristic.PowerModeSelection)
-      .on('set',function (newValue,callback){
-        self.getIRCC('AAAAAgAAAJcAAAA2Aw==')
-          .then((data) => {
-            self.log('Settings');
-          })
-          .catch((err) => {
-            self.log(err);
-          });
-        callback(null);
-      });
-
-    this.Television.addCharacteristic(Characteristic.Refresh);
-    this.Television.getCharacteristic(Characteristic.Refresh)
-      .updateValue(false)
-      .on('set', function(state, callback) {
-        if(state){
-          self.log('Refreshing input list, please restart homebridge after refreshing!');
-          self.getAllInputs();
-          setTimeout(function(){self.Television.getCharacteristic(Characteristic.Refresh).setValue(false);},1000);
-        }
-        callback(null, false);
-      });
-
-    this.Services.push(this.Television);
-
-    //Speaker
-
-    this.Speaker=new Service.TelevisionSpeaker(this.name+' Volume');
-
-    this.Speaker
-      .setCharacteristic(Characteristic.Active,Characteristic.Active.ACTIVE)
-      .setCharacteristic(Characteristic.VolumeControlType,Characteristic.VolumeControlType.ABSOLUTE);
-
-    this.Speaker
-      .getCharacteristic(Characteristic.VolumeSelector)
-      .on('set',this.setRemoteVolume.bind(this));
-
-    this.Speaker
-      .getCharacteristic(Characteristic.Mute)
-      .on('set',this.setMute.bind(this));
-
-    this.Speaker
-      .getCharacteristic(Characteristic.Volume)
-      .on('set',this.setVolume.bind(this));
-
-    this.Television.addLinkedService(this.Speaker);
-    this.Services.push(this.Speaker);
-
-    //PollingStates
-
-    this.getPowerState();
-    this.getVolumeState();
-    this.getInputState();
-
-    //ReturnServices
-
-    let identifierMax = 0;
-    for(const i in this.Services){
-      if(this.Services[i].UUID == '000000D8-0000-1000-8000-0026BB765291'){
-        for(const j in this.Services[i].linkedServices){
-          if(this.Services[i].linkedServices[j].UUID!='00000113-0000-1000-8000-0026BB765291'&&this.Services[i].linkedServices[j].UUID!='000000D8-0000-1000-8000-0026BB765291'){
-            identifierMax += 1;
-          }
-        }
-      }
-    }
-
-    this.Television
-      .getCharacteristic(Characteristic.ActiveIdentifier)
-      .setProps({
-        maxValue: identifierMax-1,
-        minValue: 0,
-        minStep: 1
-      });
-
     return this.Services;
   },
   setPowerState:function (state,callback){
@@ -411,7 +407,9 @@ BraviaTVOS.prototype={
   getAllInputs:function (){
     const self=this;
     self.log('Getting all available inputs, TV needs to be turned on...');
-    self.Television.getCharacteristic(Characteristic.Active).setValue(true);
+    if(!self.Television.getCharacteristic(Characteristic.Active).value){
+      self.Television.getCharacteristic(Characteristic.Active).setValue(true);
+    }
 
     setTimeout(function (){
       self.log('TV is on, getting inputs...');
@@ -533,6 +531,11 @@ BraviaTVOS.prototype={
     }
 
     self.log('Inputlist finished');
+    self.log('Welcome to Sony Bravia TV OS ' + self.version + ' - Below your Identifier list to create rules in 3rd party apps');
+    for(const ident in newList){
+      self.log('(' + ident + ') ' + newList[ident].title);
+    }
+
   },
 
   setInput:function (newValue,callback){
@@ -573,7 +576,7 @@ BraviaTVOS.prototype={
                   self.log('ERROR:'+JSON.stringify(response));
                 }
               }else{
-                self.log('Start: '+inputs[i].title);
+                self.log('Start: '+inputs[i].title+' ('+i+')');
               }
             })
             .catch((err)=>{
@@ -593,7 +596,7 @@ BraviaTVOS.prototype={
                   self.log('ERROR:'+JSON.stringify(response));
                 }
               }else{
-                self.log('Start:'+inputs[i].title);
+                self.log('Start: '+inputs[i].title+' ('+i+')');
               }
             })
             .catch((err)=>{
@@ -627,31 +630,34 @@ BraviaTVOS.prototype={
 
     const inputs = newList;
 
-
     self.getContent('/sony/avContent','getPlayingContentInfo','1.0','1.0')
       .then((data)=>{
         const response=JSON.parse(data);
         if('error'in response){
           if(response.error[0]==7||response.error[0]==40005){
             //self.log('TV off');
+            self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(99999);
+            self.Television.getCharacteristic(Characteristic.IdentName).updateValue('Unknown');
           }else if(response.error[0]==3||response.error[0]==5){
             self.log('Illegal argument!');
+            self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(99999);
+            self.Television.getCharacteristic(Characteristic.IdentName).updateValue('Unknown');
           }else{
             self.log('ERROR:'+JSON.stringify(response));
+            self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(99999);
+            self.Television.getCharacteristic(Characteristic.IdentName).updateValue('Unknown');
           }
         }else{
           for(const i in inputs){
-
             var source, str, cap;
-
             if(self.channelInputs){
               str = inputs[i].title;
               cap = ['tv:',str.toLowerCase(str)];
               source = cap.toString(cap).replace(',', '');
             }
-
             if(inputs[i].title==response.result[0].title||inputs[i].uri==response.result[0].uri||source==response.result[0].source){
               self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(i);
+              self.Television.getCharacteristic(Characteristic.IdentName).updateValue(inputs[i].title);
             }
           }
         }
@@ -662,6 +668,8 @@ BraviaTVOS.prototype={
       .catch((err)=>{
         self.log('An error occured by getting input state! Trying again..');
         self.log(err);
+        self.Television.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(99999);
+        self.Television.getCharacteristic(Characteristic.IdentName).updateValue('Unknown');
         setTimeout(function (){
           self.getInputState();
         },10000);
