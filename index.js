@@ -180,26 +180,6 @@ BraviaTVOS.prototype={
       .on('set',this.setPowerState.bind(this))
       .updateValue(this.state);
 
-    /*this.Television //WIP
-.getCharacteristic(Characteristic.CurrentMediaState)
-.on('get', function(callback) {
-self.log('get CurrentMediaState => State: ');
-callback(null, true);
-});
-
-this.Television //WIP
-.getCharacteristic(Characteristic.TargetMediaState)
-.on('set', function(state, callback) {
-//Play: 0
-//Pause: 1
-//Stop: 2
-self.log('get TargetMediaState => State: ' + state);
-callback(null, state);
-});*/
-
-    this.Television
-      .setCharacteristic(Characteristic.ActiveIdentifier,0);
-
     this.Television
       .getCharacteristic(Characteristic.ActiveIdentifier)
       .on('set',this.setInput.bind(this));
