@@ -1,5 +1,5 @@
 # homebridge-bravia-tvos v1.1
-Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) 
+Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) only works with iOS 12.2/homebridge v0.4.46 and above
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
 [![npm](https://img.shields.io/npm/dt/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -98,10 +98,12 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 * iOS 12.2
 * Apple Home _(partial)_
 * All 3rd party apps like Elgato Eve etc. _(recommended)_
+* Homebridge v0.4.46
 
 ## Known issues | TODO
 
 - ~~TODO: More Inputs (DVB:C, DVB:T)~~
+- TODO: v2 (dynamic platform plugin)
 
 ## Contributing
 
