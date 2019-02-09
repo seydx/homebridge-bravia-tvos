@@ -6,7 +6,7 @@ Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) only works with iOS 1
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-bravia-tvos.svg?style=flat-square)](https://github.com/SeydX/homebridge-bravia-tvos)
 
 ## Homebridge dynamic platform plugin for Sony Bravia Android TVs
->_Note: If you are looking for the non dynamic version, install this! [homebridge-sonybravia-platform v2](https://github.com/SeydX/homebridge-sonybravia-platform) OR if you are looking for the dynamic version, install this! [homebridge-bravia-tv v3](https://github.com/SeydX/homebridge-bravia-tv)_ 
+>_Note: If you are looking for the non dynamic version, install this! [homebridge-sonybravia-platform v2](https://github.com/SeydX/homebridge-sonybravia-platform) OR if you are looking for the dynamic version (without HomeKit-TV support), install this! [homebridge-bravia-tv v3](https://github.com/SeydX/homebridge-bravia-tv)_ 
 
 <img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/master/images/homekit_overview.GIF" align="right" alt="HomeKit Overview" width="270px" height="541px">
 
