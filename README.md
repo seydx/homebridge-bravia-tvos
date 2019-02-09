@@ -126,6 +126,15 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 - ~~TODO: More Inputs (DVB:C, DVB:T)~~
 - ~~TODO: v2 (dynamic platform plugin)~~
 
+## Changelog
+v2.0:
+Before update to v2.0 be aware to completely deinstall the old version of this plugin!!
+- Dynamic Platform Plugin
+- Bugfixes
+- Performance improvements
+- Ability to add multiple TVs
+
+
 ## Contributing
 
 You can contribute to this homebridge plugin in following ways:
