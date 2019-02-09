@@ -1,4 +1,4 @@
-# homebridge-bravia-tvos v1.1
+# homebridge-bravia-tvos v2.0
 Homebridge plugin for Sony Bravia Android TVs (HomeKit TV) only works with iOS 12.2/homebridge v0.4.46 and above
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -40,32 +40,53 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
    ...
 },
  "accessories": [
-    {
-      "accessory": "BraviaTVOS",
-      "name": "TV",
-      "interval": 10,
-      "ipadress": "192.168.1.1",
-      "port": 80,
-      "psk": "YourPSKhere",
-      "extraInputs":false,
-      "cecInputs":true,
-      "channelInputs":true,
-      "favApps": [
-        {
-          "title": "SmartTV",
-          "uri": "com.sony.dtv.eu.siptv.video.eu.siptv.atv.MainActivity"
-        },
-        {
-          "title": "YouTube",
-          "uri": "com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
-        }
-      ]
-    }
+   ...
 ],
  "platforms": [
-   ...
-]
+    {
+      "platform": "BraviaOSPlatform",
+      "tvs": {
+        "1": {
+	         "name": "TV 1",
+          "interval": 10,
+          "ipadress": "192.168.1.1",
+          "port": 80,
+          "psk": "PSKHERE",
+          "extraInputs": false,
+          "cecInputs": true,
+          "channelInputs": true,
+          "favApps": [
+            {
+              "title":"SmartTV",
+              "uri":"com.sony.dtv.eu.siptv.video.eu.siptv.atv.MainActivity"
+            },
+            {
+              "title":"YouTube",
+              "uri":"com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
+            }
+          ]
+        },
+        "2": {
+	         "name": "TV 2",
+          "interval": 10,
+          "ipadress": "192.168.1.2",
+          "port": 80,
+          "psk": "PSKHERE",
+          "extraInputs": false,
+          "cecInputs": false,
+          "channelInputs": false,
+          "favApps": [
+            {
+              "title":"YouTube",
+              "uri":"com.sony.dtv.com.google.android.youtube.tv.com.google.android.apps.youtube.tv.activity.ShellActivity"
+            }
+          ]
+        },
+      }
+    }
+ ]
 }
+
  ```
  
  ## Options
@@ -103,7 +124,7 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 ## Known issues | TODO
 
 - ~~TODO: More Inputs (DVB:C, DVB:T)~~
-- TODO: v2 (dynamic platform plugin)
+- ~~TODO: v2 (dynamic platform plugin)~~
 
 ## Contributing
 
