@@ -34,6 +34,7 @@ function BraviaOSPlatform (log, config, api) {
       name: this.config.tvs[i].name||'TV ' + i,
       interval: (this.config.tvs[i].interval*1000)||10000,
       ipadress: this.config.tvs[i].ipadress,
+      wakeOnLan: this.config.tvs[i].wakeOnLan || false,
       port: this.config.tvs[i].port||80,
       psk: this.config.tvs[i].psk,
       extraInputs: this.config.tvs[i].extraInputs||false,
@@ -41,7 +42,8 @@ function BraviaOSPlatform (log, config, api) {
       cecInputs: this.config.tvs[i].cecInputs||false,
       favApps: this.config.tvs[i].favApps||false
     };
-    if(this.config.tvs[i].intervall<10000){
+    
+    if(this.config.tvs[i].interval<10000){
       self.logger.warn('Critical interval value. Setting interval to 10s for ' + this.config.tvs[i].name);
       this.config.tvs[i].interval = 10000;
     }
