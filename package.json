@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "node-persist": "0.0.8",
-    "async": "2.6.0"
+    "async": "2.6.0",
+    "wake_on_lan": "*"
   }
 }
