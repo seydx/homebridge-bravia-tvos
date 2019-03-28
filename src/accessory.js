@@ -1,5 +1,6 @@
 'use strict';
 
+const wol = require('wake_on_lan');
 const HomeKitTypes = require('./types.js');
 const http = require('http');
 const LogUtil = require('../lib/LogUtil.js');
@@ -157,7 +158,9 @@ class BRAVIAOS {
     accessory.context.name = tvConfig.name;
     accessory.context.serial = tvConfig.device.serial;
     accessory.context.model = tvConfig.device.model;
+    accessory.context.macaddress = tvConfig.device.macAddr;
     accessory.context.ipadress = tvConfig.config.ipadress;
+    accessory.context.wakeOnLan = tvConfig.config.wakeOnLan;
     accessory.context.port = tvConfig.config.port;
     accessory.context.psk = tvConfig.config.psk;
     accessory.context.extraInputs = tvConfig.config.extraInputs;
@@ -165,6 +168,7 @@ class BRAVIAOS {
     accessory.context.cecInputs = tvConfig.config.cecInputs;
     accessory.context.favApps = tvConfig.config.favApps;
     accessory.context.inputs = tvConfig.inputs;
+
 
     //States
     accessory.context.lastTVState = false;
@@ -425,34 +429,49 @@ class BRAVIAOS {
   setPowerState(accessory, service, state, callback){
     const self = this;
     state?state=true:state=false;
-    self.getContent('/sony/system','setPowerStatus',{
-      'status':state
-    },'1.0',accessory.context.ipadress,accessory.context.port,accessory.context.psk)
-      .then((data)=>{
-        const response=JSON.parse(data);
-        if('error' in response){
-          if(response.error[0]==7||response.error[0]==40005){
-            self.logger.warn(accessory.context.name + ': TV OFF!');
-            accessory.context.lastTVState = false;
-          }else if(response.error[0]==3||response.error[0]==5){
-            self.logger.error(accessory.context.name + ': Illegal argument!');
-            accessory.context.lastTVState=false;
-          }else{
-            self.logger.error(accessory.context.name + ': ERROR:'+JSON.stringify(response));
-            accessory.context.lastTVState=false;
-          }
-        }else{
-          state?self.logger.info(accessory.context.name + ': ON'):self.logger.info(accessory.context.name + ': OFF');
-          accessory.context.lastTVState=state;
+    if(accessory.context.wakeOnLan && state) {
+      self.logger.info(accessory.context.name +": Using WakeOnLan to turn on TV (state:" + state + ")...");
+      const mac = accessory.context.macaddress
+      wol.wake(mac, error => {
+        if(error) {
+          self.logger.error(accessory.context.name +": ERROR: WakeOnLan failed - " + JSON.stringify(error));
         }
-        service.getCharacteristic(Characteristic.Active).updateValue(accessory.context.lastTVState);
-        callback(null,accessory.context.lastTVState);
-      })
-      .catch((err)=>{
-        accessory.context.lastTVState=false;
-        self.logger.error('Can\'t set '+accessory.context.name+(state?' on! ':' off! ')+err);
+        else {
+          accessory.context.lastTVState=true;
+        }
         callback(null,accessory.context.lastTVState);
       });
+    }
+    else {
+      self.getContent('/sony/system','setPowerStatus',{
+        'status':state
+      },'1.0',accessory.context.ipadress,accessory.context.port,accessory.context.psk)
+        .then((data)=>{
+          const response=JSON.parse(data);
+          if('error' in response){
+            if(response.error[0]==7||response.error[0]==40005){
+              self.logger.warn(accessory.context.name + ': TV OFF!');
+              accessory.context.lastTVState = false;
+            }else if(response.error[0]==3||response.error[0]==5){
+              self.logger.error(accessory.context.name + ': Illegal argument!');
+              accessory.context.lastTVState=false;
+            }else{
+              self.logger.error(accessory.context.name + ': ERROR:'+JSON.stringify(response));
+              accessory.context.lastTVState=false;
+            }
+          }else{
+            state?self.logger.info(accessory.context.name + ': ON'):self.logger.info(accessory.context.name + ': OFF');
+            accessory.context.lastTVState=state;
+          }
+          service.getCharacteristic(Characteristic.Active).updateValue(accessory.context.lastTVState);
+          callback(null,accessory.context.lastTVState);
+        })
+        .catch((err)=>{
+          accessory.context.lastTVState=false;
+          self.logger.error('Can\'t set '+accessory.context.name+(state?' on! ':' off! ')+err);
+          callback(null,accessory.context.lastTVState);
+        });
+    }
   }
 
   setInput(accessory, service, newValue,callback){
