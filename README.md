@@ -70,6 +70,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 	         "name": "TV 2",
           "interval": 10,
           "ipadress": "192.168.1.2",
+          "wakeOnLan": true,
           "port": 80,
           "psk": "PSKHERE",
           "extraInputs": false,
@@ -97,6 +98,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 | ipadress | **Yes** | IP adress from your Sony Bravia Android TV |
 | port | No | If you have problems with connecting to the TV, try a different port _(Default: 80)_ |
 | psk | **Yes** | Your PRE SHARED KEY _(see preparing the TV above)_ |
+| wakeOnLan | **No** | Use `wake_on_lan` to turn on the TV (needed for old Bravia KDL) _(Default: false)_ |
 | interval | **No** | Polling interval _(Default: 10s)_ |
 | extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
 | cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
