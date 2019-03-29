@@ -319,48 +319,58 @@ class BRAVIAOS {
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
 
-  setNewInputs(accessory){
-    const self=this;
+  removeEntries(accessory) { 
     const actives=[];
     const inputs = accessory.context.inputs;
 
+    const hasCecInputs = accessory.context.cecInputs || false;
+    const hasChannelInput = accessory.context.channelInputs || false;
+    const hasExtraInput = accessory.context.extraInputs || false;
+    const hasFavApps = accessory.context.favApps && accessory.context.favApps.length > 0;
     //Remove Entries
     for(const j in inputs){
-      if(inputs[j].icon=='meta:hdmi'){
-        actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:playbackdevice'){
-        if(accessory.context.cecInputs){
-          actives.push(inputs[j]);
-        }
-      } else if(inputs[j].icon=='meta:composite'||inputs[j].icon=='meta:scart'||inputs[j].icon=='meta:wifidisplay'){
-        if(accessory.context.extraInputs){
-          actives.push(inputs[j]);
-        }
-      } else if(inputs[j].icon == 'meta:app'){
-        if(accessory.context.favApps&&accessory.context.favApps.length>0){
-          actives.push(inputs[j]);
-        }
-      } else if(inputs[j].icon=='meta:tv'){
-        if(accessory.context.channelInputs){
-          actives.push(inputs[j]);
-        }
+      const input = inputs[j];
+      const icon = inputs[j].icon;
+      if(icon == 'meta:hdmi'){
+        actives.push(input);
+      } else if(hasCecInputs && icon == 'meta:playbackdevice'){
+          actives.push(input);
+      } else if(hasExtraInput && (icon == 'meta:composite' || icon == 'meta:scart' || icon == 'meta:wifidisplay')){
+          actives.push(input);
+      } else if(hasFavApps && icon == 'meta:app'){
+          actives.push(input);
+      } else if(hasChannelInput && icon == 'meta:tv'){
+          actives.push(input);
       }
     }
 
+    return actives;
+  }
+
+  setNewInputs(accessory){
+    const self=this;
+    const inputs = accessory.context.inputs;
+
+    const hasCecInputs = accessory.context.cecInputs || false;
+    const hasChannelInput = accessory.context.channelInputs || false;
+    const hasExtraInput = accessory.context.extraInputs || false;
+    const hasFavApps = accessory.context.favApps && accessory.context.favApps.length > 0;
+    const actives = this.removeEntries(accessory);
+
     //Unpublish entries
     for(const l in inputs){
-      let thisTitle = inputs[l].title.toLowerCase().replace(/\s/g,'').split('/')[0];
-      if(inputs[l].icon=='meta:playbackdevice'){
-        if(!accessory.context.cecInputs){
-          self.deleteInputSource(thisTitle,inputs[l].title,accessory);
-        }
-      } else if(inputs[l].icon=='meta:composite'||inputs[l].icon=='meta:scart'||inputs[l].icon=='meta:wifidisplay'){
-        if(!accessory.context.extraInputs){
-          self.deleteInputSource(thisTitle,inputs[l].title,accessory);
-        }
-      } else if(inputs[l].icon == 'meta:app'){
-        if(!accessory.context.favApps&&!accessory.context.favApps.length>0){
-          self.deleteInputSource(thisTitle,inputs[l].title,accessory);
+      const input = inputs[l];
+      const icon = input.icon;
+      const label = input.label;
+      const inputName = !label || label == ""? input.title : label;
+      const inputId = input.title.toLowerCase().replace(/\s/g,'').split('/')[0];
+      if(!hasCecInputs && icon == 'meta:playbackdevice'){
+          self.deleteInputSource(inputId, inputName, accessory);
+      } else if(!hasExtraInput && icon == 'meta:composite'|| icon == 'meta:scart' || icon == 'meta:wifidisplay'){
+          self.deleteInputSource(inputId, inputName, accessory);
+      } else if(icon == 'meta:app'){
+        if(!hasFavApps){
+          self.deleteInputSource(inputId, inputName, accessory);
         } else {
           for(const s in accessory.services){
             if(accessory.services[s].subtype!=undefined){
@@ -387,34 +397,29 @@ class BRAVIAOS {
             }
           }
         }
-      } else if(inputs[l].icon=='meta:tv'){
-        if(!accessory.context.channelInputs){
-          self.deleteInputSource(thisTitle,inputs[l].title,accessory);
-        }
+      } else if(!hasChannelInput && icon == 'meta:tv'){
+          self.deleteInputSource(inputId, inputName, accessory);
       }
     }
 
     //Publish Entries
     for(const i in actives){
-      const newTitle=actives[i].title.toLowerCase().replace(/\s/g,'').split('/')[0];
-      if(actives[i].icon=='meta:hdmi'){
-        self.createInputSource(newTitle,actives[i].title,i,3,1,actives[i].icon,accessory);
-      } else if(actives[i].icon=='meta:playbackdevice'){
-        if(accessory.context.cecInputs){
-          self.createInputSource(newTitle,actives[i].title,i,0,4,actives[i].icon,accessory);
-        }
-      } else if(actives[i].icon=='meta:composite'||actives[i].icon=='meta:scart'||actives[i].icon=='meta:wifidisplay'){
-        if(accessory.context.extraInputs){
-          self.createInputSource(newTitle,actives[i].title,i,4,1,'meta:extras',accessory);
-        }
-      }else if(actives[i].icon == 'meta:app'){
-        if(accessory.context.favApps&&accessory.context.favApps.length>0){
-          self.createInputSource(newTitle,actives[i].title,i,10,1,actives[i].icon,accessory);
-        }
-      } else if(actives[i].icon=='meta:tv'){
-        if(accessory.context.channelInputs){
-          self.createInputSource(newTitle,actives[i].title,i,2,3,actives[i].icon,accessory);
-        }
+      const input = actives[i];
+      const icon = input.icon;
+      const label = input.label;
+      const inputName = !label || label == ""? input.title : label;
+      const inputId = input.title.toLowerCase().replace(/\s/g,'').split('/')[0];
+      
+      if(icon == 'meta:hdmi'){
+        self.createInputSource(inputId, inputName, i, 3, 1, icon, accessory);
+      } else if(hasCecInputs && icon == 'meta:playbackdevice'){
+          self.createInputSource(inputId, inputName, i, 0, 4, icon, accessory);
+      } else if(hasExtraInput && icon == 'meta:composite'|| icon == 'meta:scart'|| icon == 'meta:wifidisplay'){
+          self.createInputSource(inputId, inputName, i, 4, 1,'meta:extras', accessory);
+      }else if(hasFavApps && icon == 'meta:app'){
+          self.createInputSource(inputId, inputName, i, 10, 1, icon, accessory);
+      } else if(hasChannelInput && icon =='meta:tv'){
+          self.createInputSource(inputId, inputName, i, 2, 3, icon, accessory);
       }
     }
 
@@ -476,27 +481,11 @@ class BRAVIAOS {
 
   setInput(accessory, service, newValue,callback){
     const self=this;
-    const actives=[];
-
-    const inputs = accessory.context.inputs;
-    //Remove Entries
-    for(const j in inputs){
-      if(inputs[j].icon=='meta:hdmi'){
-        actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:playbackdevice'){
-        if(accessory.context.cecInputs)actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:composite'||inputs[j].icon=='meta:scart'||inputs[j].icon=='meta:wifidisplay'){
-        if(accessory.context.extraInputs)actives.push(inputs[j]);
-      } else if(inputs[j].icon == 'meta:app'){
-        if(accessory.context.favApps&&accessory.context.favApps.length>0)actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:tv'){
-        if(accessory.context.channelInputs)actives.push(inputs[j]);
-      }
-    }
+    const actives = this.removeEntries(accessory);
 
     for(const i in actives){
       if(newValue==i){
-        if(actives[i].icon!='meta:app'){
+        if(actives[i].icon != 'meta:app'){
           self.getContent('/sony/avContent','setPlayContent',{'uri':actives[i].uri},'1.0',accessory.context.ipadress,accessory.context.port,accessory.context.psk)
             .then((data)=>{
               const response=JSON.parse(data);
@@ -756,23 +745,7 @@ class BRAVIAOS {
 
   getInputState(accessory,service){
     const self = this;
-    const actives=[];
-
-    const inputs = accessory.context.inputs;
-    //Remove Entries
-    for(const j in inputs){
-      if(inputs[j].icon=='meta:hdmi'){
-        actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:playbackdevice'){
-        if(accessory.context.cecInputs)actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:composite'||inputs[j].icon=='meta:scart'||inputs[j].icon=='meta:wifidisplay'){
-        if(accessory.context.extraInputs)actives.push(inputs[j]);
-      } else if(inputs[j].icon == 'meta:app'){
-        if(accessory.context.favApps&&accessory.context.favApps.length>0)actives.push(inputs[j]);
-      } else if(inputs[j].icon=='meta:tv'){
-        if(accessory.context.channelInputs)actives.push(inputs[j]);
-      }
-    }
+    const actives = this.removeEntries(accessory);
 
     self.getContent('/sony/avContent','getPlayingContentInfo','1.0','1.0',accessory.context.ipadress,accessory.context.port,accessory.context.psk)
       .then((data)=>{
@@ -844,9 +817,10 @@ class BRAVIAOS {
       .then((data)=>{
         const response=JSON.parse(data);
         if('error'in response){
-          if(response.error[0]==7||response.error[0]==40005){
+          const error = response.error[0]; 
+          if(error == 7|| error == 40005){
             self.logger.warn(accessory.context.name + ': OFF');
-          }else if(response.error[0]==3||response.error[0]==5){
+          }else if(error == 3 || error == 5){
             self.logger.error(accessory.context.name + ': Illegal argument!');
           }else{
             self.logger.error(accessory.context.name + ': ERROR: '+JSON.stringify(response));
@@ -1054,7 +1028,7 @@ class BRAVIAOS {
 
     let linkedServices = self.accessories[accessory.displayName].services;
     for(const i in linkedServices){
-      if(linkedServices[i].subtype!==undefined){
+      if(linkedServices[i].subtype !== undefined){
         identifierMax += 1;
       }
     }
