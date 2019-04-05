@@ -1,6 +1,6 @@
 {
   "name": "homebridge-bravia-tvos",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "homebridge-bravia-tvos",
   "main": "index.js",
   "devDependencies": {},
@@ -31,7 +31,8 @@
     "homebridge": "^0.4.38"
   },
   "dependencies": {
-    "node-persist": "0.0.8",
-    "async": "2.6.0"
+    "axios": "^0.18.0",
+    "debug": "^4.1.1",
+    "wake_on_lan": "^1.0.0"
   }
 }
