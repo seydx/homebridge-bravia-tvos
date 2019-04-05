@@ -54,11 +54,11 @@ class BraviaPlatform {
         Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
       );
       
-    service.getCharacteristic(Characteristic.ActiveIdentifier)
-      .on('set', this.setInputState.bind(this, accessory, service));
-      
     service.getCharacteristic(Characteristic.Active)
       .on('set', this.setPowerState.bind(this, accessory, service));
+      
+    service.getCharacteristic(Characteristic.ActiveIdentifier)
+      .on('set', this.setInputState.bind(this, accessory, service));
       
     if (!service.testCharacteristic(Characteristic.RemoteKey))
       service.addCharacteristic(Characteristic.RemoteKey);
@@ -292,6 +292,23 @@ class BraviaPlatform {
   
     try {
 	    
+      if(!service.getCharacteristic(Characteristic.Active).value){
+	      
+        this.logger.info(accessory.displayName + ': Turning on TV')
+	      
+        if(accessory.context.wol && accessory.context.mac){
+          await this.Bravia.setPowerStatusWOL(accessory.context.mac);
+        } else {
+	      await this.Bravia.setPowerStatus(true); 
+        }
+        
+        service.getCharacteristic(Characteristic.Active).updateValue(true);
+        service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(value);
+        
+        await timeout(3000);
+        
+      }
+	    
       for(const i of this._inputs){
         if(i[1]===uri)
           this.logger.info(accessory.displayName + ': Turn on ' + i[0])
@@ -477,7 +494,7 @@ class BraviaPlatform {
   
         this._uris.set(countInputs, value);
   
-        this.debug('[Bravia Debug]: ' + accessory.displayName + ': Adding new Input: ' + key);
+        this.logger.info(accessory.displayName + ': Adding new Input: ' + key);
   
         tvInput = accessory.addService(Service.InputSource, key, key + ' Input');  
   
@@ -509,7 +526,7 @@ class BraviaPlatform {
   
         if(!(this._inputs.has(input.displayName))){
       
-          this.debug('[Bravia Debug]: ' + accessory.displayName + ': Removing Input: ' + input.displayName);
+          this.logger.warn(accessory.displayName + ': Removing Input: ' + input.displayName);
   
           service.removeLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
           accessory.removeService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
