@@ -195,13 +195,15 @@ BraviaOSPlatform.prototype = {
     let service = accessory.getServiceByUUIDAndSubType(Service.Television, accessory.displayName);
     let speaker = accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, accessory.displayName + ' Speaker');
     
-    service.addLinkedService(speaker);
+    if(service)
+      service.addLinkedService(speaker);
     
     accessory.services.map( input => {
   
       if(input.subtype && input.subtype.includes('Input')){
   
-        service.addLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
+        if(service)
+          service.addLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
    
       }
   
