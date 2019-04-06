@@ -208,7 +208,7 @@ class BraviaPlatform {
   
     } finally {
   
-      callback(null, state);
+      callback();
   
     }
   
@@ -630,10 +630,12 @@ class BraviaPlatform {
     const self = this;
   
     let countInputs = 0; 
+    const displayOrder = []
   
     this._inputs.forEach( (value, key) => {
   
       countInputs++;
+      displayOrder.push(0x01, 0x04, 0x0+countInputs, 0x00, 0x00, 0x00);
       let tvInput, sourceType, deviceType;
   
       if(this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
@@ -672,6 +674,11 @@ class BraviaPlatform {
       }
   
     });
+    
+    displayOrder.push(0x00, 0x00);
+    
+    this.service.getCharacteristic(Characteristic.DisplayOrder)
+      .updateValue(Buffer.from(displayOrder).toString('base64'));
   
   }
   
