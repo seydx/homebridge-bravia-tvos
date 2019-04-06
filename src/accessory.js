@@ -48,7 +48,7 @@ class BraviaPlatform {
     const self = this;
 
     this.accessory.on('identify', function (paired, callback) {
-      self.logger.info(this.accessory.displayName + ': Hi!');
+      self.logger.info(self.accessory.displayName + ': Hi!');
       callback();
     });
     
