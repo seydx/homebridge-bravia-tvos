@@ -241,11 +241,12 @@ class BraviaPlatform {
             }
   
           } else {
+	          
+	        let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
           
-            if((status.uri && status.uri.includes((this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc')))||
-            (status.source && status.source === (this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'))){
+            if((status.uri && status.uri.includes(channelType))||(status.source && status.source === channelType)){
 
-              name = this.accessory.context.channelSource === 'DVBT' ? 'DVBT' : 'DVBC';
+              name = this.accessory.context.channelSource;
             
             } else {
             
@@ -441,11 +442,13 @@ class BraviaPlatform {
         });
       }
     
-      if(this.accessory.context.channels.length && (this.accessory.context.channelSource === 'DVBT'||this.accessory.context.channelSource === 'DVBC')){
+      if(this.accessory.context.channels.length && (this.accessory.context.channelSource === 'DVBT'||this.accessory.context.channelSource === 'DVBC'||this.accessory.context.channelSource === 'DVBS')){
   
         for(const i of this.accessory.context.channels){
+	        
+	      let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
 
-          let channel = await this.Bravia.getContentList((this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'), 1, i);
+          let channel = await this.Bravia.getContentList(channelType, 1, i);
           inputArray.push(channel[0]);
 
         }
@@ -471,11 +474,13 @@ class BraviaPlatform {
 
       }
       
-      if(this.accessory.context.channelSource==='DVBT'||this.accessory.context.channelSource==='DVBC')
+      if(this.accessory.context.channelSource==='DVBT'||this.accessory.context.channelSource==='DVBC'||this.accessory.context.channelSource==='DVBS'){
+	    let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
         inputArray.push({
           title: this.accessory.context.channelSource,
-          uri: this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'
+          uri: channelType
         });
+      }
   
     } catch(err){
   
