@@ -278,8 +278,9 @@ class BraviaPlatform {
       } catch(err) {
   
         this.logger.error(this.accessory.displayName + ': Error while getting input state!'); 
-        this.debug('[Bravia Debug]: ' + JSON.stringify(err));
-  
+        //this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+        console.log(err)
+
       } finally {
   
         setTimeout(this.getInputState.bind(this), this.accessory.context.interval);
