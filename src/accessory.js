@@ -510,7 +510,8 @@ class BraviaPlatform {
   
         this.logger.info(this.accessory.displayName + ': Adding new Input: ' + key);
         
-        tvInput = new Service.InputSource(key, key + ' Input');
+        //tvInput = new Service.InputSource(key, key + ' Input');
+        tvInput = this.accessory.addService(Service.InputSource, key, key + ' Input');  
   
         tvInput
           .setCharacteristic(Characteristic.Identifier, countInputs)
@@ -521,7 +522,7 @@ class BraviaPlatform {
           .setCharacteristic(Characteristic.InputDeviceType, Characteristic.InputDeviceType.OTHER)
           .setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.HDMI);
         
-        this.accessory.addService(tvInput);
+        //this.accessory.addService(tvInput);
   
       }
   
