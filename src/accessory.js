@@ -30,6 +30,8 @@ class BraviaPlatform {
     
     this._inputs = new Map();
     this._uris = new Map();
+    this._sourceType = new Map();
+    this._deviceType = new Map();
     
     this.accessory = accessory;
     this.service = accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName);
@@ -134,7 +136,7 @@ class BraviaPlatform {
     } catch(err) {
   
       this.logger.error(this.accessory.displayName + ': Error while setting volume!');
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -164,7 +166,7 @@ class BraviaPlatform {
     } catch(err) {
   
       this.logger.error(this.accessory.displayName + ': Error while getting power state!'); 
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -202,7 +204,7 @@ class BraviaPlatform {
     } catch(err) {
   
       this.logger.error(this.accessory.displayName + ': Error while setting new power state!'); 
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -241,8 +243,8 @@ class BraviaPlatform {
             }
   
           } else {
-	          
-	        let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+          
+            let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
           
             if((status.uri && status.uri.includes(channelType))||(status.source && status.source === channelType)){
 
@@ -278,9 +280,8 @@ class BraviaPlatform {
       } catch(err) {
   
         this.logger.error(this.accessory.displayName + ': Error while getting input state!'); 
-        //this.debug('[Bravia Debug]: ' + JSON.stringify(err));
-        console.log(err)
-
+        this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+  
       } finally {
   
         setTimeout(this.getInputState.bind(this), this.accessory.context.interval);
@@ -334,7 +335,7 @@ class BraviaPlatform {
     } catch(err) {
   
       this.logger.error(this.accessory.displayName + ': Error while setting new input state!'); 
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -353,7 +354,9 @@ class BraviaPlatform {
       inputs.map( input => {
   
         this._inputs.set((input.title ? input.title : input.label), input.uri);
-   
+        this._sourceType.set((input.title ? input.title : input.label), input.sourceType);
+        this._deviceType.set((input.title ? input.title : input.label), input.deviceType);
+
       });
     
       this._addInputs();
@@ -362,7 +365,7 @@ class BraviaPlatform {
     } catch (err) {
    
       this.logger.error(this.accessory.displayName + ': Error while checking inputs!'); 
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
     
     }
   
@@ -384,15 +387,65 @@ class BraviaPlatform {
       let inputs = await this.Bravia.getCurrentExternalInputsStatus();
   
       inputs.map( input => {
-  
+      
         if(this.accessory.context.extraInputs && this.accessory.context.cecInputs){
+
+          input.sourceType = Characteristic.InputSourceType.OTHER;
+          input.deviceType = Characteristic.InputDeviceType.TV;
   
+          if(input.icon === 'meta:hdmi'){
+
+            input.sourceType = Characteristic.InputSourceType.HDMI;
+            input.deviceType = Characteristic.InputDeviceType.TV;
+
+          }
+  
+          if(input.icon === 'meta:composite'||
+          input.icon === 'meta:svideo'||
+          input.icon === 'meta:composite_componentd'||
+          input.icon === 'meta:component'||
+          input.icon === 'meta:componentd'||
+          input.icon === 'meta:scart'||
+          input.icon === 'meta:dsub15'||
+          input.icon === 'meta:tuner'||
+          input.icon === 'meta:tape'||
+          input.icon === 'meta:disc'||
+          input.icon === 'meta:complex'||
+          input.icon === 'meta:avamp'||
+          input.icon === 'meta:hometheater'||
+          input.icon === 'meta:game'||
+          input.icon === 'meta:camcorder'||
+          input.icon === 'meta:digitalcamera'||
+          input.icon === 'meta:pc'||
+          input.icon === 'meta:wifidisplay'){
+
+            input.sourceType = Characteristic.InputSourceType.OTHER;
+            input.deviceType = Characteristic.InputDeviceType.TV;
+
+          }
+    
+          if(input.icon === 'meta:tv'||
+          input.icon === 'meta:audiosystem'||
+          input.icon === 'meta:recordingdevice'||
+          input.icon === 'meta:playbackdevice'||
+          input.icon === 'meta:tunerdevice'){
+
+            input.sourceType = Characteristic.InputSourceType.HDMI;
+            input.deviceType = Characteristic.InputDeviceType.PLAYBACK;
+
+          }
+          
           inputArray.push(input);
         
         } else {
   
-          if(input.icon === 'meta:hdmi')
+          if(input.icon === 'meta:hdmi'){
+
+            input.sourceType = Characteristic.InputSourceType.HDMI;
+            input.deviceType = Characteristic.InputDeviceType.TV;
+
             inputArray.push(input);
+          }
     
           if(this.accessory.context.extraInputs){
   
@@ -414,6 +467,10 @@ class BraviaPlatform {
             input.icon === 'meta:digitalcamera'||
             input.icon === 'meta:pc'||
             input.icon === 'meta:wifidisplay'){
+
+              input.sourceType = Characteristic.InputSourceType.OTHER;
+              input.deviceType = Characteristic.InputDeviceType.TV;
+
               inputArray.push(input);
             }
   
@@ -425,6 +482,10 @@ class BraviaPlatform {
           input.icon === 'meta:recordingdevice'||
           input.icon === 'meta:playbackdevice'||
           input.icon === 'meta:tunerdevice')){
+
+            input.sourceType = Characteristic.InputSourceType.HDMI;
+            input.deviceType = Characteristic.InputDeviceType.PLAYBACK;
+
             inputArray.push(input); 
           }
   
@@ -437,8 +498,13 @@ class BraviaPlatform {
     
         apps.map( app => {
     
-          if(this.accessory.context.apps.includes(app.title))    
+          if(this.accessory.context.apps.includes(app.title)){
+            
+            app.sourceType = Characteristic.InputSourceType.APPLICATION;
+            app.deviceType = Characteristic.InputDeviceType.TV;
+            
             inputArray.push(app);
+          }    
     
         });
       }
@@ -446,11 +512,16 @@ class BraviaPlatform {
       if(this.accessory.context.channels.length && (this.accessory.context.channelSource === 'DVBT'||this.accessory.context.channelSource === 'DVBC'||this.accessory.context.channelSource === 'DVBS')){
   
         for(const i of this.accessory.context.channels){
-	        
-	      let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+        
+          let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
 
           let channel = await this.Bravia.getContentList(channelType, 1, i);
-          inputArray.push(channel[0]);
+          channel = channel[0];
+          
+          channel.sourceType = Characteristic.InputSourceType.TUNER;
+          channel.deviceType = Characteristic.InputDeviceType.TV;
+          
+          inputArray.push(channel);
 
         }
 
@@ -462,12 +533,14 @@ class BraviaPlatform {
     
         this.accessory.context.commands.map( command => {
         
-          if(c.getCode(command)){+
+          if(c.getCode(command)){
       
-          inputArray.push({
-            title: c.getCode(command),
-            uri: command
-          });
+            inputArray.push({
+              title: c.getCode(command),
+              uri: command,
+              sourceType: Characteristic.InputSourceType.HOME_SCREEN,
+              deviceType: Characteristic.InputDeviceType.TV
+            });
       
           }
     
@@ -476,10 +549,12 @@ class BraviaPlatform {
       }
       
       if(this.accessory.context.channelSource==='DVBT'||this.accessory.context.channelSource==='DVBC'||this.accessory.context.channelSource==='DVBS'){
-	    let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+        let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
         inputArray.push({
           title: this.accessory.context.channelSource,
-          uri: channelType
+          uri: channelType,
+          sourceType: Characteristic.InputSourceType.TUNER,
+          deviceType: Characteristic.InputDeviceType.TV
         });
       }
   
@@ -508,11 +583,19 @@ class BraviaPlatform {
     this._inputs.forEach( (value, key) => {
   
       countInputs++;
-      let tvInput;
+      let tvInput, sourceType, deviceType;
   
       if(!this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
   
         this._uris.set(countInputs, value);
+        
+        for(const i of this._sourceType){
+          if(i[0] === key) sourceType = i[1];
+        }
+  
+        for(const j of this._deviceType){
+          if(j[0] === key) deviceType = j[1];
+        }
   
         this.logger.info(this.accessory.displayName + ': Adding new Input: ' + key);
         
@@ -520,13 +603,14 @@ class BraviaPlatform {
         tvInput = this.accessory.addService(Service.InputSource, key, key + ' Input');  
   
         tvInput
+          .setCharacteristic(Characteristic.Name, key)
           .setCharacteristic(Characteristic.Identifier, countInputs)
           .setCharacteristic(Characteristic.ConfiguredName, key)
           .setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
           .setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN)
           .setCharacteristic(Characteristic.TargetVisibilityState, Characteristic.TargetVisibilityState.SHOWN)
-          .setCharacteristic(Characteristic.InputDeviceType, Characteristic.InputDeviceType.OTHER)
-          .setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.HDMI);
+          .setCharacteristic(Characteristic.InputDeviceType, deviceType)
+          .setCharacteristic(Characteristic.InputSourceType, sourceType);
         
         //this.accessory.addService(tvInput);
   
@@ -550,7 +634,7 @@ class BraviaPlatform {
     this._inputs.forEach( (value, key) => {
   
       countInputs++;
-      let tvInput;
+      let tvInput, sourceType, deviceType;
   
       if(this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
       
@@ -559,11 +643,19 @@ class BraviaPlatform {
         tvInput = this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input');
   
         this._uris.set(countInputs, value);
+
+        for(const i of this._sourceType){
+          if(i[0] === key) sourceType = i[1];
+        }
+  
+        for(const j of this._deviceType){
+          if(j[0] === key) deviceType = j[1];
+        }
         
         tvInput.getCharacteristic(Characteristic.Identifier).updateValue(countInputs);
         tvInput.getCharacteristic(Characteristic.IsConfigured).updateValue(Characteristic.IsConfigured.CONFIGURED);
-        tvInput.getCharacteristic(Characteristic.InputDeviceType).updateValue(Characteristic.InputDeviceType.OTHER);
-        tvInput.getCharacteristic(Characteristic.InputSourceType).updateValue(Characteristic.InputSourceType.HDMI);
+        tvInput.getCharacteristic(Characteristic.InputDeviceType).updateValue(deviceType);
+        tvInput.getCharacteristic(Characteristic.InputSourceType).updateValue(sourceType);
           
         tvInput.getCharacteristic(Characteristic.TargetVisibilityState)
           .on('set', function(state, callback){
@@ -693,7 +785,7 @@ class BraviaPlatform {
     } catch(err){
   
       this.logger.error(this.accessory.displayName + ': Error while setting new remote key'); 
-      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
