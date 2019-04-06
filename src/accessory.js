@@ -23,9 +23,6 @@ class BraviaPlatform {
     this.config = platform.config;
     this.accessories = platform.accessories;
     
-    this.configPath = platform.api.user.storagePath();
-    this.HBpath = platform.api.user.storagePath()+'/accessories';
-    
     this.Bravia = new Bravia(accessory.context);
     
     this._inputs = new Map();
