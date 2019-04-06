@@ -2,6 +2,7 @@
 
 const LogUtil = require('../lib/LogUtil.js');
 const Bravia = require('../lib/Bravia.js');
+const IRCC = require('../lib/IRCC.js');
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -26,92 +27,98 @@ class BraviaPlatform {
     this.HBpath = platform.api.user.storagePath()+'/accessories';
     
     this.Bravia = new Bravia(accessory.context);
+    
+    this._inputs = new Map();
+    this._uris = new Map();
+    
+    this.accessory = accessory;
+    this.service = accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName);
+    this.speaker = accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker');
+    
+    this.getService();
 
-    this.getService(accessory);
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  async getService (accessory) {
+  async getService () {
   
     const self = this;
 
-    accessory.on('identify', function (paired, callback) {
-      self.logger.info(accessory.displayName + ': Hi!');
+    this.accessory.on('identify', function (paired, callback) {
+      self.logger.info(this.accessory.displayName + ': Hi!');
       callback();
     });
     
-    let service = accessory.getServiceByUUIDAndSubType(Service.Television, accessory.displayName);
-    
-    if(!service.getCharacteristic(Characteristic.ConfiguredName).value)
-      service.setCharacteristic(Characteristic.ConfiguredName, accessory.displayName);
+    if(!this.service.getCharacteristic(Characteristic.ConfiguredName).value)
+      this.service.setCharacteristic(Characteristic.ConfiguredName, this.accessory.displayName);
       
-    service
+    this.service
       .setCharacteristic(
         Characteristic.SleepDiscoveryMode,
         Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
       );
       
-    service.getCharacteristic(Characteristic.Active)
-      .on('set', this.setPowerState.bind(this, accessory, service));
+    this.service.getCharacteristic(Characteristic.Active)
+      .on('set', this.setPowerState.bind(this));
       
-    service.getCharacteristic(Characteristic.ActiveIdentifier)
-      .on('set', this.setInputState.bind(this, accessory, service));
+    this.service.getCharacteristic(Characteristic.ActiveIdentifier)
+      .on('set', this.setInputState.bind(this));
       
-    if (!service.testCharacteristic(Characteristic.RemoteKey))
-      service.addCharacteristic(Characteristic.RemoteKey);
+    if (!this.service.testCharacteristic(Characteristic.RemoteKey))
+      this.service.addCharacteristic(Characteristic.RemoteKey);
       
-    service.getCharacteristic(Characteristic.RemoteKey)
-      .on('set', this.setRemote.bind(this, accessory, service));
+    this.service.getCharacteristic(Characteristic.RemoteKey)
+      .on('set', this.setRemote.bind(this));
       
-    if (!service.testCharacteristic(Characteristic.PowerModeSelection))
-      service.addCharacteristic(Characteristic.PowerModeSelection);
+    if (!this.service.testCharacteristic(Characteristic.PowerModeSelection))
+      this.service.addCharacteristic(Characteristic.PowerModeSelection);
       
-    service.getCharacteristic(Characteristic.PowerModeSelection)
-      .on('set', this.setRemote.bind(this, accessory, service));
+    this.service.getCharacteristic(Characteristic.PowerModeSelection)
+      .on('set', this.setRemote.bind(this));
       
-    service.getCharacteristic(Characteristic.PictureMode)
-      .on('set', this.setRemote.bind(this, accessory, service));
-    
-    let speaker = accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, accessory.displayName + ' Speaker');  
+    this.service.getCharacteristic(Characteristic.PictureMode)
+      .on('set', this.setRemote.bind(this));
       
-    speaker
+    this.speaker
       .setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
       
-    speaker.getCharacteristic(Characteristic.Mute)
-      .on('set', this.setMute.bind(this, accessory, speaker));
+    this.speaker.getCharacteristic(Characteristic.Mute)
+      .on('set', this.setMute.bind(this));
 
-    speaker.getCharacteristic(Characteristic.VolumeSelector)
-      .on('set', this.setRemoteVolume.bind(this, accessory, speaker));
+    this.speaker.getCharacteristic(Characteristic.VolumeSelector)
+      .on('set', this.setRemoteVolume.bind(this));
 
-    if (!speaker.testCharacteristic(Characteristic.Volume))
-      speaker.addCharacteristic(Characteristic.Volume);
+    if (!this.speaker.testCharacteristic(Characteristic.Volume))
+      this.speaker.addCharacteristic(Characteristic.Volume);
 
-    speaker.getCharacteristic(Characteristic.Volume)
-      .on('set', this.setVolume.bind(this, accessory, speaker));
+    this.speaker.getCharacteristic(Characteristic.Volume)
+      .on('set', this.setVolume.bind(this));
     
-    service.addLinkedService(speaker);
+    this.service.addLinkedService(this.speaker);
     
-    this._checkInputs(accessory,service);
-    this.getPowerState(accessory,service);
-    this.getSpeaker(accessory, service);
+    this._checkInputs();
+
+    this.getInputState();
+    this.getPowerState();
+    this.getSpeaker();
 
   }
   
-  async getSpeaker(accessory,service){
+  async getSpeaker(){
 
   }
   
-  async setMute(accessory, service, mute, callback){
+  async setMute(mute, callback){
  
-    this.logger.info(accessory.displayName + ': Mute: ' + mute);
+    this.logger.info(this.accessory.displayName + ': Mute: ' + mute);
     callback();
   
   }
   
-  async setRemoteVolume(accessory, service, value, callback){
+  async setRemoteVolume(value, callback){
  
     //0: Increment
     //1: Decrement
@@ -120,14 +127,14 @@ class BraviaPlatform {
  
     try {
   
-      this.logger.info(accessory.displayName + ': Volume ' + (value ? 'down' : 'up'));
+      this.logger.info(this.accessory.displayName + ': Volume ' + (value ? 'down' : 'up'));
   
       await this.Bravia.setIRCC(code);
   
     } catch(err) {
   
-      this.logger.error(accessory.displayName + ': Error while setting volume!');
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while setting volume!');
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -137,14 +144,14 @@ class BraviaPlatform {
   
   }
   
-  async setVolume(accessory, service, value, callback){
+  async setVolume(value, callback){
  
-    this.logger.info(accessory.displayName + ': Volume Value: ' + value);
+    this.logger.info(this.accessory.displayName + ': Volume Value: ' + value);
     callback();
   
   }
   
-  async getPowerState(accessory,service){
+  async getPowerState(){
   
     try {
   
@@ -152,50 +159,50 @@ class BraviaPlatform {
   
       let state = status.status === 'active' ? true : false;
   
-      service.getCharacteristic(Characteristic.Active).updateValue(state);
+      this.service.getCharacteristic(Characteristic.Active).updateValue(state);
   
     } catch(err) {
   
-      this.logger.error(accessory.displayName + ': Error while getting power state!'); 
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while getting power state!'); 
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
-      setTimeout(this.getPowerState.bind(this,accessory,service), accessory.context.interval);
+      setTimeout(this.getPowerState.bind(this), this.accessory.context.interval);
   
     }
   
   }
   
-  async setPowerState(accessory, service, state, callback){
+  async setPowerState(state, callback){
   
     try {
-	    
-	  this.logger.info(accessory.displayName + ': Turn ' + (state ? 'on' : 'off') + ((accessory.context.wol&&accessory.context.mac) ? ' (WOL)' : ''))
-	    
-	  if(accessory.context.wol && accessory.context.mac){
-		
-		if(state){
-			
-			await this.Bravia.setPowerStatusWOL(accessory.context.mac);
-			await timeout(3000)
-			
-		} else {
-			
-			await this.Bravia.setPowerStatus(false);
-			
-		}
-		  
-	  } else {
-		
-		await this.Bravia.setPowerStatus(state ? true : false);
-		  
-	  }
+    
+      this.logger.info(this.accessory.displayName + ': Turn ' + (state ? 'on' : 'off') + ((this.accessory.context.wol&&this.accessory.context.mac) ? ' (WOL)' : ''));
+    
+      if(this.accessory.context.wol && this.accessory.context.mac){
+
+        if(state){
+
+          await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
+          await timeout(3000);
+
+        } else {
+
+          await this.Bravia.setPowerStatus(false);
+
+        }
+  
+      } else {
+
+        await this.Bravia.setPowerStatus(state ? true : false);
+  
+      }
   
     } catch(err) {
   
-      this.logger.error(accessory.displayName + ': Error while setting new power state!'); 
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while setting new power state!'); 
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -205,9 +212,9 @@ class BraviaPlatform {
   
   }
   
-  async getInputState(accessory,service){
+  async getInputState(){
   
-    if(service.getCharacteristic(Characteristic.Active).value){
+    if(this.service.getCharacteristic(Characteristic.Active).value && this._inputs.size){
   
       try {
   
@@ -235,10 +242,10 @@ class BraviaPlatform {
   
           } else {
           
-            if((status.uri && status.uri.includes((accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc')))||
-            (status.source && status.source === (accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'))){
+            if((status.uri && status.uri.includes((this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc')))||
+            (status.source && status.source === (this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'))){
 
-              name = accessory.context.channelSource === 'DVBT' ? 'DVBT' : 'DVBC';
+              name = this.accessory.context.channelSource === 'DVBT' ? 'DVBT' : 'DVBC';
             
             } else {
             
@@ -265,65 +272,67 @@ class BraviaPlatform {
   
         }
   
-        service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(ident);
+        this.service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(ident);
   
       } catch(err) {
   
-        this.logger.error(accessory.displayName + ': Error while getting input state!'); 
-        this.debug('[Bravia Debug]: ' + err);
+        this.logger.error(this.accessory.displayName + ': Error while getting input state!'); 
+        this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
       } finally {
   
-        setTimeout(this.getInputState.bind(this,accessory,service), accessory.context.interval);
+        setTimeout(this.getInputState.bind(this), this.accessory.context.interval);
   
       }
   
     } else {
   
-      setTimeout(this.getInputState.bind(this,accessory,service), 1000);
+      setTimeout(this.getInputState.bind(this), 1000);
   
     }
   
   }
   
-  async setInputState(accessory, service, value, callback){
+  async setInputState(value, callback){
   
     let uri = this._uris.get(value);
   
     try {
-	    
-      if(!service.getCharacteristic(Characteristic.Active).value){
-	      
-        this.logger.info(accessory.displayName + ': Turning on TV')
-	      
-        if(accessory.context.wol && accessory.context.mac){
-          await this.Bravia.setPowerStatusWOL(accessory.context.mac);
+    
+      if(!this.service.getCharacteristic(Characteristic.Active).value){
+      
+        this.logger.info(this.accessory.displayName + ': Turning on TV');
+      
+        if(this.accessory.context.wol && this.accessory.context.mac){
+          await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
         } else {
-	      await this.Bravia.setPowerStatus(true); 
+          await this.Bravia.setPowerStatus(true); 
         }
         
-        service.getCharacteristic(Characteristic.Active).updateValue(true);
-        service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(value);
+        this.service.getCharacteristic(Characteristic.Active).updateValue(true);
+        this.service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(value);
         
         await timeout(3000);
         
       }
-	    
+    
       for(const i of this._inputs){
         if(i[1]===uri)
-          this.logger.info(accessory.displayName + ': Turn on ' + i[0])
+          this.logger.info(this.accessory.displayName + ': Turn on ' + i[0]);
       }
   
       if(uri.includes('com.sony.dtv')){
         await this.Bravia.setActiveApp(uri);  
+      } else if(uri.includes('AAAAA')){
+        await this.Bravia.setIRCC(uri);
       } else {
         await this.Bravia.setPlayContent(uri);  
       }
   
     } catch(err) {
   
-      this.logger.error(accessory.displayName + ': Error while setting new input state!'); 
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while setting new input state!'); 
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   
@@ -333,35 +342,39 @@ class BraviaPlatform {
   
   }
   
-  async _checkInputs(accessory, service){
+  async _checkInputs(){
   
     try {
     
-      let inputs = await this.getInputs(accessory);
-    
-      this._addInputs(accessory,service,inputs);
+      let inputs = await this.getInputs();
+  
+      inputs.map( input => {
+  
+        this._inputs.set((input.title ? input.title : input.label), input.uri);
    
-      await timeout(1000);
-      this.getInputState(accessory,service);
+      });
+    
+      this._addInputs();
+      this._removeInputs();
     
     } catch (err) {
    
-      this.logger.error(accessory.displayName + ': Error while checking inputs!'); 
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while checking inputs!'); 
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
     
     }
   
   }
   
-  async getInputs(accessory){
+  async getInputs(){
   
     let inputArray = [];
     let error;
   
     try{
   
-      if(accessory.context.cecInputs){
-        this.debug('[Bravia Debug]: ' + accessory.displayName + ': CEC detected, turning on TV and wait 7 secs until current external inputs are fetched!')
+      if(this.accessory.context.cecInputs){
+        this.debug('[Bravia Debug]: ' + this.accessory.displayName + ': CEC detected, turning on TV and wait 7 secs until current external inputs are fetched!');
         await this.Bravia.setPowerStatus(true);
         await timeout(7000); //wait 7sec after turn on to detect cec devices
       }
@@ -370,7 +383,7 @@ class BraviaPlatform {
   
       inputs.map( input => {
   
-        if(accessory.context.extraInputs && accessory.context.cecInputs){
+        if(this.accessory.context.extraInputs && this.accessory.context.cecInputs){
   
           inputArray.push(input);
         
@@ -379,7 +392,7 @@ class BraviaPlatform {
           if(input.icon === 'meta:hdmi')
             inputArray.push(input);
     
-          if(accessory.context.extraInputs){
+          if(this.accessory.context.extraInputs){
   
             if(input.icon === 'meta:composite'||
             input.icon === 'meta:svideo'||
@@ -404,7 +417,7 @@ class BraviaPlatform {
   
           }
     
-          if(accessory.context.cecInputs && 
+          if(this.accessory.context.cecInputs && 
           (input.icon === 'meta:tv'||
           input.icon === 'meta:audiosystem'||
           input.icon === 'meta:recordingdevice'||
@@ -417,27 +430,52 @@ class BraviaPlatform {
   
       });
           
-      if(accessory.context.apps.length){  
+      if(this.accessory.context.apps.length){  
         let apps = await this.Bravia.getApplicationList();
     
         apps.map( app => {
     
-          if(accessory.context.apps.includes(app.title))    
+          if(this.accessory.context.apps.includes(app.title))    
             inputArray.push(app);
     
         });
       }
     
-      if(accessory.context.channels.length){
+      if(this.accessory.context.channels.length && (this.accessory.context.channelSource === 'DVBT'||this.accessory.context.channelSource === 'DVBC')){
   
-        for(const i of accessory.context.channels){
+        for(const i of this.accessory.context.channels){
 
-          let channel = await this.Bravia.getContentList((accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'), 1, i);
+          let channel = await this.Bravia.getContentList((this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'), 1, i);
           inputArray.push(channel[0]);
 
         }
 
       }
+
+      if(this.accessory.context.commands.length){
+      
+        const c = new IRCC.IRCC();
+    
+        this.accessory.context.commands.map( command => {
+        
+          if(c.getCode(command)){+
+      
+          inputArray.push({
+            title: c.getCode(command),
+            uri: command
+          });
+      
+          }
+    
+        });
+
+      }
+      
+      if(this.accessory.context.channelSource==='DVBT'||this.accessory.context.channelSource==='DVBC')
+        inputArray.push({
+          title: this.accessory.context.channelSource,
+          uri: this.accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'
+        });
   
     } catch(err){
   
@@ -449,57 +487,32 @@ class BraviaPlatform {
   
       if(inputArray.length)
         resolve(inputArray);
-  
-      reject(error);
+      
+      if(error)
+        reject(error);
   
     });
   
   }
   
-  _addInputs(accessory,service,inputs){
+  async _addInputs(){
   
-    this._inputs = new Map();
-    this._uris = new Map();
-    let countInputs = 0;
-  
-    inputs.map( input => {
-  
-      this._inputs.set((input.title ? input.title : input.label), input.uri);
-  
-  
-    });
-  
-    if(accessory.context.channelSource)
-      this._inputs.set((accessory.context.channelSource === 'DVBT' ? 'DVBT' : 'DVBC'), (accessory.context.channelSource === 'DVBT' ? 'tv:dvbt' : 'tv:dvbc'));
-      
+    let countInputs = 0; 
   
     this._inputs.forEach( (value, key) => {
   
       countInputs++;
-  
       let tvInput;
   
-      if(accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
-      
-        this.debug('[Bravia Debug]: ' + accessory.displayName + ': Refreshing Input: ' + key);
-  
-        let ident = accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input').getCharacteristic(Characteristic.Identifier).value;
-  
-        this._uris.set(ident, value);
-  
-        service.addLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input'));
-
-  
-      } else {
+      if(!this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
   
         this._uris.set(countInputs, value);
   
-        this.logger.info(accessory.displayName + ': Adding new Input: ' + key);
-  
-        tvInput = accessory.addService(Service.InputSource, key, key + ' Input');  
+        this.logger.info(this.accessory.displayName + ': Adding new Input: ' + key);
+        
+        tvInput = new Service.InputSource(key, key + ' Input');
   
         tvInput
-          .setCharacteristic(Characteristic.Name, key)
           .setCharacteristic(Characteristic.Identifier, countInputs)
           .setCharacteristic(Characteristic.ConfiguredName, key)
           .setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
@@ -507,31 +520,76 @@ class BraviaPlatform {
           .setCharacteristic(Characteristic.TargetVisibilityState, Characteristic.TargetVisibilityState.SHOWN)
           .setCharacteristic(Characteristic.InputDeviceType, Characteristic.InputDeviceType.OTHER)
           .setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.HDMI);
-
-        service.addLinkedService(tvInput);
+        
+        this.accessory.addService(tvInput);
+  
+      }
+  
+    });
+    
+    //timeout 0.5s to successfull update input list
+    await timeout(500);
+    
+    this._refreshInputs();
+  
+  }
+  
+  _refreshInputs(){
+  
+    const self = this;
+  
+    let countInputs = 0; 
+  
+    this._inputs.forEach( (value, key) => {
+  
+      countInputs++;
+      let tvInput;
+  
+      if(this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
+      
+        this.debug('[Bravia Debug]: ' + this.accessory.displayName + ': Refreshing Input: ' + key);
+        
+        tvInput = this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input');
+  
+        this._uris.set(countInputs, value);
+        
+        tvInput.getCharacteristic(Characteristic.Identifier).updateValue(countInputs);
+        tvInput.getCharacteristic(Characteristic.IsConfigured).updateValue(Characteristic.IsConfigured.CONFIGURED);
+        tvInput.getCharacteristic(Characteristic.InputDeviceType).updateValue(Characteristic.InputDeviceType.OTHER);
+        tvInput.getCharacteristic(Characteristic.InputSourceType).updateValue(Characteristic.InputSourceType.HDMI);
+          
+        tvInput.getCharacteristic(Characteristic.TargetVisibilityState)
+          .on('set', function(state, callback){
+        
+            self.logger.info(tvInput.displayName + ': ' + (state ? 'Hide' : 'Visible'));
+        
+            tvInput.getCharacteristic(Characteristic.CurrentVisibilityState).updateValue(state);
+        
+            callback();
+          });
+        
+        this.service.addLinkedService(tvInput);
   
       }
   
     });
   
-    this._removeInputs(accessory, service);
-  
   }
   
-  _removeInputs(accessory, service){
+  _removeInputs(){
   
-    accessory.services.map( input => {
+    this.accessory.services.map( input => {
   
       if(input.subtype && input.subtype.includes('Input')){
   
         if(!(this._inputs.has(input.displayName))){
       
-          this.logger.warn(accessory.displayName + ': Removing Input: ' + input.displayName);
+          this.logger.warn(this.accessory.displayName + ': Removing Input: ' + input.displayName);
   
-          service.removeLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
-          accessory.removeService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
+          this.service.removeLinkedService(this.accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
+          this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
   
-          this._removeInputs(accessory, service);
+          this._removeInputs();
       
         }
   
@@ -541,7 +599,7 @@ class BraviaPlatform {
   
   }
   
-  async setRemote(accessory, service, value, callback){
+  async setRemote(value, callback){
   
     try{
   
@@ -549,56 +607,56 @@ class BraviaPlatform {
   
         case 0:
 
-          this.logger.info(accessory.displayName + ': Settings');
+          this.logger.info(this.accessory.displayName + ': Settings');
           await this.Bravia.setIRCC('AAAAAgAAAJcAAAA2Aw==');
 
           break;  
   
         case 4:
     
-          this.logger.info(accessory.displayName + ': Up');
+          this.logger.info(this.accessory.displayName + ': Up');
           await this.Bravia.setIRCC('AAAAAQAAAAEAAAB0Aw==');
     
           break;
       
         case 5:
     
-          this.logger.info(accessory.displayName + ': Down');
+          this.logger.info(this.accessory.displayName + ': Down');
           await this.Bravia.setIRCC('AAAAAQAAAAEAAAB1Aw==');
     
           break;
       
         case 6:
     
-          this.logger.info(accessory.displayName + ': Left');
+          this.logger.info(this.accessory.displayName + ': Left');
           await this.Bravia.setIRCC('AAAAAQAAAAEAAAA0Aw==');
     
           break;
       
         case 7:
     
-          this.logger.info(accessory.displayName + ': Right');
+          this.logger.info(this.accessory.displayName + ': Right');
           await this.Bravia.setIRCC('AAAAAQAAAAEAAAAzAw==');
     
           break;
       
         case 8:
     
-          this.logger.info(accessory.displayName + ': Confirm');
+          this.logger.info(this.accessory.displayName + ': Confirm');
           await this.Bravia.setIRCC('AAAAAQAAAAEAAABlAw==');
     
           break;
       
         case 9:
     
-          this.logger.info(accessory.displayName + ': Back');
+          this.logger.info(this.accessory.displayName + ': Back');
           await this.Bravia.setIRCC('AAAAAgAAAJcAAAAjAw==');
     
           break;
       
         case 15:
     
-          this.logger.info(accessory.displayName + ': Info');
+          this.logger.info(this.accessory.displayName + ': Info');
           await this.Bravia.setIRCC('AAAAAgAAAMQAAABNAw==');
     
           break;
@@ -607,13 +665,13 @@ class BraviaPlatform {
       
           if(!this.isPaused){
       
-            this.logger.info(accessory.displayName + ': Pause');
+            this.logger.info(this.accessory.displayName + ': Pause');
             this.isPaused = true;
             await this.Bravia.setIRCC('AAAAAgAAABoAAABnAw==');
             
           } else {
       
-            this.logger.info(accessory.displayName + ': Play');
+            this.logger.info(this.accessory.displayName + ': Play');
             this.isPaused = false;
             await this.Bravia.setIRCC('AAAAAgAAAJcAAAAaAw==');
             
@@ -622,13 +680,13 @@ class BraviaPlatform {
           break;
       
         default:
-          this.logger.warn(accessory.displayName + ': Unknown remote value: ' + value);
+          this.logger.warn(this.accessory.displayName + ': Unknown remote value: ' + value);
       }
   
     } catch(err){
   
-      this.logger.error(accessory.displayName + ': Error while setting new remote key'); 
-      this.debug('[Bravia Debug]: ' + err);
+      this.logger.error(this.accessory.displayName + ': Error while setting new remote key'); 
+      this.debug('[Bravia Debug]: ' + JSON.stringify(err));
   
     } finally {
   

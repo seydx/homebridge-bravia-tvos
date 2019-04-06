@@ -38,6 +38,10 @@
             "Smart IPTV",
             "Prime Video"
           ],
+          "commands": [
+            "AAAAAQAAAAEAAABgAw==",
+            "AAAAAQAAAAEAAAAVAw=="
+          ],
           "wol": false
         },
         {

@@ -149,6 +149,7 @@ BraviaOSPlatform.prototype = {
       accessory.context.channelSource = object.channelSource || false;
       accessory.context.channels = object.channels || [];
       accessory.context.apps = object.apps || [];
+      accessory.context.commands = object.commands || [];
       accessory.context.wol = object.wol || false;
     
     } else {
@@ -166,6 +167,7 @@ BraviaOSPlatform.prototype = {
           accessory.context.channelSource = tv.channelSource || false;
           accessory.context.channels = tv.channels || [];
           accessory.context.apps = tv.apps || [];
+          accessory.context.commands = tv.commands || [];
           accessory.context.wol = tv.wol || false;
     
         }
@@ -191,23 +193,6 @@ BraviaOSPlatform.prototype = {
   configureAccessory: function(accessory){
 
     this._accessories.set(accessory.displayName, accessory);  
-    
-    let service = accessory.getServiceByUUIDAndSubType(Service.Television, accessory.displayName);
-    let speaker = accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, accessory.displayName + ' Speaker');
-    
-    if(service)
-      service.addLinkedService(speaker);
-    
-    accessory.services.map( input => {
-  
-      if(input.subtype && input.subtype.includes('Input')){
-  
-        if(service)
-          service.addLinkedService(accessory.getServiceByUUIDAndSubType(Service.InputSource, input.subtype));
-   
-      }
-  
-    });
     
     this.accessories.push(accessory);
     this._addOrConfigure(accessory, null, false);
