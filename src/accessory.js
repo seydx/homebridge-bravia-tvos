@@ -25,6 +25,7 @@ class BraviaPlatform {
     this.api = platform.api;
     this.config = platform.config;
     this.accessories = platform.accessories;
+    this.external = external || false;
     
     this.Bravia = new Bravia(accessory.context);
     
@@ -77,25 +78,18 @@ class BraviaPlatform {
       this.inputs.map( input => this.service.addLinkedService(input) );
       
       if(add && !external){
-
         this.logger.info('Registring new platform accessory: ' + this.accessory.displayName);
         this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
-
       } else if(add && external){
-
         this.logger.info('Registring new external accessory: ' + this.accessory.displayName);
         this.api.publishExternalAccessories(pluginName, [this.accessory]);
-
       } 
       
       this.accessories.push(this.accessory);
       
-      /*if(!add){
-
-        this.logger.info('Updating...');
+      if(!add){
         this.api.updatePlatformAccessories(this.accessories);
-
-      }*/
+      }
       
       this.getService();
       
@@ -124,7 +118,7 @@ class BraviaPlatform {
     Television.addCharacteristic(Characteristic.RemoteKey);
     
     Television.addCharacteristic(Characteristic.PowerModeSelection);
-    
+
     Television.addCharacteristic(Characteristic.DisplayOrder);
   
     return Television;
@@ -150,7 +144,7 @@ class BraviaPlatform {
   
     try {
     
-      let inputs = await this.getInputs();
+      let inputs = await this._getInputs();
   
       inputs.map( input => {
   
@@ -306,6 +300,8 @@ class BraviaPlatform {
 
           await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
           await timeout(3000);
+          
+          this.getInputState();
 
         } else {
 
@@ -560,7 +556,7 @@ class BraviaPlatform {
   
   }
   
-  async getInputs(){
+  async _getInputs(){
   
     let inputArray = [];
     let error;
@@ -568,9 +564,20 @@ class BraviaPlatform {
     try{
   
       if(this.accessory.context.cecInputs){
-        this.debug('[Bravia Debug]: ' + this.accessory.displayName + ': CEC detected, turning on TV and wait 7 secs until current external inputs are fetched!');
-        await this.Bravia.setPowerStatus(true);
-        await timeout(7000); //wait 7sec after turn on to detect cec devices
+        this.logger.info(this.accessory.displayName + ': CEC detected, checking TV state before fetching inputs...');
+        
+        let status = await this.Bravia.getPowerStatus();  
+        let state = status.status === 'active' ? true : false;
+        
+        if(!state){ 
+          this.logger.warn(this.accessory.displayName + ': TV not active! Please turn on the TV!');
+          await timeout(5000);
+          this._getInputs();
+        } else{
+          this.logger.warn(this.accessory.displayName + ': TV active! Fetching inputs...!');
+          await timeout(5000)
+        }
+
       }
     
       let inputs = await this.Bravia.getCurrentExternalInputsStatus();
@@ -790,9 +797,13 @@ class BraviaPlatform {
       }
   
       if(!this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input')){
-  
-        this.logger.info(this.accessory.displayName + ': Adding new Input: ' + key);
-        
+
+        if(!this.external){
+          this.logger.info(this.accessory.displayName + ': Adding new Input: ' + key);
+        } else {
+          this.debug('[Bravia Debug]: ' + this.accessory.displayName + ': Adding new Input: ' + key);
+        }
+
         tvInput = new Service.InputSource(key, key + ' Input');
   
         tvInput
