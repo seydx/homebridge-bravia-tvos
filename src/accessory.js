@@ -215,8 +215,8 @@ class BraviaPlatform {
     
     });
 
-    this.getInputState();
     this.getPowerState();
+    this.getInputState();
     this.getSpeaker();
 
   }
@@ -300,8 +300,6 @@ class BraviaPlatform {
 
           await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
           await timeout(3000);
-          
-          this.getInputState();
 
         } else {
 
@@ -329,8 +327,8 @@ class BraviaPlatform {
   }
   
   async getInputState(){
-  
-    if(this.service.getCharacteristic(Characteristic.Active).value && this._inputs.size){
+    
+    if(this.service.getCharacteristic(Characteristic.Active).value){
   
       try {
   
@@ -358,29 +356,33 @@ class BraviaPlatform {
   
           } else {
           
-            let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+            if(this.accessory.context.channelSource){
           
-            if((status.uri && status.uri.includes(channelType))||(status.source && status.source === channelType)){
+              let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+          
+              if((status.uri && status.uri.includes(channelType))||(status.source && status.source === channelType)){
 
-              name = this.accessory.context.channelSource;
+                name = this.accessory.context.channelSource;
             
-            } else {
+              } else {
             
-              name = undefined; 
+                name = undefined; 
             
-            }
-        
-            uri = this._inputs.get(name);
-        
-            if(uri){
-  
-              for(const i of this._uris){
-  
-                if(uri === i[1])
-                  ident = i[0];
-    
               }
+        
+              uri = this._inputs.get(name);
+        
+              if(uri){
   
+                for(const i of this._uris){
+  
+                  if(uri === i[1])
+                    ident = i[0];
+    
+                }
+  
+              }
+            
             } 
           
           }
@@ -394,18 +396,20 @@ class BraviaPlatform {
       } catch(err) {
   
         this.logger.error(this.accessory.displayName + ': Error while getting input state!'); 
-        this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+        //this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+        
+        console.log(err);
   
       } finally {
-  
+      
         setTimeout(this.getInputState.bind(this), this.accessory.context.interval);
-  
+      
       }
-  
+      
     } else {
-  
+    
       setTimeout(this.getInputState.bind(this), 1000);
-  
+    
     }
   
   }
@@ -575,7 +579,7 @@ class BraviaPlatform {
           this._getInputs();
         } else{
           this.logger.warn(this.accessory.displayName + ': TV active! Fetching inputs...!');
-          await timeout(5000)
+          await timeout(5000);
         }
 
       }
