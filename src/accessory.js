@@ -271,9 +271,13 @@ class BraviaPlatform {
   
       let status = await this.Bravia.getPowerStatus();
   
-      let state = status.status === 'active' ? true : false;
+      let state = status.status === 'active' ? 1 : 0;
   
       this.service.getCharacteristic(Characteristic.Active).updateValue(state);
+      
+      if(this.external){
+        this.api.updatePlatformAccessories(this.accessories);
+      }
   
     } catch(err) {
   
@@ -392,6 +396,10 @@ class BraviaPlatform {
         }
   
         this.service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(ident);
+        
+        if(this.external){
+          this.api.updatePlatformAccessories(this.accessories);
+        }
   
       } catch(err) {
   
