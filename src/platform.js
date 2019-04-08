@@ -70,6 +70,18 @@ BraviaOSPlatform.prototype = {
   },
 
   _addOrRemoveDevice: function(object) {
+  
+    this.accessories.map( accessory => {
+
+      if(!this._devices.has(accessory.displayName)){
+
+        this._accessories.delete(accessory.displayName);
+        this.removeAccessory(accessory);
+
+      }
+      
+    });
+
     
     if(object){
     
@@ -85,17 +97,6 @@ BraviaOSPlatform.prototype = {
     
     }
 
-    this.accessories.map( accessory => {
-
-      if(!this._devices.has(accessory.displayName)){
-
-        this._accessories.delete(accessory.displayName);
-        this.removeAccessory(accessory);
-
-      }
-
-    });
-
   },
   
   addAccessory: function(object){
@@ -103,31 +104,31 @@ BraviaOSPlatform.prototype = {
     this.logger.info('Adding new accessory: ' + object.name);
 
     let uuid = UUIDGen.generate(object.name);
-    let accessory = new Accessory(object.name, uuid);
+    let accessory = new Accessory(object.name, uuid, 31);
 
     accessory.context = {};
 
     this._addOrConfigure(accessory, object, true);
 
-    this.accessories.push(accessory);
-    this.api.registerPlatformAccessories(pluginName, platformName, [accessory]);
-
   },
   
   _addOrConfigure: function(accessory, object, add){
-
-    this._refreshContext(accessory, object, add);    
-    this._AccessoryInformation(accessory);
-
-    if(add){
-      accessory.addService(Service.Television, object.name, object.name);
-      accessory.addService(Service.TelevisionSpeaker, object.name + ' Speaker', object.name + ' Speaker');
-    }
     
     this.config.tvs.map( tv => {
-      if(tv.name === accessory.displayName){
+      if(tv.name === accessory.displayName && tv.ip && tv.psk){
         if(!add) this.logger.info('Configuring accessory ' + accessory.displayName);
-        new Device(this, accessory);
+        
+        this._refreshContext(accessory, object, add);    
+        this._AccessoryInformation(accessory);
+        
+        let external = this.accessories.length;
+        
+        new Device(this, accessory, add, external);
+      } else {
+
+        if(!tv.ip) this.logger.warn('No IP defined in config.json for ' + tv.name + '. Skipping...');
+        if(!tv.psk) this.logger.warn('No PSK defined in config.json for ' + tv.name + '. Skipping...');
+
       }
     });
 
