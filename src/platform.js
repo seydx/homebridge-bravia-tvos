@@ -100,19 +100,25 @@ BraviaOSPlatform.prototype = {
   },
   
   addAccessory: function(object){
+	  
+    let external = this.accessories.length;
 
-    this.logger.info('Adding new accessory: ' + object.name);
+    if(!external){
+      this.logger.info('Adding new accessory: ' + object.name);
+    } else {
+      this.debug('[Bravia Debug]: Adding new accessory: ' + object.name);
+    }
 
     let uuid = UUIDGen.generate(object.name);
     let accessory = new Accessory(object.name, uuid, 31);
 
     accessory.context = {};
 
-    this._addOrConfigure(accessory, object, true);
+    this._addOrConfigure(accessory, object, true, external);
 
   },
   
-  _addOrConfigure: function(accessory, object, add){
+  _addOrConfigure: function(accessory, object, add, external){
     
     this.config.tvs.map( tv => {
       if(tv.name === accessory.displayName && tv.ip && tv.psk){
@@ -120,8 +126,6 @@ BraviaOSPlatform.prototype = {
         
         this._refreshContext(accessory, object, add);    
         this._AccessoryInformation(accessory);
-        
-        let external = this.accessories.length;
         
         new Device(this, accessory, add, external);
       } else {
