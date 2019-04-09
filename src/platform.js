@@ -100,7 +100,7 @@ BraviaOSPlatform.prototype = {
   },
   
   addAccessory: function(object){
-	  
+
     let external = this.accessories.length;
 
     if(!external){
@@ -151,7 +151,7 @@ BraviaOSPlatform.prototype = {
       accessory.context.psk = object.psk;
       accessory.context.extraInputs = object.extraInputs || false;
       accessory.context.cecInputs = object.cecInputs || false;
-      accessory.context.channelSource = object.channelSource || false;
+      accessory.context.channelSource = object.channelSource || [];
       accessory.context.channels = object.channels || [];
       accessory.context.apps = object.apps || [];
       accessory.context.commands = object.commands || [];
@@ -169,7 +169,7 @@ BraviaOSPlatform.prototype = {
           accessory.context.psk = tv.psk;
           accessory.context.extraInputs = tv.extraInputs || false;
           accessory.context.cecInputs = tv.cecInputs || false;
-          accessory.context.channelSource = tv.channelSource || false;
+          accessory.context.channelSource = tv.channelSource || [];
           accessory.context.channels = tv.channels || [];
           accessory.context.apps = tv.apps || [];
           accessory.context.commands = tv.commands || [];
