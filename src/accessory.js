@@ -80,12 +80,12 @@ class BraviaPlatform {
       if(add && !external){
         this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
         this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
+        this.accessories.push(this.accessory);
       } else if(add && external){
         this.logger.info('Registring external accessory: ' + this.accessory.displayName);
         this.api.publishExternalAccessories(pluginName, [this.accessory]);
+        this.accessories.push(this.accessory);
       } 
-      
-      this.accessories.push(this.accessory);
       
       if(!add){
         this.api.updatePlatformAccessories(this.accessories);
