@@ -78,18 +78,23 @@ class BraviaPlatform {
       this.inputs.map( input => this.service.addLinkedService(input) );
       
       if(add && !external){
+      
         this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
+        
         this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
         this.accessories.push(this.accessory);
+      
       } else if(add && external){
+      
         this.logger.info('Registring external accessory: ' + this.accessory.displayName);
+        
         this.api.publishExternalAccessories(pluginName, [this.accessory]);
         this.accessories.push(this.accessory);
+      
       } 
       
-      if(!add){
+      if(!add)
         this.api.updatePlatformAccessories(this.accessories);
-      }
       
       this.getService();
       
@@ -97,7 +102,8 @@ class BraviaPlatform {
     
       this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
       this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-      this.logger.error(JSON.stringify(this.inputs));
+      //this.logger.error(JSON.stringify(this.inputs));
+      console.log(this.inputs);
     
     }
   
@@ -605,13 +611,21 @@ class BraviaPlatform {
             this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
             await this.Bravia.setPowerStatus(true);
             
+            this.logger.info(this.accessory.displayName + ': Wait 7s before fetching inputs..');
+            
+            await timeout(7000);
+            
           } else {
           
             if(this.accessory.context.mac){
             
               this.logger.info(this.accessory.displayName + ': Turning on TV (WOL)');
               await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
-            
+              
+              this.logger.info(this.accessory.displayName + ': Wait 14s before fetching inputs..');
+              
+              await timeout(14000);
+              
             } else {
             
               return this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!';
@@ -622,7 +636,6 @@ class BraviaPlatform {
           
           this.activateTV = true;
           
-          await timeout(7000);
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
        
         } else{
@@ -829,15 +842,6 @@ class BraviaPlatform {
       return err;
   
     }
-    
-    /*return new Promise((resolve,reject) => {
-  
-      if(inputArray.length)
-        resolve(inputArray);
-      
-      reject(error);
-  
-    });*/
   
   }
   
