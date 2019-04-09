@@ -268,7 +268,7 @@ class BraviaPlatform {
   async getPowerState(){
   
     try {
-  
+      
       let status = await this.Bravia.getPowerStatus();
   
       let state = status.status === 'active' ? 1 : 0;
@@ -280,9 +280,17 @@ class BraviaPlatform {
       }
   
     } catch(err) {
-  
-      this.logger.error(this.accessory.displayName + ': Error while getting power state!'); 
-      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+    
+      if(this.accessory.context.wol){
+      
+        this.service.getCharacteristic(Characteristic.Active).updateValue(false);
+      
+      } else {
+      
+        this.logger.error(this.accessory.displayName + ': Error while getting power state!'); 
+        this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+      
+      }
   
     } finally {
   
@@ -569,25 +577,59 @@ class BraviaPlatform {
   async _getInputs(){
   
     let inputArray = [];
-    let error;
   
     try{
   
       if(this.accessory.context.cecInputs){
+      
         this.logger.info(this.accessory.displayName + ': CEC detected, checking TV state before fetching inputs...');
         
-        let status = await this.Bravia.getPowerStatus();  
-        let state = status.status === 'active' ? true : false;
+        let state;
+        
+        if(!this.accessory.context.wol){
+        
+          let status = await this.Bravia.getPowerStatus();  
+          state = status.status === 'active' ? true : false;
+          
+        } else {
+        
+          this.logger.warn(this.accessory.displayName + ': Can not check TV state, because WOL is on!');
+          state = false;
+          
+        }
         
         if(!state){ 
-          this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
+        
+          if(!this.accessory.context.wol){
+          
+            this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
+            await this.Bravia.setPowerStatus(true);
+            
+          } else {
+          
+            if(this.accessory.context.mac){
+            
+              this.logger.info(this.accessory.displayName + ': Turning on TV (WOL)');
+              await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
+            
+            } else {
+            
+              return this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!';
+            
+            }
+            
+          }
+          
           this.activateTV = true;
-          await this.Bravia.setPowerStatus(true);
+          
           await timeout(7000);
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
+       
         } else{
+        
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
           await timeout(5000);
+        
         }
 
       }
@@ -719,7 +761,7 @@ class BraviaPlatform {
     
       if(this.accessory.context.channels.length){
   
-        for(const i of this.accessory.context.channels){
+        for (const i of this.accessory.context.channels){
         
           let channelType = 'tv:' + i.source.toLowerCase();
 
@@ -776,24 +818,26 @@ class BraviaPlatform {
       }
       
       if(this.activateTV){
-        this.logger.info(this.accessory.displayName + ': New Inputs fetched. Turning off TV again.')
-        await this.Bravia.setPowerStatus(false)
+        this.logger.info(this.accessory.displayName + ': New Inputs fetched. Turning off TV again.');
+        await this.Bravia.setPowerStatus(false);
       }
+      
+      return inputArray;
   
     } catch(err){
   
-      error = err;
+      return err;
   
     }
     
-    return new Promise((resolve,reject) => {
+    /*return new Promise((resolve,reject) => {
   
       if(inputArray.length)
         resolve(inputArray);
       
       reject(error);
   
-    });
+    });*/
   
   }
   
