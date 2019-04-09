@@ -206,7 +206,7 @@ class BraviaPlatform {
       input.getCharacteristic(Characteristic.TargetVisibilityState)
         .on('set', function(state, callback){
         
-          self.logger.info(this.accessory.displayName + ' ' + input.displayName + ': ' + (state ? 'Hide' : 'Visible'));
+          self.logger.info(self.accessory.displayName + ' ' + input.displayName + ': ' + (state ? 'Hide' : 'Visible'));
         
           input.getCharacteristic(Characteristic.CurrentVisibilityState).updateValue(state);
         
