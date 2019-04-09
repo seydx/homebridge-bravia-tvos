@@ -580,11 +580,12 @@ class BraviaPlatform {
         let state = status.status === 'active' ? true : false;
         
         if(!state){ 
-          this.logger.warn(this.accessory.displayName + ': TV not active! Please turn on the TV!');
-          await timeout(5000);
-          this._getInputs();
+          this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
+          await this.Bravia.setPowerStatus(true);
+          await timeout(7000);
+          this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
         } else{
-          this.logger.warn(this.accessory.displayName + ': TV active! Fetching inputs...!');
+          this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
           await timeout(5000);
         }
 
