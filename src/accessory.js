@@ -27,7 +27,7 @@ class BraviaPlatform {
     this.accessories = platform.accessories;
     this.external = external || false;
     
-    this.Bravia = new Bravia(accessory.context);
+    this.Bravia = new Bravia(platform.logger, accessory.context);
     
     this._inputs = new Map();
     this._uris = new Map();
@@ -583,7 +583,8 @@ class BraviaPlatform {
   async _getInputs(){
   
     let inputArray = [];
-  
+    let error;
+
     try{
   
       if(this.accessory.context.cecInputs){
@@ -611,10 +612,6 @@ class BraviaPlatform {
             this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
             await this.Bravia.setPowerStatus(true);
             
-            this.logger.info(this.accessory.displayName + ': Wait 7s before fetching inputs..');
-            
-            await timeout(7000);
-            
           } else {
           
             if(this.accessory.context.mac){
@@ -622,26 +619,25 @@ class BraviaPlatform {
               this.logger.info(this.accessory.displayName + ': Turning on TV (WOL)');
               await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
               
-              this.logger.info(this.accessory.displayName + ': Wait 14s before fetching inputs..');
-              
-              await timeout(14000);
-              
             } else {
             
-              return this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!';
+              error = this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!'
             
             }
             
           }
           
-          this.activateTV = true;
+          this.logger.info(this.accessory.displayName + ': TV switched ON!');
+          this.logger.info(this.accessory.displayName + ': Wait 7s before fetching inputs..');
           
-          this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
+          await timeout(7000);
+          
+          this.activateTV = true;
        
         } else{
         
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
-          await timeout(5000);
+          await timeout(7000);
         
         }
 
@@ -834,14 +830,22 @@ class BraviaPlatform {
         this.logger.info(this.accessory.displayName + ': New Inputs fetched. Turning off TV again.');
         await this.Bravia.setPowerStatus(false);
       }
-      
-      return inputArray;
   
     } catch(err){
-  
-      return err;
+
+      error = err;
   
     }
+    
+    return new Promise((resolve,reject) => {
+  
+      if(error){
+        reject(error)
+      } else {
+        resolve(inputArray)
+      }
+  
+    });
   
   }
   
