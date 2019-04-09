@@ -97,7 +97,7 @@ class BraviaPlatform {
     
       this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
       this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-      this.logger.error(this.inputs);
+      this.logger.error(JSON.stringify(this.inputs));
     
     }
   
