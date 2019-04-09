@@ -164,7 +164,7 @@ BraviaOSPlatform.prototype = {
     
         if(accessory.displayName === tv.name){
     
-          accessory.context.ip = tv.name;
+          accessory.context.name = tv.name;
           accessory.context.ip = tv.ip;
           accessory.context.mac = tv.mac;
           accessory.context.port = tv.port || 80;
