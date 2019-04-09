@@ -360,32 +360,30 @@ class BraviaPlatform {
   
           } else {
           
-            if(this.accessory.context.channelSource){
-          
-              let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
-          
-              if((status.uri && status.uri.includes(channelType))||(status.source && status.source === channelType)){
+            if(this.accessory.context.channelSource.length){
+            
+              this.accessory.context.channelSource.map( channel => {
+              
+                if((status.uri && status.uri.includes('tv:' + channel.toLowerCase()))||(status.source && status.source === 'tv:' + channel.toLowerCase())){
 
-                name = this.accessory.context.channelSource;
+                  name = channel;
             
-              } else {
-            
-                name = undefined; 
-            
-              }
-        
-              uri = this._inputs.get(name);
-        
-              if(uri){
-  
-                for(const i of this._uris){
-  
-                  if(uri === i[1])
-                    ident = i[0];
-    
                 }
+                
+                uri = this._inputs.get(name);
+        
+                if(uri){
   
-              }
+                  for(const i of this._uris){
+  
+                    if(uri === i[1])
+                      ident = i[0];
+    
+                  }
+  
+                }
+              
+              });
             
             } 
           
@@ -717,13 +715,13 @@ class BraviaPlatform {
         });
       }
     
-      if(this.accessory.context.channels.length && (this.accessory.context.channelSource === 'DVBT'||this.accessory.context.channelSource === 'DVBC'||this.accessory.context.channelSource === 'DVBS')){
+      if(this.accessory.context.channels.length){
   
         for(const i of this.accessory.context.channels){
         
-          let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
+          let channelType = 'tv:' + i.source.toLowerCase();
 
-          let channel = await this.Bravia.getContentList(channelType, 1, i);
+          let channel = await this.Bravia.getContentList(channelType, 1, i.channel);
           channel = channel[0];
           
           channel.sourceType = Characteristic.InputSourceType.TUNER;
@@ -756,14 +754,23 @@ class BraviaPlatform {
 
       }
       
-      if(this.accessory.context.channelSource==='DVBT'||this.accessory.context.channelSource==='DVBC'||this.accessory.context.channelSource==='DVBS'){
-        let channelType = 'tv:' + this.accessory.context.channelSource.toLowerCase();
-        inputArray.push({
-          title: this.accessory.context.channelSource,
-          uri: channelType,
-          sourceType: Characteristic.InputSourceType.TUNER,
-          deviceType: Characteristic.InputDeviceType.TV
+      if(this.accessory.context.channelSource.length){
+      
+        this.accessory.context.channelSource.map( channel => {
+         
+          if(channel === 'DVBT'||channel === 'DVBC'||channel === 'DVBS'||channel === 'ANALOG'){
+            
+            inputArray.push({
+              title: channel,
+              uri: 'tv:' + channel.toLowerCase(),
+              sourceType: Characteristic.InputSourceType.TUNER,
+              deviceType: Characteristic.InputDeviceType.TV
+            });
+            
+          }
+              
         });
+      
       }
   
     } catch(err){
