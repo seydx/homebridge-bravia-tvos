@@ -360,9 +360,9 @@ class BraviaPlatform {
   
           } else {
           
-            if(this.accessory.context.channelSource.length){
+            if(this.accessory.context.channelInputs.length){
             
-              this.accessory.context.channelSource.map( channel => {
+              this.accessory.context.channelInputs.map( channel => {
               
                 if((status.uri && status.uri.includes('tv:' + channel.toLowerCase()))||(status.source && status.source === 'tv:' + channel.toLowerCase())){
 
@@ -754,9 +754,9 @@ class BraviaPlatform {
 
       }
       
-      if(this.accessory.context.channelSource.length){
+      if(this.accessory.context.channelInputs.length){
       
-        this.accessory.context.channelSource.map( channel => {
+        this.accessory.context.channelInputs.map( channel => {
          
           if(channel === 'DVBT'||channel === 'DVBC'||channel === 'DVBS'||channel === 'ANALOG'){
             
