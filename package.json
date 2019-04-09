@@ -33,6 +33,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "debug": "^4.1.1",
-    "wake_on_lan": "^1.0.0"
+    "wake_on_lan": "^1.0.0",
+    "tcp-ping":"^0.1.1"
   }
 }
