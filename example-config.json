@@ -31,8 +31,17 @@
           "psk": "lol345",
           "extraInputs": true,
           "cecInputs": true,
-          "channelSource": "DVBT",
-          "channels": [203,204,208],
+          "channelInputs": ["DVBT","DVBC"],
+          "channels": [
+            {
+              "channel":203,
+              "source":"DVBT"
+            },
+            {
+              "channel":205,
+              "source":"DVBC"
+            }
+          ],
           "apps": [
             "YouTube",
             "Smart IPTV",
