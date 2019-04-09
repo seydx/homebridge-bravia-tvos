@@ -581,6 +581,7 @@ class BraviaPlatform {
         
         if(!state){ 
           this.logger.warn(this.accessory.displayName + ': TV not on! Turning on the TV...');
+          this.activateTV = true;
           await this.Bravia.setPowerStatus(true);
           await timeout(7000);
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
@@ -772,6 +773,11 @@ class BraviaPlatform {
               
         });
       
+      }
+      
+      if(this.activateTV){
+        this.logger.info(this.accessory.displayName + ': New Inputs fetched. Turning off TV again.')
+        await this.Bravia.setPowerStatus(false)
       }
   
     } catch(err){
