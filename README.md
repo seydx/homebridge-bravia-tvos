@@ -3,7 +3,7 @@
 </p>
 
 
-# Bravia!TVOS v3 (beta)
+# Bravia!TVOS 3.0
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
 [![npm](https://img.shields.io/npm/dt/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -63,7 +63,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 }
 
  ```
- See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/blob/beta/example-config.json) for more details.
+ See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/example-config.json) for more details.
 
  
  ## Options
