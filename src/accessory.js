@@ -78,10 +78,10 @@ class BraviaPlatform {
       this.inputs.map( input => this.service.addLinkedService(input) );
       
       if(add && !external){
-        this.logger.info('Registring new platform accessory: ' + this.accessory.displayName);
+        this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
         this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
       } else if(add && external){
-        this.logger.info('Registring new external accessory: ' + this.accessory.displayName);
+        this.logger.info('Registring external accessory: ' + this.accessory.displayName);
         this.api.publishExternalAccessories(pluginName, [this.accessory]);
       } 
       
