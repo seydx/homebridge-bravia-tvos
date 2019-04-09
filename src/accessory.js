@@ -4,6 +4,9 @@ const LogUtil = require('../lib/LogUtil.js');
 const Bravia = require('../lib/Bravia.js');
 const IRCC = require('../lib/IRCC.js');
 
+const tcpp = require('tcp-ping');
+
+const tcpprobe = (ip,port) => new Promise((resolve, reject) => tcpp.probe(ip,port, (err, available) => err ? reject(err) : resolve(available)));
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
 var Service, Characteristic;
@@ -102,8 +105,7 @@ class BraviaPlatform {
     
       this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
       this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-      //this.logger.error(JSON.stringify(this.inputs));
-      console.log(this.inputs);
+      this.logger.error(this.inputs);
     
     }
   
@@ -242,6 +244,12 @@ class BraviaPlatform {
  
     //0: Increment
     //1: Decrement
+    
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not change volume, TV currently off!');
+      callback();
+      return
+    }
  
     let code = value ? 'AAAAAQAAAAEAAAATAw==' : 'AAAAAQAAAAEAAAASAw==';
  
@@ -307,6 +315,12 @@ class BraviaPlatform {
   }
   
   async setPowerState(state, callback){
+  
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not change power state, TV currently off!');
+      callback();
+      return
+    }
   
     try {
     
@@ -436,6 +450,12 @@ class BraviaPlatform {
   
   async setInputState(value, callback){
   
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not change input state, TV currently off!');
+      callback();
+      return
+    }
+  
     let uri = this._uris.get(value);
   
     try {
@@ -484,6 +504,12 @@ class BraviaPlatform {
   }
   
   async setRemote(value, callback){
+  
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not send remote command, TV currently off!');
+      callback();
+      return
+    }
   
     try{
   
