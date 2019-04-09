@@ -63,7 +63,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 }
 
  ```
- See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/example-config.json) for more details.
+ See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/tree/beta/example-config.json) for more details.
 
  
  ## Options
