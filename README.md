@@ -77,10 +77,12 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 | psk | **Yes** | Your PRE SHARED KEY _(see preparing the TV above)_ |
 | extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
 | cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
-| channelSource | **No** | Channel input type (DVBT/DVBC) _(Default: false)_ |
-| channels | **No** | List of your favourite channels (channel numbers from tv) to display these as inputs in the TV accessory _(Default: false)_ |
+| channelInputs | **No** | An Array of Channel input types (DVBT/DVBC/DVBS/ANALOG) _(Default: false)_ |
+| channels | **No** | List of your favourite channels (channel numbers from tv and source) to display these as inputs in the TV accessory _(Default: false)_ |
 | apps | **No** | List of your favourite apps to display as inputs in the TV accessory  _(Default: false)_ |
 | wol | **No** | Wake On Lan  _(Default: false)_ |
+| customSpeaker | **No** | If true, an extra speaker accessory will be published to HomeKit  _(Default: false)_ |
+| speakerType | **No** | Type of the custom speaker (switch, lightbulb, speaker) _(Default: speaker)_ |
 | interval | **No** | Polling interval in seconds _(Default: 10s)_ |
 
 
