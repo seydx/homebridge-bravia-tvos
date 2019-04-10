@@ -6,6 +6,7 @@ const debug = require('debug')('BraviaPlatform');
 
 //Accessory
 const Device = require('./accessory.js');
+const Speaker = require('./speaker_accessory.js');
 
 const pluginName = 'homebridge-bravia-tvos';
 const platformName = 'BraviaOSPlatform';
@@ -33,7 +34,7 @@ function BraviaOSPlatform (log, config, api) {
   this._accessories = new Map();
   this.config = config;
   
-  this.config.interval = this.config.interval * 1000||10000;
+  this.config.interval = this.config.interval * 1000||10000;                    
   this.config.tvs = Array.isArray(this.config.tvs) ? this.config.tvs : [];
 
   if (api) {
@@ -61,8 +62,24 @@ BraviaOSPlatform.prototype = {
   
     this._devices = new Map();
   
-    this.config.tvs.map( tv => this._devices.set(tv.name, tv));
-    this.config.tvs.map( tv => this._addOrRemoveDevice(tv));
+    this.config.tvs.map( tv => {
+      this._devices.set(tv.name, tv);
+    
+      if(tv.customSpeaker)
+        this._devices.set(tv.name + ' Speaker', tv);
+    
+    });
+    
+    this.config.tvs.map( tv => {
+    
+      this._addOrRemoveDevice(tv);
+    
+      if(tv.customSpeaker){
+        tv.name = tv.name + ' Speaker';
+        this._addOrRemoveDevice(tv);
+      }
+      
+    });
     
     if(!this.config.tvs.length)
       this._addOrRemoveDevice();
@@ -85,12 +102,11 @@ BraviaOSPlatform.prototype = {
     
     if(object){
     
-      const tv_accessory = this._accessories.get(object.name);
+      const accessory = this._accessories.get(object.name);
 
-      if(!tv_accessory){
+      if(!accessory){
 
         this._accessories.set(object.name, object);
-
         this.addAccessory(object);
 
       }
@@ -100,17 +116,46 @@ BraviaOSPlatform.prototype = {
   },
   
   addAccessory: function(object){
-
+    
     let external = this.accessories.length;
 
-    if(!external){
+    if(!external||object.name.includes('Speaker')){
       this.logger.info('Adding new accessory: ' + object.name);
     } else {
-      this.debug('[Bravia Debug]: Adding new accessory: ' + object.name);
+      if(!object.name.includes('Speaker'))
+        this.debug('[Bravia Debug]: Adding new accessory: ' + object.name);
     }
-
+    
+    let catagory;
+    
+    if(object.name.includes('Speaker')){
+      switch(object.speakerType){
+      
+        case 'lightbulb':
+          catagory = 5;
+          break;
+          
+        case 'switch':
+          catagory = 8;
+          break;
+          
+        case 'speaker':
+          catagory = 26;
+          break;
+          
+        default:
+          object.speakerType = 'speaker';
+          catagory = 26;
+      
+      }
+    } else {
+      catagory = 31;
+    }
+    
     let uuid = UUIDGen.generate(object.name);
-    let accessory = new Accessory(object.name, uuid, 31);
+    let accessory = new Accessory(object.name, uuid, catagory);
+    
+    this.accessories.push(accessory);
 
     accessory.context = {};
 
@@ -119,20 +164,22 @@ BraviaOSPlatform.prototype = {
   },
   
   _addOrConfigure: function(accessory, object, add, external){
-    
+  
+    this._refreshContext(accessory, object, add);    
+    this._AccessoryInformation(accessory);
+
     this.config.tvs.map( tv => {
-      if(tv.name === accessory.displayName && tv.ip && tv.psk){
+      if((tv.name === accessory.displayName||(tv.name + ' Speaker' === accessory.displayName && accessory.context.customSpeaker)) && tv.ip && tv.psk){
         if(!add) this.logger.info('Configuring accessory ' + accessory.displayName);
         
-        this._refreshContext(accessory, object, add);    
-        this._AccessoryInformation(accessory);
-        
-        new Device(this, accessory, add, external);
+        if(accessory.displayName.includes('Speaker')){
+          new Speaker(this, accessory, add);
+        } else {
+          new Device(this, accessory, add, external);
+        }
       } else {
-
-        if(!tv.ip) this.logger.warn('No IP defined in config.json for ' + tv.name + '. Skipping...');
-        if(!tv.psk) this.logger.warn('No PSK defined in config.json for ' + tv.name + '. Skipping...');
-
+        if(!tv.ip) this.logger.warn('No IP defined in config.json for ' + accessory.displayName + '. Skipping...');
+        if(!tv.psk) this.logger.warn('No PSK defined in config.json for ' + accessory.displayName + '. Skipping...');
       }
     });
 
@@ -157,14 +204,16 @@ BraviaOSPlatform.prototype = {
       accessory.context.apps = object.apps || [];
       accessory.context.commands = object.commands || [];
       accessory.context.wol = object.wol || false;
+      accessory.context.customSpeaker = object.customSpeaker || false;
+      accessory.context.speakerType = object.speakerType || false;
     
     } else {
     
       this.config.tvs.map( tv => {
     
-        if(accessory.displayName === tv.name){
+        if(accessory.displayName === tv.name || accessory.displayName === tv.name + ' Speaker'){
     
-          accessory.context.name = tv.name;
+          accessory.context.name = accessory.displayName.includes('Speaker') ? tv.name + ' Speaker' : tv.name;
           accessory.context.ip = tv.ip;
           accessory.context.mac = tv.mac;
           accessory.context.port = tv.port || 80;
@@ -176,6 +225,8 @@ BraviaOSPlatform.prototype = {
           accessory.context.apps = tv.apps || [];
           accessory.context.commands = tv.commands || [];
           accessory.context.wol = tv.wol || false;
+          accessory.context.customSpeaker = tv.customSpeaker || false;
+          accessory.context.speakerType = tv.speakerType || false;
     
         }
     
@@ -187,12 +238,14 @@ BraviaOSPlatform.prototype = {
   
   _AccessoryInformation: function(accessory){
   
+    let serial = accessory.displayName.includes('Speaker') ? 'S-' + accessory.context.ip.replace(/\./g, '') : accessory.context.ip.replace(/\./g, '');
+  
     accessory.getService(Service.AccessoryInformation)
       .setCharacteristic(Characteristic.Name, accessory.displayName)
       .setCharacteristic(Characteristic.Identify, accessory.displayName)
       .setCharacteristic(Characteristic.Manufacturer, 'SeydX')
       .setCharacteristic(Characteristic.Model, 'Sony')
-      .setCharacteristic(Characteristic.SerialNumber, accessory.context.ip.replace(/\./g, ''))
+      .setCharacteristic(Characteristic.SerialNumber, serial)
       .setCharacteristic(Characteristic.FirmwareRevision, packageFile.version);
   
   },
@@ -202,15 +255,29 @@ BraviaOSPlatform.prototype = {
     this._accessories.set(accessory.displayName, accessory);  
     
     this.accessories.push(accessory);
-    this._addOrConfigure(accessory, null, false);
+    this._addOrConfigure(accessory);
   
   },
 
-  removeAccessory: function(accessory){
+  removeAccessory: function (accessory) {
     if (accessory) {
-      this.log.warn('Removing accessory: ' + accessory.displayName + '. No longer configured.');
-      this.api.unregisterPlatformAccessories(pluginName, platformName, [accessory]);
-      delete this.accessories[accessory.displayName];
+
+      this.logger.warn('Removing accessory: ' + accessory.displayName + '. No longer configured.');
+
+      let newAccessories = this.accessories.map( acc => {
+        if(acc.displayName !== accessory.displayName){
+          return acc;
+        }
+      });
+
+      let filteredAccessories = newAccessories.filter(function (el) {
+        return el != null;
+      });
+
+      this.api.unregisterPlatformAccessories(pluginName, platformName, [accessory]); 
+
+      this.accessories = filteredAccessories;
+
     }
   }
 
