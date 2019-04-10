@@ -129,6 +129,8 @@ class TelevisionAccessory {
     
     Television.addCharacteristic(Characteristic.PowerModeSelection);
 
+    Television.addCharacteristic(Characteristic.PictureMode);
+
     Television.addCharacteristic(Characteristic.DisplayOrder);
   
     return Television;
@@ -143,6 +145,8 @@ class TelevisionAccessory {
       .setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
 
     Speaker.addCharacteristic(Characteristic.Volume);
+    
+    Speaker.addCharacteristic(Characteristic.VolumeSelector);
       
     return Speaker;
   
@@ -1025,7 +1029,7 @@ class TelevisionAccessory {
         tvInput = this.accessory.getServiceByUUIDAndSubType(Service.InputSource, key + ' Input');
   
         tvInput.getCharacteristic(Characteristic.Identifier).updateValue(countInputs);
-        tvInput.getCharacteristic(Characteristic.IsConfigured).updateValue(Characteristic.IsConfigured.CONFIGURED);
+        //tvInput.getCharacteristic(Characteristic.IsConfigured).updateValue(Characteristic.IsConfigured.CONFIGURED);
         tvInput.getCharacteristic(Characteristic.InputDeviceType).updateValue(deviceType);
         tvInput.getCharacteristic(Characteristic.InputSourceType).updateValue(sourceType);
           
