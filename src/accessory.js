@@ -227,18 +227,86 @@ class TelevisionAccessory {
 
     this.getPowerState();
     this.getInputState();
-    this.getSpeaker();
+    //this.getSpeaker();  //not supported atm on HomeKit and 3rd party apps
 
   }
   
   async getSpeaker(){
 
+    try {
+    
+      if(!this.service.getCharacteristic(Characteristic.Active).value){
+            
+        let volume, mute;
+            
+        let audio = await this.Bravia.getVolumeInformation();
+               
+        audio.map( state => {
+               
+          if(state.target === 'speaker'){
+                 
+            volume = state.volume;
+            mute = state.mute;
+                 
+          }
+               
+        });
+               
+        this.service.getCharacteristic(Characteristic.Mute).updateValue(mute);
+        this.service.getCharacteristic(Characteristic.Volume).updateValue(volume);
+            
+      } else {
+            
+        this.service.getCharacteristic(Characteristic.Mute).updateValue(true);
+        this.service.getCharacteristic(Characteristic.Volume).updateValue(0);
+            
+      }
+    
+    } catch(err) {
+    
+      if(err !== 'Display Off'){
+        this.logger.error(this.accessory.displayName + ': An error occured while getting audio state');
+        this.logger.error(JSON.stringify(err));
+      }
+    
+    } finally {
+    
+      setTimeout(this.getSpeaker.bind(this), this.accessory.context.interval);
+    
+    }
+
   }
   
   async setMute(mute, callback){
- 
-    this.logger.info(this.accessory.displayName + ': Mute: ' + mute);
-    callback();
+  
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not set mute state, TV currently offline!');
+      callback();
+      return;
+    }
+    
+    if(!this.service.getCharacteristic(Characteristic.Active).value){
+      this.logger.warn(this.accessory.displayName + ': Can not set mute state, TV not on!');
+      callback();
+      return;
+    }
+
+    try {
+    
+      this.logger.info(this.accessory.displayName + ': Mute: ' + mute);
+      
+      await this.Bravia.setAudioMute(mute);
+    
+    } catch(err){
+    
+      this.logger.error(this.accessory.displayName + ': An error occured while setting mute state!');
+      this.logger.error(JSON.stringify(err));
+    
+    } finally {
+    
+      callback();
+    
+    }
   
   }
   
@@ -276,8 +344,34 @@ class TelevisionAccessory {
   
   async setVolume(value, callback){
  
-    this.logger.info(this.accessory.displayName + ': Volume Value: ' + value);
-    callback();
+    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not change volume, TV currently offline!');
+      callback();
+      return;
+    }
+    
+    if(!this.service.getCharacteristic(Characteristic.Active).value){
+      this.logger.warn(this.accessory.displayName + ': Can not change volume, TV not on!');
+      callback();
+      return;
+    }
+    
+    try {
+    
+      this.logger.info(this.accessory.displayName + ': Volume: ' + value);
+      
+      await this.Bravia.setAudioVolume('speaker', value);
+    
+    } catch(err){
+    
+      this.logger.error(this.accessory.displayName + ': An error occured while setting volume!');
+      this.logger.error(JSON.stringify(err));
+    
+    } finally {
+    
+      callback();
+    
+    }
   
   }
   
