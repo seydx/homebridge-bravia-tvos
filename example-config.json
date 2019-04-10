@@ -22,7 +22,9 @@
             "Smart IPTV",
             "Prime Video"
           ],
-          "wol": true
+          "wol": true.
+          "customSpeaker": true,
+          "speakerType": "lightbulb"
         },
         {
           "name": "Sony Kitchen",
@@ -51,13 +53,17 @@
             "AAAAAQAAAAEAAABgAw==",
             "AAAAAQAAAAEAAAAVAw=="
           ],
-          "wol": false
+          "wol": false,
+          "customSpeaker": true,
+          "speakerType": "switch"
         },
         {
           "name": "Sony Lounge",
           "ip": "192.168.178.3",
           "port": 80,
-          "psk": "lipsum555"
+          "psk": "lipsum555",
+          "customSpeaker": true,
+          "speakerType": "speaker"
         }
       ],
       "interval": 10
