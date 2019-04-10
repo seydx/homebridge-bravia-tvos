@@ -14,7 +14,7 @@ var Service, Characteristic;
 const pluginName = 'homebridge-bravia-tvos';
 const platformName = 'BraviaOSPlatform';
 
-class BraviaPlatform {
+class TelevisionAccessory {
   constructor (platform, accessory, add, external) {
 
     // HB
@@ -28,7 +28,9 @@ class BraviaPlatform {
     this.api = platform.api;
     this.config = platform.config;
     this.accessories = platform.accessories;
-    this.external = external || false;
+    
+    if(external)
+      this.external = accessory.context.customSpeaker ? external-1 : external;
     
     this.Bravia = new Bravia(platform.logger, accessory.context);
     
@@ -61,7 +63,7 @@ class BraviaPlatform {
     }
     
     if(this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker')){
-    
+      
       this.speaker = this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker');
     
     } else {
@@ -85,14 +87,14 @@ class BraviaPlatform {
         this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
         
         this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
-        this.accessories.push(this.accessory);
+        //this.accessories.push(this.accessory);
       
       } else if(add && external){
       
         this.logger.info('Registring external accessory: ' + this.accessory.displayName);
         
         this.api.publishExternalAccessories(pluginName, [this.accessory]);
-        this.accessories.push(this.accessory);
+        //this.accessories.push(this.accessory);
       
       } 
       
@@ -133,7 +135,7 @@ class BraviaPlatform {
   
   }
   
-  handleSpeaker(){
+  handleSpeaker(){ 
   
     let Speaker = new Service.TelevisionSpeaker(this.accessory.displayName + ' Speaker', this.accessory.displayName + ' Speaker');
     
@@ -248,7 +250,7 @@ class BraviaPlatform {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not change volume, TV currently off!');
       callback();
-      return
+      return;
     }
  
     let code = value ? 'AAAAAQAAAAEAAAATAw==' : 'AAAAAQAAAAEAAAASAw==';
@@ -319,7 +321,7 @@ class BraviaPlatform {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not change power state, TV currently off!');
       callback();
-      return
+      return;
     }
   
     try {
@@ -453,7 +455,7 @@ class BraviaPlatform {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not change input state, TV currently off!');
       callback();
-      return
+      return;
     }
   
     let uri = this._uris.get(value);
@@ -508,7 +510,7 @@ class BraviaPlatform {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not send remote command, TV currently off!');
       callback();
-      return
+      return;
     }
   
     try{
@@ -647,7 +649,7 @@ class BraviaPlatform {
               
             } else {
             
-              error = this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!'
+              error = this.accessory.displayName + ': Can not turn on TV! No MAC address in config.json! Please set up a valid MAC address or set WOL or CEC to false!';
             
             }
             
@@ -866,9 +868,9 @@ class BraviaPlatform {
     return new Promise((resolve,reject) => {
   
       if(error){
-        reject(error)
+        reject(error);
       } else {
-        resolve(inputArray)
+        resolve(inputArray);
       }
   
     });
@@ -976,4 +978,4 @@ class BraviaPlatform {
 
 }
 
-module.exports = BraviaPlatform;
+module.exports = TelevisionAccessory;
