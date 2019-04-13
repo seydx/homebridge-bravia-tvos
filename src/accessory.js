@@ -1,7 +1,6 @@
 'use strict';
 
 const LogUtil = require('../lib/LogUtil.js');
-const Bravia = require('../lib/Bravia.js');
 const IRCC = require('../lib/IRCC.js');
 
 const tcpp = require('tcp-ping');
@@ -32,7 +31,9 @@ class TelevisionAccessory {
     if(external)
       this.external = accessory.context.customSpeaker ? external-1 : external;
     
-    this.Bravia = new Bravia(platform.logger, accessory.context);
+    this.Bravia = accessory.context.Bravia;
+    
+    accessory.context.Bravia = {};
     
     this._inputs = new Map();
     this._uris = new Map();
@@ -50,66 +51,79 @@ class TelevisionAccessory {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   
   async handleAccessory(add, external){
+  
+    try {
+
+      this.logger.info(this.accessory.displayName + ': Cheking authentication...');
+      await this.Bravia.getAuth();
+
+      this.logger.info(this.accessory.displayName + ': Authenticated!');
+      if(this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName)){
     
-    if(this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName)){
+        this.service = this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName);
     
-      this.service = this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName);
+      } else {
     
-    } else {
+        let mainService = this.handleTelevision();
+        this.service = this.accessory.addService(mainService);
     
-      let mainService = this.handleTelevision();
-      this.service = this.accessory.addService(mainService);
+      }
     
-    }
-    
-    if(this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker')){
+      if(this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker')){
       
-      this.speaker = this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker');
+        this.speaker = this.accessory.getServiceByUUIDAndSubType(Service.TelevisionSpeaker, this.accessory.displayName + ' Speaker');
     
-    } else {
+      } else {
     
-      let speakerService = this.handleSpeaker();
-      this.speaker = this.accessory.addService(speakerService);
+        let speakerService = this.handleSpeaker();
+        this.speaker = this.accessory.addService(speakerService);
     
-    }
+      }
     
-    this.service.addLinkedService(this.speaker);   
+      this.service.addLinkedService(this.speaker);   
     
-    this.inputs = await this.handleInputs();
+      this.inputs = await this.handleInputs();
     
-    if(Array.isArray(this.inputs)){
+      if(Array.isArray(this.inputs)){
     
-      await timeout(500);
-      this.inputs.map( input => this.service.addLinkedService(input) );
+        await timeout(500);
+        this.inputs.map( input => this.service.addLinkedService(input) );
       
-      if(add && !external){
+        if(add && !external){
       
-        this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
+          this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
         
-        this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
-        //this.accessories.push(this.accessory);
+          this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
+          //this.accessories.push(this.accessory);
       
-      } else if(add && external){
+        } else if(add && external){
       
-        this.logger.info('Registring external accessory: ' + this.accessory.displayName);
+          this.logger.info('Registring external accessory: ' + this.accessory.displayName);
         
-        this.api.publishExternalAccessories(pluginName, [this.accessory]);
-        //this.accessories.push(this.accessory);
+          this.api.publishExternalAccessories(pluginName, [this.accessory]);
+          //this.accessories.push(this.accessory);
       
-      } 
+        } 
       
-      if(!add)
-        this.api.updatePlatformAccessories(this.accessories);
+        if(!add)
+          this.api.updatePlatformAccessories(this.accessories);
       
-      this.getService();
+        this.getService();
       
-    } else {
+      } else {
     
-      this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
-      this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-      this.logger.error(this.inputs);
+        this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
+        this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
+        this.logger.error(this.inputs);
     
+      }
+
+    } catch(err){
+
+      this.logger.error(err);
+
     }
+
   
   }
   
