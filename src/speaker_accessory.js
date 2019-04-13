@@ -6,6 +6,7 @@ const Bravia = require('../lib/Bravia.js');
 const tcpp = require('tcp-ping');
 
 const tcpprobe = (ip,port) => new Promise((resolve, reject) => tcpp.probe(ip,port, (err, available) => err ? reject(err) : resolve(available)));
+const timeout = ms => new Promise(res => setTimeout(res, ms));
 
 var Service, Characteristic;
 
@@ -27,7 +28,7 @@ class SpeakerAccessory {
     this.config = platform.config;
     this.accessories = platform.accessories;
     
-    this.Bravia = new Bravia(platform.logger, accessory.context);
+    this.Bravia = new Bravia(this, accessory.context, true);
     
     this.accessory = accessory;
     
@@ -40,75 +41,86 @@ class SpeakerAccessory {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   
   async handleAccessory(add){
-  
-    let AccessoryService;
     
-    if(this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory')){
+    try {
     
-      if(this.accessory.context.speakerType !== 'speaker'){
-      
-        this.debug(this.accessory.displayName + ': Removing Speaker (Speaker Service)');
-        this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory'))
-        
-        let mainService = this.handleSpeaker();
-        this.service = this.accessory.addService(mainService);
-      
-      } else {
-      
-        this.service = this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory');
-      
-      }
-    
-    } else if(this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory')) {
-    
-      if(this.accessory.context.speakerType !== 'switch'){
-      
-        this.debug(this.accessory.displayName + ': Removing Speaker (Switch Service)');
-        this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory'))
-        
-        let mainService = this.handleSpeaker();
-        this.service = this.accessory.addService(mainService);
-      
-      } else {
-      
-        this.service = this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory');
-      
-      }
+      this.logger.info(this.accessory.displayName + ': Cheking authentication...');
+      await this.Bravia.getAuth();
 
-    } else if(this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory')){
+      this.logger.info(this.accessory.displayName + ': Authenticated!');
+
+      if(this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory')){
     
-      if(this.accessory.context.speakerType !== 'lightbulb'){
+        if(this.accessory.context.speakerType !== 'speaker'){
       
-        this.debug(this.accessory.displayName + ': Removing Speaker (Lightbulb Service)');
-        this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory'))
+          this.debug(this.accessory.displayName + ': Removing Speaker (Speaker Service)');
+          this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory'));
         
+          let mainService = this.handleSpeaker();
+          this.service = this.accessory.addService(mainService);
+      
+        } else {
+      
+          this.service = this.accessory.getServiceByUUIDAndSubType(Service.Speaker, this.accessory.displayName + ' Accessory');
+      
+        }
+    
+      } else if(this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory')) {
+    
+        if(this.accessory.context.speakerType !== 'switch'){
+      
+          this.debug(this.accessory.displayName + ': Removing Speaker (Switch Service)');
+          this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory'));
+        
+          let mainService = this.handleSpeaker();
+          this.service = this.accessory.addService(mainService);
+      
+        } else {
+      
+          this.service = this.accessory.getServiceByUUIDAndSubType(Service.Switch, this.accessory.displayName + ' Accessory');
+      
+        }
+
+      } else if(this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory')){
+    
+        if(this.accessory.context.speakerType !== 'lightbulb'){
+      
+          this.debug(this.accessory.displayName + ': Removing Speaker (Lightbulb Service)');
+          this.accessory.removeService(this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory'));
+        
+          let mainService = this.handleSpeaker();
+          this.service = this.accessory.addService(mainService);
+      
+        } else {
+      
+          this.service = this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory');
+      
+        }
+    
+      } else {
+    
         let mainService = this.handleSpeaker();
         this.service = this.accessory.addService(mainService);
+    
+      }
+    
+      if(add){
       
-      } else {
-      
-        this.service = this.accessory.getServiceByUUIDAndSubType(Service.Lightbulb, this.accessory.displayName + ' Accessory');
+        this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
+        
+        this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
+        //this.accessories.push(this.accessory);
       
       }
     
-    } else {
-    
-      let mainService = this.handleSpeaker();
-      this.service = this.accessory.addService(mainService);
+      this.getTVState();   
+      this.getService();
+
+    } catch(err){
+
+      this.logger.error(err);
     
     }
-    
-    if(add){
-      
-      this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
-        
-      this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
-      //this.accessories.push(this.accessory);
-      
-    }
-    
-    this.getTVState();   
-    this.getService();
   
   }
   
@@ -116,42 +128,42 @@ class SpeakerAccessory {
   
     let Speaker;
     
-      switch(this.accessory.context.speakerType){
+    switch(this.accessory.context.speakerType){
       
-        case 'lightbulb':
+      case 'lightbulb':
         
-          this.debug(this.accessory.displayName + ': Adding Speaker (Lightbulb Service)');
+        this.debug(this.accessory.displayName + ': Adding Speaker (Lightbulb Service)');
         
-          Speaker = new Service.Lightbulb (this.accessory.displayName, this.accessory.displayName + ' Accessory');
-          Speaker.addCharacteristic(Characteristic.Brightness);
-          Speaker.addCharacteristic(Characteristic.Volume);
-          Speaker.addCharacteristic(Characteristic.Mute);
+        Speaker = new Service.Lightbulb (this.accessory.displayName, this.accessory.displayName + ' Accessory');
+        Speaker.addCharacteristic(Characteristic.Brightness);
+        Speaker.addCharacteristic(Characteristic.Volume);
+        Speaker.addCharacteristic(Characteristic.Mute);
         
-          break;
+        break;
           
-        case 'switch':
+      case 'switch':
         
-          this.debug(this.accessory.displayName + ': Adding Speaker (Switch Service)');
+        this.debug(this.accessory.displayName + ': Adding Speaker (Switch Service)');
         
-          Speaker = new Service.Switch(this.accessory.displayName, this.accessory.displayName + ' Accessory');
-          Speaker.addCharacteristic(Characteristic.Volume);
-          Speaker.addCharacteristic(Characteristic.Mute);
+        Speaker = new Service.Switch(this.accessory.displayName, this.accessory.displayName + ' Accessory');
+        Speaker.addCharacteristic(Characteristic.Volume);
+        Speaker.addCharacteristic(Characteristic.Mute);
         
-          break;
+        break;
           
-        case 'speaker':
+      case 'speaker':
         
-          this.debug(this.accessory.displayName + ': Adding Speaker (Speaker Service)');
+        this.debug(this.accessory.displayName + ': Adding Speaker (Speaker Service)');
                 
-          Speaker = new Service.Speaker(this.accessory.displayName, this.accessory.displayName + ' Accessory');
-          Speaker.addCharacteristic(Characteristic.Volume);
+        Speaker = new Service.Speaker(this.accessory.displayName, this.accessory.displayName + ' Accessory');
+        Speaker.addCharacteristic(Characteristic.Volume);
           
-          break;
+        break;
           
-        default:
+      default:
           // fall through
       
-      }
+    }
       
     return Speaker;
   
@@ -210,17 +222,26 @@ class SpeakerAccessory {
         let volume, mute;
             
         let audio = await this.Bravia.getVolumeInformation();
+        
+        if(Array.isArray(audio)){
+        
+          audio.map( state => {
                
-        audio.map( state => {
-               
-          if(state.target === 'speaker'){
+            if(state.target === 'speaker'){
                  
-            volume = state.volume;
-            mute = state.mute;
+              volume = state.volume;
+              mute = state.mute;
                  
-          }
+            }
                
-        })
+          });
+          
+        } else {
+        
+          await timeout(2000);        
+          this.getSpeaker();
+        
+        }
                
         this.service.getCharacteristic(Characteristic.Mute).updateValue(mute);
         this.service.getCharacteristic(Characteristic.Volume).updateValue(volume);
@@ -248,7 +269,7 @@ class SpeakerAccessory {
     
       if(err !== 'Display Off'){
         this.logger.error(this.accessory.displayName + ': An error occured while getting audio state');
-        this.logger.error(JSON.stringify(err))
+        this.logger.error(JSON.stringify(err));
       }
     
     } finally {
@@ -264,13 +285,13 @@ class SpeakerAccessory {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not set mute state, TV currently offline!');
       callback();
-      return
+      return;
     }
     
     if(!this.TVState){
-      this.logger.warn(this.accessory.displayName + ': Can not change volume, TV not on!');
-      callback()
-      return
+      this.logger.warn(this.accessory.displayName + ': Can not set mute state, TV not on!');
+      callback();
+      return;
     }
     
     try {
@@ -278,13 +299,13 @@ class SpeakerAccessory {
       if(reverse)
         mute = mute ? false : true;
     
-      this.logger.info(this.accessory.displayName + ': Mute: ' + mute)
+      this.logger.info(this.accessory.displayName + ': Mute: ' + mute);
       
-      await this.Bravia.setAudioMute(mute)
+      await this.Bravia.setAudioMute(mute);
     
     } catch(err){
     
-      this.logger.error(this.accessory.displayName + ': An error occured while setting mute state!')
+      this.logger.error(this.accessory.displayName + ': An error occured while setting mute state!');
       this.logger.error(JSON.stringify(err));
     
     } finally {
@@ -300,24 +321,24 @@ class SpeakerAccessory {
     if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
       this.logger.warn(this.accessory.displayName + ': Can not change volume, TV currently offline!');
       callback();
-      return
+      return;
     }
     
     if(!this.TVState){
       this.logger.warn(this.accessory.displayName + ': Can not change volume, TV not on!');
-      callback()
-      return
+      callback();
+      return;
     }
     
     try {
     
-      this.logger.info(this.accessory.displayName + ': Volume: ' + value)
+      this.logger.info(this.accessory.displayName + ': Volume: ' + value);
       
-      await this.Bravia.setAudioVolume('speaker', value)
+      await this.Bravia.setAudioVolume('speaker', value);
     
     } catch(err){
     
-      this.logger.error(this.accessory.displayName + ': An error occured while setting volume!')
+      this.logger.error(this.accessory.displayName + ': An error occured while setting volume!');
       this.logger.error(JSON.stringify(err));
     
     } finally {
