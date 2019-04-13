@@ -105,7 +105,7 @@ class TelevisionAccessory {
       
         } 
       
-        if(!add)
+        if(external)
           this.api.updatePlatformAccessories(this.accessories);
       
         this.getService();
@@ -232,6 +232,8 @@ class TelevisionAccessory {
       .on('set', this.setVolume.bind(this));
     
     this.inputs.map( input => {
+    
+      console.log(input);
     
       if(input && input.getCharacteristic(Characteristic.TargetVisibilityState)){
     
