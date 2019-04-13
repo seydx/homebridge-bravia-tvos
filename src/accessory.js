@@ -114,15 +114,13 @@ class TelevisionAccessory {
     
         this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
         this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-        //this.logger.error(this.inputs);
-        console.log(this.inputs)
+        this.logger.error(this.inputs);
     
       }
 
     } catch(err){
 
-      //this.logger.error(err);
-      console.log(err)
+      this.logger.error(err);
 
     }
 
@@ -233,15 +231,19 @@ class TelevisionAccessory {
     
     this.inputs.map( input => {
     
-      input.getCharacteristic(Characteristic.TargetVisibilityState)
-        .on('set', function(state, callback){
+      if(input && input.getCharacteristic(Characteristic.TargetVisibilityState)){
+    
+        input.getCharacteristic(Characteristic.TargetVisibilityState)
+          .on('set', function(state, callback){
         
-          self.logger.info(self.accessory.displayName + ' ' + input.displayName + ': ' + (state ? 'Hide' : 'Visible'));
+            self.logger.info(self.accessory.displayName + ' ' + input.displayName + ': ' + (state ? 'Hide' : 'Visible'));
         
-          input.getCharacteristic(Characteristic.CurrentVisibilityState).updateValue(state);
+            input.getCharacteristic(Characteristic.CurrentVisibilityState).updateValue(state);
         
-          callback();
-        });
+            callback();
+          });
+        
+        }
     
     });
 
