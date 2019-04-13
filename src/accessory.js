@@ -114,13 +114,15 @@ class TelevisionAccessory {
     
         this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
         this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-        this.logger.error(this.inputs);
+        //this.logger.error(this.inputs);
+        console.log(this.inputs)
     
       }
 
     } catch(err){
 
-      this.logger.error(err);
+      //this.logger.error(err);
+      console.log(err)
 
     }
 
