@@ -118,8 +118,9 @@ class SpeakerAccessory {
 
     } catch(err){
 
-      this.logger.error(err);
-    
+      //this.logger.error(err);
+      console.log(err)
+      
     }
   
   }
