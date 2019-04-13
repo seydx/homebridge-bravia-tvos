@@ -2,6 +2,7 @@
 
 const packageFile = require('../package.json');
 const LogUtil = require('../lib/LogUtil.js');
+const Bravia = require('../lib/Bravia.js');
 const debug = require('debug')('BraviaPlatform');
 
 //Accessory
@@ -32,6 +33,7 @@ function BraviaOSPlatform (log, config, api) {
   this.debug = debug;
   this.accessories = [];
   this._accessories = new Map();
+  this._devices = new Map();
   this.config = config;
   
   this.config.interval = this.config.interval * 1000||10000;                    
@@ -60,7 +62,19 @@ BraviaOSPlatform.prototype = {
 
   _initPlatform: function(){
   
-    this._devices = new Map();
+    if(!this.config.tvs.length){
+    
+      this._addOrRemoveDevice();
+      
+    } else {
+    
+      this._confTVs();
+
+    }
+  
+  },
+  
+  _confTVs: function(){
   
     this.config.tvs.map( tv => {
       this._devices.set(tv.name, tv);
@@ -81,9 +95,6 @@ BraviaOSPlatform.prototype = {
       
     });
     
-    if(!this.config.tvs.length)
-      this._addOrRemoveDevice();
-  
   },
 
   _addOrRemoveDevice: function(object) {
@@ -164,12 +175,12 @@ BraviaOSPlatform.prototype = {
   },
   
   _addOrConfigure: function(accessory, object, add, external){
-  
+
     this._refreshContext(accessory, object, add);    
     this._AccessoryInformation(accessory);
 
     this.config.tvs.map( tv => {
-      if((tv.name === accessory.displayName||(tv.name + ' Speaker' === accessory.displayName && accessory.context.customSpeaker)) && tv.ip && tv.psk){
+      if((tv.name === accessory.displayName||(tv.name + ' Speaker' === accessory.displayName && accessory.context.customSpeaker)) && tv.ip){
         if(!add) this.logger.info('Configuring accessory ' + accessory.displayName);
         
         if(accessory.displayName.includes('Speaker')){
@@ -179,7 +190,6 @@ BraviaOSPlatform.prototype = {
         }
       } else {
         if(!tv.ip) this.logger.warn('No IP defined in config.json for ' + accessory.displayName + '. Skipping...');
-        if(!tv.psk) this.logger.warn('No PSK defined in config.json for ' + accessory.displayName + '. Skipping...');
       }
     });
 
@@ -206,6 +216,10 @@ BraviaOSPlatform.prototype = {
       accessory.context.wol = object.wol || false;
       accessory.context.customSpeaker = object.customSpeaker || false;
       accessory.context.speakerType = object.speakerType || false;
+      accessory.context.Bravia = object.Bravia;
+      
+      if(!object.name.includes('Speaker'))
+        accessory.context.Bravia = new Bravia(this, object);
     
     } else {
     
@@ -227,6 +241,9 @@ BraviaOSPlatform.prototype = {
           accessory.context.wol = tv.wol || false;
           accessory.context.customSpeaker = tv.customSpeaker || false;
           accessory.context.speakerType = tv.speakerType || false;
+          
+          if(accessory.displayName === tv.name)
+            accessory.context.Bravia = new Bravia(this, tv);
     
         }
     
@@ -237,7 +254,7 @@ BraviaOSPlatform.prototype = {
   },
   
   _AccessoryInformation: function(accessory){
-  
+
     let serial = accessory.displayName.includes('Speaker') ? 'S-' + accessory.context.ip.replace(/\./g, '') : accessory.context.ip.replace(/\./g, '');
   
     accessory.getService(Service.AccessoryInformation)
