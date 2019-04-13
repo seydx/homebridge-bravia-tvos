@@ -23,6 +23,8 @@ This plugin supports following functions:
 - **Apps** like YouTube, Prime Video etc.
 - **Channels:** Your favourite channels as inputs.
 - **Remote control:** native iOS Remote control
+- **Login** with PSK or without PSK (for older models)
+- **WOL** support Wake on Lan
 
 ## Installation instructions
 
@@ -30,11 +32,18 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
 -  ```npm i -g --save SeydX/homebridge-bravia-tvos#beta```
 
-## Preparing the TV
+## Preparing the TV (PSK)
 
 - Set **Remote start** to **ON** _(Settings -> Network -> Remote Start)_
 - Change **Authentication** to **Normal and Pre-Shared Key** _(Settings -> Network -> IP Control -> Authentication)_
 - Enter a **Pre-Shared Key** _(Settings -> Network -> IP control -> Pre-Shared Key)_
+
+
+## Preparing the TV (without PSK)
+
+- Set **Remote start** to **ON** _(Settings -> Network -> Remote Start)_
+- Change **Authentication** to **Normal** _(Settings -> Network -> IP Control -> Authentication)_
+
 
 ## Basic configuration
 
@@ -73,8 +82,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 | name | **Yes** | **Unique Name** for the TV Accessory.   |
 | ip | **Yes** | IP adress from your Sony Bravia Android TV |
 | mac | **No** | MAC address from TV (required if using WOL!) |
-| port | No | If you have problems with connecting to the TV, try a different port _(Default: 80)_ |
-| psk | **Yes** | Your PRE SHARED KEY _(see preparing the TV above)_ |
+| port | **No** | If you have problems with connecting to the TV, try a different port _(Default: 80)_ |
+| psk | **No** | Your PRE SHARED KEY _(see preparing the TV above)_ |
 | extraInputs | **No** | Inputs for "Scart, Composite, Wifidisplay" _(Default: false)_ |
 | cecInputs | **No** | Inputs for connected cec devices like Apple TV _(Default: false)_ |
 | channelInputs | **No** | An Array of Channel input types (DVBT/DVBC/DVBS/ANALOG) _(Default: false)_ |
