@@ -55,15 +55,19 @@ class TelevisionAccessory {
     try {
 
       this.logger.info(this.accessory.displayName + ': Cheking authentication...');
+      
       await this.Bravia.getAuth();
 
       this.logger.info(this.accessory.displayName + ': Authenticated!');
+      
       if(this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName)){
     
         this.service = this.accessory.getServiceByUUIDAndSubType(Service.Television, this.accessory.displayName);
     
       } else {
     
+        this.debug(this.accessory.displayName + ': Adding Television Service');
+
         let mainService = this.handleTelevision();
         this.service = this.accessory.addService(mainService);
     
@@ -75,6 +79,8 @@ class TelevisionAccessory {
     
       } else {
     
+        this.debug(this.accessory.displayName + ': Adding Television Speaker Service');
+
         let speakerService = this.handleSpeaker();
         this.speaker = this.accessory.addService(speakerService);
     
@@ -103,6 +109,12 @@ class TelevisionAccessory {
           this.api.publishExternalAccessories(pluginName, [this.accessory]);
           //this.accessories.push(this.accessory);
       
+        } else {
+	        
+	       console.log(this.accessory.displayName)
+	       console.log('ADD: ' + add);
+	       console.log('EXTERNAL: ' + external) 
+	         
         } 
       
         if(external)
@@ -795,17 +807,15 @@ class TelevisionAccessory {
   
       inputs.map( input => {
       
-        if(this.accessory.context.extraInputs && this.accessory.context.cecInputs){
+        if(input.icon === 'meta:hdmi'){
 
-          input.sourceType = Characteristic.InputSourceType.OTHER;
+          input.sourceType = Characteristic.InputSourceType.HDMI;
           input.deviceType = Characteristic.InputDeviceType.TV;
-  
-          if(input.icon === 'meta:hdmi'){
 
-            input.sourceType = Characteristic.InputSourceType.HDMI;
-            input.deviceType = Characteristic.InputDeviceType.TV;
-
-          }
+          inputArray.push(input);
+        }
+    
+        if(this.accessory.context.extraInputs){
   
           if(input.icon === 'meta:composite'||
           input.icon === 'meta:svideo'||
@@ -829,8 +839,14 @@ class TelevisionAccessory {
             input.sourceType = Characteristic.InputSourceType.OTHER;
             input.deviceType = Characteristic.InputDeviceType.TV;
 
+            inputArray.push(input);
+
           }
+  
+        }
     
+        if(this.accessory.context.cecInputs){
+           
           if(input.icon === 'meta:tv'||
           input.icon === 'meta:audiosystem'||
           input.icon === 'meta:recordingdevice'||
@@ -840,67 +856,16 @@ class TelevisionAccessory {
             input.sourceType = Characteristic.InputSourceType.HDMI;
             input.deviceType = Characteristic.InputDeviceType.PLAYBACK;
 
-          }
-          
-          inputArray.push(input);
-        
-        } else {
-  
-          if(input.icon === 'meta:hdmi'){
-
-            input.sourceType = Characteristic.InputSourceType.HDMI;
-            input.deviceType = Characteristic.InputDeviceType.TV;
-
-            inputArray.push(input);
-          }
-    
-          if(this.accessory.context.extraInputs){
-  
-            if(input.icon === 'meta:composite'||
-            input.icon === 'meta:svideo'||
-            input.icon === 'meta:composite_componentd'||
-            input.icon === 'meta:component'||
-            input.icon === 'meta:componentd'||
-            input.icon === 'meta:scart'||
-            input.icon === 'meta:dsub15'||
-            input.icon === 'meta:tuner'||
-            input.icon === 'meta:tape'||
-            input.icon === 'meta:disc'||
-            input.icon === 'meta:complex'||
-            input.icon === 'meta:avamp'||
-            input.icon === 'meta:hometheater'||
-            input.icon === 'meta:game'||
-            input.icon === 'meta:camcorder'||
-            input.icon === 'meta:digitalcamera'||
-            input.icon === 'meta:pc'||
-            input.icon === 'meta:wifidisplay'){
-
-              input.sourceType = Characteristic.InputSourceType.OTHER;
-              input.deviceType = Characteristic.InputDeviceType.TV;
-
-              inputArray.push(input);
-            }
-  
-          }
-    
-          if(this.accessory.context.cecInputs && 
-          (input.icon === 'meta:tv'||
-          input.icon === 'meta:audiosystem'||
-          input.icon === 'meta:recordingdevice'||
-          input.icon === 'meta:playbackdevice'||
-          input.icon === 'meta:tunerdevice')){
-
-            input.sourceType = Characteristic.InputSourceType.HDMI;
-            input.deviceType = Characteristic.InputDeviceType.PLAYBACK;
-
             inputArray.push(input); 
-          }
-  
+          
+          }  
+          
         }
   
       });
           
       if(this.accessory.context.apps.length){  
+        
         let apps = await this.Bravia.getApplicationList();
     
         apps.map( app => {
@@ -985,7 +950,7 @@ class TelevisionAccessory {
         this.accessory.context.commands.map( command => {
         
           if(c.getCode(command)){
-      
+            
             inputArray.push({
               title: c.getCode(command),
               uri: command,
