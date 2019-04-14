@@ -233,7 +233,7 @@ class TelevisionAccessory {
     
     this.inputs.map( input => {
     
-      console.log(input);
+      //console.log(input);
     
       if(input && input.getCharacteristic(Characteristic.TargetVisibilityState)){
     
@@ -915,25 +915,69 @@ class TelevisionAccessory {
     
         });
       }
-    
-      if(this.accessory.context.channels.length){
-  
-        for (const i of this.accessory.context.channels){
+      
+      if(this.accessory.context.channelInputs.length||this.accessory.context.channels.length){
+      
+        let schemeList = await this.Bravia.getSourceList('tv');
         
-          let channelType = 'tv:' + i.source.toLowerCase();
-
-          let channel = await this.Bravia.getContentList(channelType, 1, i.channel);
-          channel = channel[0];
+        let schemes = schemeList.map( scheme => {
+        
+          let type = scheme.source.split(':')[1].toUpperCase()
+          return type
+        
+        });
+        
+        this.logger.info(this.accessory.displayName + ': Checking Inputs for ' + schemes.toString().replace(',', ' and ') + '! Other channel sources are not considered!');
+        
+        for(const scheme of schemeList){
+        
+          if(this.accessory.context.channelInputs.length){
+      
+            this.accessory.context.channelInputs.map( channel => {
+            
+              let channelType = 'tv:' + channel.toLowerCase();
+     
+              if(channelType === scheme.source){
+              
+                inputArray.push({
+                  title: channel,
+                  uri: channelType,
+                  sourceType: Characteristic.InputSourceType.TUNER,
+                  deviceType: Characteristic.InputDeviceType.TV
+                });
+            
+              }
+              
+            });
+      
+          }
           
-          channel.sourceType = Characteristic.InputSourceType.TUNER;
-          channel.deviceType = Characteristic.InputDeviceType.TV;
-          
-          inputArray.push(channel);
+          if(this.accessory.context.channels.length){
+  
+            for (const i of this.accessory.context.channels){
+            
+              let channelType = 'tv:' + i.source.toLowerCase();
+              
+              if(channelType === scheme.source){
 
+                let channel = await this.Bravia.getContentList(channelType, 1, i.channel);
+                channel = channel[0];
+          
+                channel.sourceType = Characteristic.InputSourceType.TUNER;
+                channel.deviceType = Characteristic.InputDeviceType.TV;
+          
+                inputArray.push(channel);
+              
+              }
+              
+            }
+
+          }
+        
         }
-
+      
       }
-
+      
       if(this.accessory.context.commands.length){
       
         const c = new IRCC.IRCC();
@@ -953,25 +997,6 @@ class TelevisionAccessory {
     
         });
 
-      }
-      
-      if(this.accessory.context.channelInputs.length){
-      
-        this.accessory.context.channelInputs.map( channel => {
-         
-          if(channel === 'DVBT'||channel === 'DVBC'||channel === 'DVBS'||channel === 'ANALOG'){
-            
-            inputArray.push({
-              title: channel,
-              uri: 'tv:' + channel.toLowerCase(),
-              sourceType: Characteristic.InputSourceType.TUNER,
-              deviceType: Characteristic.InputDeviceType.TV
-            });
-            
-          }
-              
-        });
-      
       }
       
       if(this.activateTV){
