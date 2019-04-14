@@ -247,7 +247,7 @@ class TelevisionAccessory {
             callback();
           });
         
-        }
+      }
     
     });
 
@@ -922,8 +922,8 @@ class TelevisionAccessory {
         
         let schemes = schemeList.map( scheme => {
         
-          let type = scheme.source.split(':')[1].toUpperCase()
-          return type
+          let type = scheme.source.split(':')[1].toUpperCase();
+          return type;
         
         });
         
@@ -960,7 +960,7 @@ class TelevisionAccessory {
               
               if(channelType === scheme.source){
 
-                let channel = await this.Bravia.getContentList(channelType, 1, i.channel);
+                let channel = await this.Bravia.getContentList(channelType, 1, (i.channel+1));
                 channel = channel[0];
           
                 channel.sourceType = Characteristic.InputSourceType.TUNER;
