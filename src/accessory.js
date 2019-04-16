@@ -89,10 +89,18 @@ class TelevisionAccessory {
       this.service.addLinkedService(this.speaker);   
     
       this.inputs = await this.handleInputs();
+      
+      this.logger.info(this.accessory.displayName + ': Resolving inputs...');
     
       if(Array.isArray(this.inputs)){
     
         await timeout(500);
+        
+        this.logger.info(this.accessory.displayName + ': Linking inputs...');
+        
+        this.logger.info(this.accessory.displayName + ': ADD: ' + add);
+        this.logger.info(this.accessory.displayName + ': EXTERNAL: ' + external);
+        
         this.inputs.map( input => this.service.addLinkedService(input) );
       
         if(add && !external){
@@ -109,13 +117,7 @@ class TelevisionAccessory {
           this.api.publishExternalAccessories(pluginName, [this.accessory]);
           //this.accessories.push(this.accessory);
       
-        } else {
-	        
-	       console.log(this.accessory.displayName)
-	       console.log('ADD: ' + add);
-	       console.log('EXTERNAL: ' + external) 
-	         
-        } 
+        }
       
         if(external)
           this.api.updatePlatformAccessories(this.accessories);
@@ -182,6 +184,8 @@ class TelevisionAccessory {
   
   async handleInputs(){
   
+    this.logger.info(this.accessory.displayName + ': Handling inputs...');
+  
     let inputArray;
   
     try {
@@ -205,6 +209,8 @@ class TelevisionAccessory {
       inputArray = err;
     
     }
+    
+    this.logger.info(this.accessory.displayName + ': Inputs Finished!');
     
     return inputArray;
   
@@ -794,7 +800,7 @@ class TelevisionAccessory {
           
           this.activateTV = true;
        
-        } else{
+        } else {
         
           this.logger.info(this.accessory.displayName + ': TV on! Fetching inputs...!');
           await timeout(7000);
@@ -802,6 +808,8 @@ class TelevisionAccessory {
         }
 
       }
+      
+      this.logger.info(this.accessory.displayName + ': Fetching External Inputs...');
     
       let inputs = await this.Bravia.getCurrentExternalInputsStatus();
   
@@ -863,8 +871,12 @@ class TelevisionAccessory {
         }
   
       });
+      
+      this.logger.info(this.accessory.displayName + ': External Inputs fetched!');
           
       if(this.accessory.context.apps.length){  
+      
+        this.logger.info(this.accessory.displayName + ': Fetching apps...');
         
         let apps = await this.Bravia.getApplicationList();
     
@@ -879,9 +891,18 @@ class TelevisionAccessory {
           }    
     
         });
+        
+        this.logger.info(this.accessory.displayName + ': Apps fetched!');
+        
       }
       
       if(this.accessory.context.channelInputs.length||this.accessory.context.channels.length){
+      
+        if(this.accessory.context.channelInputs.length)
+          this.logger.info(this.accessory.displayName + ': Fetching Channel Inputs...');
+      
+        if(this.accessory.context.channels.length)
+          this.logger.info(this.accessory.displayName + ': Fetching Channels...');
       
         let schemeList = await this.Bravia.getSourceList('tv');
         
@@ -940,10 +961,18 @@ class TelevisionAccessory {
           }
         
         }
+        
+        if(this.accessory.context.channelInputs.length)
+          this.logger.info(this.accessory.displayName + ': Channel Inputs fetched!');
+      
+        if(this.accessory.context.channels.length)
+          this.logger.info(this.accessory.displayName + ': Channels fetched!');
       
       }
       
       if(this.accessory.context.commands.length){
+      
+        this.logger.info(this.accessory.displayName + ': Fetching extra commands...');
       
         const c = new IRCC.IRCC();
     
@@ -961,6 +990,8 @@ class TelevisionAccessory {
           }
     
         });
+        
+        this.logger.info(this.accessory.displayName + ': Extra commands fetched!');
 
       }
       
@@ -968,6 +999,8 @@ class TelevisionAccessory {
         this.logger.info(this.accessory.displayName + ': New Inputs fetched. Turning off TV again.');
         await this.Bravia.setPowerStatus(false);
       }
+      
+      this.logger.info(this.accessory.displayName + ': Fetching inputs finished!');
   
     } catch(err){
 
@@ -978,8 +1011,16 @@ class TelevisionAccessory {
     return new Promise((resolve,reject) => {
   
       if(error){
+      
+        this.logger.info(this.accessory.displayName + ': Error!');  
+      
         reject(error);
+      
+      
       } else {
+      
+        this.logger.info(this.accessory.displayName + ': Collecting...');  
+      
         resolve(inputArray);
       }
   
@@ -988,6 +1029,8 @@ class TelevisionAccessory {
   }
   
   async _addAndRefreshInputs(){
+  
+    this.logger.info(this.accessory.displayName + ': Refreshing input list...');
   
     let countInputs = 0; 
     const displayOrder = [];
@@ -1055,12 +1098,16 @@ class TelevisionAccessory {
     
     this.service.getCharacteristic(Characteristic.DisplayOrder)
       .updateValue(Buffer.from(displayOrder).toString('base64'));
+      
+    this.logger.info(this.accessory.displayName + ': Finished refreshing!');
     
     return InputArray;
   
   }
   
   _removeInputs(finish){
+  
+    this.logger.info(this.accessory.displayName + ': Looking for removable inputs...');
   
     this.accessory.services.map( input => {
   
@@ -1081,8 +1128,12 @@ class TelevisionAccessory {
   
     });
     
-    if(finish)
+    if(finish){
+    
+      this.logger.info(this.accessory.displayName + ': Stop looking for removable inputs!');  
+    
       return;
+    }
   
   }
 
