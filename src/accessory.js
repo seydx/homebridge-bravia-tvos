@@ -813,6 +813,10 @@ class TelevisionAccessory {
     
       let inputs = await this.Bravia.getCurrentExternalInputsStatus();
   
+      this.logger.info(this.accessory.displayName + ': Recived External Inputs!');
+      
+      this.logger.info(inputs);
+      
       inputs.map( input => {
       
         if(input.icon === 'meta:hdmi'){
@@ -879,6 +883,8 @@ class TelevisionAccessory {
         this.logger.info(this.accessory.displayName + ': Fetching apps...');
         
         let apps = await this.Bravia.getApplicationList();
+        
+        this.logger.info(this.accessory.displayName + ': Recived App List!');
     
         apps.map( app => {
     
@@ -905,6 +911,8 @@ class TelevisionAccessory {
           this.logger.info(this.accessory.displayName + ': Fetching Channels...');
       
         let schemeList = await this.Bravia.getSourceList('tv');
+        
+        this.logger.info(this.accessory.displayName + ': Recived accessible Channel Types!');
         
         let schemes = schemeList.map( scheme => {
         
