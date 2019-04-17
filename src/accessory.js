@@ -456,8 +456,8 @@ class TelevisionAccessory {
   
   async setPowerState(state, callback){
   
-    if(!await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
-      this.logger.warn(this.accessory.displayName + ': Can not change power state, TV currently off!');
+    if(!this.accessory.context.wol && !this.accessory.context.mac && !await tcpprobe(this.accessory.context.ip, this.accessory.context.port)){
+      this.logger.warn(this.accessory.displayName + ': Can not change power state, TV currently off and WOL is not active!');
       callback();
       return;
     }
