@@ -954,7 +954,7 @@ class TelevisionAccessory {
               
               if(channelType === scheme.source){
 
-                let channel = await this.Bravia.getContentList(channelType, 1, (i.channel+1));
+                let channel = await this.Bravia.getContentList(channelType, 1, (i.channel-1));
                 channel = channel[0];
           
                 channel.sourceType = Characteristic.InputSourceType.TUNER;
