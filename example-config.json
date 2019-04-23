@@ -22,7 +22,7 @@
             "Smart IPTV",
             "Prime Video"
           ],
-          "wol": true.
+          "wol": true,
           "customSpeaker": true,
           "speakerType": "lightbulb"
         },
