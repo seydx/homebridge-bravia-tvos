@@ -30,7 +30,7 @@ This plugin supports following functions:
 
 After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
--  ```npm i -g --save SeydX/homebridge-bravia-tvos#beta```
+-  ```sudo npm i -g homebridge-bravia-tvos@latest```
 
 ## Preparing the TV (PSK)
 
@@ -72,7 +72,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 }
 
  ```
- See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/tree/beta/example-config.json) for more details.
+ See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/blob/master/example-config.json) for more details.
 
  
  ## Options
