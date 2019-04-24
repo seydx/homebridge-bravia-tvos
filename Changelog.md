@@ -1,7 +1,7 @@
 # Changelog
 
 
-## 3.0 (currently in work)
+## 3.0
 - Completely rewritten code
 - Faster
 - Bugfixes and Improvements
