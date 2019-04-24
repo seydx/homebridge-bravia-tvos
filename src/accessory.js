@@ -90,16 +90,16 @@ class TelevisionAccessory {
     
       this.inputs = await this.handleInputs();
       
-      this.logger.info(this.accessory.displayName + ': Resolving inputs...');
+      this.logger.debug(this.accessory.displayName + ': Resolving inputs...');
     
       if(Array.isArray(this.inputs)){
     
         await timeout(500);
         
-        this.logger.info(this.accessory.displayName + ': Linking inputs...');
+        this.logger.debug(this.accessory.displayName + ': Linking inputs...');
         
-        this.logger.info(this.accessory.displayName + ': ADD: ' + add);
-        this.logger.info(this.accessory.displayName + ': EXTERNAL: ' + external);
+        this.logger.debug(this.accessory.displayName + ': ADD: ' + add);
+        this.logger.debug(this.accessory.displayName + ': EXTERNAL: ' + external);
         
         this.inputs.map( input => this.service.addLinkedService(input) );
       
@@ -126,17 +126,16 @@ class TelevisionAccessory {
       
       } else {
     
-        this.logger.error(this.accessory.displayName + ': Error while getting new inputs!');
+        this.logger.error(this.accessory.displayName + ': An error occured while getting new inputs!');
         this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-        //this.logger.error(this.inputs);
-        console.log(this.inputs);
+        this.logger.error(this.inputs);
     
       }
 
     } catch(err){
 
-      //this.logger.error(err);
-      console.log(err);
+      this.logger.error(this.accessory.displayName + ': An error occured while handling accessories!')
+      this.logger.error(err);
 
     }
 
@@ -184,7 +183,7 @@ class TelevisionAccessory {
   
   async handleInputs(){
   
-    this.logger.info(this.accessory.displayName + ': Handling inputs...');
+    this.logger.debug(this.accessory.displayName + ': Handling inputs...');
   
     let inputArray;
   
@@ -310,7 +309,7 @@ class TelevisionAccessory {
     
       if(err !== 'Display Off'){
         this.logger.error(this.accessory.displayName + ': An error occured while getting audio state');
-        this.logger.error(JSON.stringify(err));
+        this.logger.error(err);
       }
     
     } finally {
@@ -344,7 +343,7 @@ class TelevisionAccessory {
     } catch(err){
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting mute state!');
-      this.logger.error(JSON.stringify(err));
+      this.logger.error(err);
     
     } finally {
     
@@ -375,8 +374,8 @@ class TelevisionAccessory {
   
     } catch(err) {
   
-      this.logger.error(this.accessory.displayName + ': Error while setting volume!');
-      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error(this.accessory.displayName + ': An error occured while setting volume!');
+      this.logger.error(err);
   
     } finally {
   
@@ -409,7 +408,7 @@ class TelevisionAccessory {
     } catch(err){
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting volume!');
-      this.logger.error(JSON.stringify(err));
+      this.logger.error(err);
     
     } finally {
     
@@ -441,8 +440,8 @@ class TelevisionAccessory {
       
       } else {
       
-        this.logger.error(this.accessory.displayName + ': Error while getting power state!'); 
-        this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+        this.logger.error(this.accessory.displayName + ': An error occured while getting power state!'); 
+        this.logger.error(err);
       
       }
   
@@ -487,8 +486,8 @@ class TelevisionAccessory {
   
     } catch(err) {
   
-      this.logger.error(this.accessory.displayName + ': Error while setting new power state!'); 
-      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error(this.accessory.displayName + ': An error occured while setting new power state!'); 
+      this.logger.error(err);
   
     } finally {
   
@@ -569,10 +568,8 @@ class TelevisionAccessory {
   
       } catch(err) {
   
-        this.logger.error(this.accessory.displayName + ': Error while getting input state!'); 
-        //this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
-        
-        console.log(err);
+        this.logger.error(this.accessory.displayName + ': An error occured while getting input state!'); 
+        this.logger.error(err);
   
       } finally {
       
@@ -632,8 +629,8 @@ class TelevisionAccessory {
   
     } catch(err) {
   
-      this.logger.error(this.accessory.displayName + ': Error while setting new input state!'); 
-      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error(this.accessory.displayName + ': An error occured while setting new input state!'); 
+      this.logger.error(err);
   
     } finally {
   
@@ -735,8 +732,8 @@ class TelevisionAccessory {
   
     } catch(err){
   
-      this.logger.error(this.accessory.displayName + ': Error while setting new remote key'); 
-      this.logger.error('[Bravia Debug]: ' + JSON.stringify(err));
+      this.logger.error(this.accessory.displayName + ': An error occured while setting new remote key'); 
+      this.logger.error(err);
   
     } finally {
   
@@ -809,11 +806,11 @@ class TelevisionAccessory {
 
       }
       
-      this.logger.info(this.accessory.displayName + ': Fetching External Inputs...');
+      this.logger.debug(this.accessory.displayName + ': Fetching External Inputs...');
     
       let inputs = await this.Bravia.getCurrentExternalInputsStatus();
   
-      this.logger.info(this.accessory.displayName + ': Recived External Inputs!');
+      this.logger.debug(this.accessory.displayName + ': Recived External Inputs!');
       
       this.logger.info(inputs);
       
@@ -876,15 +873,15 @@ class TelevisionAccessory {
   
       });
       
-      this.logger.info(this.accessory.displayName + ': External Inputs fetched!');
+      this.logger.debug(this.accessory.displayName + ': External Inputs fetched!');
           
       if(this.accessory.context.apps.length){  
       
-        this.logger.info(this.accessory.displayName + ': Fetching apps...');
+        this.logger.debug(this.accessory.displayName + ': Fetching apps...');
         
         let apps = await this.Bravia.getApplicationList();
         
-        this.logger.info(this.accessory.displayName + ': Recived App List!');
+        this.logger.debug(this.accessory.displayName + ': Recived App List!');
     
         apps.map( app => {
     
@@ -898,21 +895,21 @@ class TelevisionAccessory {
     
         });
         
-        this.logger.info(this.accessory.displayName + ': Apps fetched!');
+        this.logger.debug(this.accessory.displayName + ': Apps fetched!');
         
       }
       
       if(this.accessory.context.channelInputs.length||this.accessory.context.channels.length){
       
         if(this.accessory.context.channelInputs.length)
-          this.logger.info(this.accessory.displayName + ': Fetching Channel Inputs...');
+          this.logger.debug(this.accessory.displayName + ': Fetching Channel Inputs...');
       
         if(this.accessory.context.channels.length)
-          this.logger.info(this.accessory.displayName + ': Fetching Channels...');
+          this.logger.debug(this.accessory.displayName + ': Fetching Channels...');
       
         let schemeList = await this.Bravia.getSourceList('tv');
         
-        this.logger.info(this.accessory.displayName + ': Recived accessible Channel Types!');
+        this.logger.debug(this.accessory.displayName + ': Recived accessible Channel Types!');
         
         let schemes = schemeList.map( scheme => {
         
@@ -971,16 +968,16 @@ class TelevisionAccessory {
         }
         
         if(this.accessory.context.channelInputs.length)
-          this.logger.info(this.accessory.displayName + ': Channel Inputs fetched!');
+          this.logger.debug(this.accessory.displayName + ': Channel Inputs fetched!');
       
         if(this.accessory.context.channels.length)
-          this.logger.info(this.accessory.displayName + ': Channels fetched!');
+          this.logger.debug(this.accessory.displayName + ': Channels fetched!');
       
       }
       
       if(this.accessory.context.commands.length){
       
-        this.logger.info(this.accessory.displayName + ': Fetching extra commands...');
+        this.logger.debug(this.accessory.displayName + ': Fetching extra commands...');
       
         const c = new IRCC.IRCC();
     
@@ -999,7 +996,7 @@ class TelevisionAccessory {
     
         });
         
-        this.logger.info(this.accessory.displayName + ': Extra commands fetched!');
+        this.logger.debug(this.accessory.displayName + ': Extra commands fetched!');
 
       }
       
@@ -1008,7 +1005,7 @@ class TelevisionAccessory {
         await this.Bravia.setPowerStatus(false);
       }
       
-      this.logger.info(this.accessory.displayName + ': Fetching inputs finished!');
+      this.logger.debug(this.accessory.displayName + ': Fetching inputs finished!');
   
     } catch(err){
 
@@ -1038,7 +1035,7 @@ class TelevisionAccessory {
   
   async _addAndRefreshInputs(){
   
-    this.logger.info(this.accessory.displayName + ': Refreshing input list...');
+    this.logger.debug(this.accessory.displayName + ': Refreshing input list...');
   
     let countInputs = 0; 
     const displayOrder = [];
@@ -1107,7 +1104,7 @@ class TelevisionAccessory {
     this.service.getCharacteristic(Characteristic.DisplayOrder)
       .updateValue(Buffer.from(displayOrder).toString('base64'));
       
-    this.logger.info(this.accessory.displayName + ': Finished refreshing!');
+    this.logger.debug(this.accessory.displayName + ': Finished refreshing!');
     
     return InputArray;
   
@@ -1115,7 +1112,7 @@ class TelevisionAccessory {
   
   _removeInputs(finish){
   
-    this.logger.info(this.accessory.displayName + ': Looking for removable inputs...');
+    this.logger.debug(this.accessory.displayName + ': Looking for removable inputs...');
   
     this.accessory.services.map( input => {
   
@@ -1138,7 +1135,7 @@ class TelevisionAccessory {
     
     if(finish){
     
-      this.logger.info(this.accessory.displayName + ': Stop looking for removable inputs!');  
+      this.logger.debug(this.accessory.displayName + ': Stop looking for removable inputs!');  
     
       return;
     }
