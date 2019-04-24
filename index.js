@@ -1,5 +1,5 @@
 /**
- * v2.0
+ * v3.0
  *
  * @url https://github.com/SeydX/homebridge-bravia-tvos
  * @author SeydX <seyd55@outlook.de>
