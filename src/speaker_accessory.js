@@ -118,9 +118,8 @@ class SpeakerAccessory {
 
     } catch(err){
 
-      //this.logger.error(err);
-      console.log(err)
-      
+      this.logger.error(JSON.stringify(err, null, 4));
+    
     }
   
   }
@@ -270,7 +269,7 @@ class SpeakerAccessory {
     
       if(err !== 'Display Off'){
         this.logger.error(this.accessory.displayName + ': An error occured while getting audio state');
-        this.logger.error(JSON.stringify(err));
+        this.logger.error(JSON.stringify(err, null, 4));
       }
     
     } finally {
@@ -307,7 +306,7 @@ class SpeakerAccessory {
     } catch(err){
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting mute state!');
-      this.logger.error(JSON.stringify(err));
+      this.logger.error(JSON.stringify(err, null, 4));
     
     } finally {
     
@@ -340,7 +339,7 @@ class SpeakerAccessory {
     } catch(err){
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting volume!');
-      this.logger.error(JSON.stringify(err));
+      this.logger.error(JSON.stringify(err, null, 4));
     
     } finally {
     
