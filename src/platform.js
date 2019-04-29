@@ -165,10 +165,10 @@ BraviaOSPlatform.prototype = {
     
     let uuid = UUIDGen.generate(object.name);
     let accessory = new Accessory(object.name, uuid, catagory);
-    
-    this.accessories.push(accessory);
 
     accessory.context = {};
+    
+    this.accessories.push(accessory);
 
     this._addOrConfigure(accessory, object, true, external);
 
