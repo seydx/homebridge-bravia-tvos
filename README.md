@@ -97,7 +97,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
 ## Multiple TVs
 
-If u have added multiple TVs to homebridge via this plugin, please note that all TVs except the first one will be published as "external accessories" ! That means, you need to add this TVs manually to HomeKit. It will be not exposed via the bridge. This is necessary due to handling of the TVs via Apple
+If you have added multiple TVs to homebridge via this plugin, please note that all TVs except the first one will be published as "external accessories" ! That means, you need to add this TVs manually to HomeKit. It will be not exposed via the bridge. This is necessary due to handling of the TVs via Apple
 
 
 ## Supported clients
