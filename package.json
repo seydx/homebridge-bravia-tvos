@@ -28,7 +28,7 @@
   ],
   "engines": {
     "node": "^8.9.1",
-    "homebridge": "^0.4.48"
+    "homebridge": "^0.4.49"
   },
   "dependencies": {
     "axios": "^0.18.0",
