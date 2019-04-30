@@ -592,20 +592,20 @@ class TelevisionAccessory {
         await timeout(6000);
         
       }
-    
+      
       for(const i of this._inputs){
         if(i[1]===uri)
           this.logger.info(this.accessory.displayName + ': Turn on ' + i[0]);
       }
-  
-      if(uri.includes('com.sony.dtv')){
-        await this.Bravia.setActiveApp(uri);  
+      
+      if(uri.includes('tv')||uri.includes('extInput')){
+        await this.Bravia.setPlayContent(uri);
       } else if(uri.includes('AAAAA')){
         await this.Bravia.setIRCC(uri);
       } else {
-        await this.Bravia.setPlayContent(uri);  
+        await this.Bravia.setActiveApp(uri);
       }
-  
+
     } catch(err) {
   
       this.logger.error(this.accessory.displayName + ': An error occured while setting new input state!'); 
