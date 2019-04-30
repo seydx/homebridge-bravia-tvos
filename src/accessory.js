@@ -599,18 +599,10 @@ class TelevisionAccessory {
     
       if(!this.service.getCharacteristic(Characteristic.Active).value){
       
-        this.logger.info(this.accessory.displayName + ': Turning on TV');
-      
-        if(this.accessory.context.wol && this.accessory.context.mac){
-          await this.Bravia.setPowerStatusWOL(this.accessory.context.mac);
-        } else {
-          await this.Bravia.setPowerStatus(true); 
-        }
-        
-        this.service.getCharacteristic(Characteristic.Active).updateValue(true);
+        this.service.getCharacteristic(Characteristic.Active).setValue(true);
         this.service.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(value);
         
-        await timeout(3000);
+        await timeout(6000);
         
       }
     
