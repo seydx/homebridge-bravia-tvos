@@ -1,6 +1,11 @@
 # Changelog
 
 
+## 3.0.5 - 2019-05-01
+- Bugfixes
+- Use input label when defined [(#47)](https://github.com/SeydX/homebridge-bravia-tvos/pull/47)
+
+
 ## 3.0.3 - 2019-04-30
 - Bugfixes
 - Debugging improvements
