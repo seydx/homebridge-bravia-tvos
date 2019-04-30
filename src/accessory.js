@@ -90,47 +90,34 @@ class TelevisionAccessory {
     
       this.inputs = await this.handleInputs();
       
-      this.debug(this.accessory.displayName + ': Resolving inputs...');
-    
-      if(Array.isArray(this.inputs)){
-    
-        await timeout(500);
+      this.debug(this.accessory.displayName + ': Linking inputs...');
+      this.inputs.map( input => { if(input) this.service.addLinkedService(input) });
         
-        this.debug(this.accessory.displayName + ': Linking inputs...');
+      this.debug(this.accessory.displayName + ': Register? ' + add);
+      this.debug(this.accessory.displayName + ': External? ' + external);
+      
+      if(add && !external){
+      
+        this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
         
-        this.debug(this.accessory.displayName + ': ADD: ' + add);
-        this.debug(this.accessory.displayName + ': EXTERNAL: ' + external);
+        this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
+        //this.accessories.push(this.accessory);
+      
+      } else if(add && external){
+      
+        this.logger.info('Registring external accessory: ' + this.accessory.displayName);
         
-        this.inputs.map( input => this.service.addLinkedService(input) );
+        this.api.publishExternalAccessories(pluginName, [this.accessory]);
+        //this.accessories.push(this.accessory);
       
-        if(add && !external){
-      
-          this.logger.info('Registring platform accessory: ' + this.accessory.displayName);
-        
-          this.api.registerPlatformAccessories(pluginName, platformName, [this.accessory]);
-          //this.accessories.push(this.accessory);
-      
-        } else if(add && external){
-      
-          this.logger.info('Registring external accessory: ' + this.accessory.displayName);
-        
-          this.api.publishExternalAccessories(pluginName, [this.accessory]);
-          //this.accessories.push(this.accessory);
-      
-        }
-      
-        if(external)
-          this.api.updatePlatformAccessories(this.accessories);
-      
-        this.getService();
-      
-      } else {
-    
-        this.logger.error(this.accessory.displayName + ': An error occured while getting new inputs!');
-        this.logger.error(this.accessory.displayName + ': Please fix the issue and restart homebridge!');
-        this.logger.error(JSON.stringify(this.inputs, null, 4));
-    
       }
+      
+      if(external)
+        this.api.updatePlatformAccessories(this.accessories);
+      
+      
+      this.debug(this.accessory.displayName + ': Accessory successfully processed');
+      this.getService();
 
     } catch(err){
 
@@ -203,15 +190,15 @@ class TelevisionAccessory {
       
       inputArray = await this._addAndRefreshInputs();
       
+      this.logger.info(this.accessory.displayName + ': Inputs Finished!');
+    
+      return inputArray;
+      
     } catch(err) {
       
-      inputArray = err;
+      throw err;
     
     }
-    
-    this.logger.info(this.accessory.displayName + ': Inputs Finished!');
-    
-    return inputArray;
   
   }
 
@@ -998,30 +985,14 @@ class TelevisionAccessory {
       }
       
       this.debug(this.accessory.displayName + ': Fetching inputs finished!');
+      
+      return inputArray;
   
     } catch(err){
 
-      error = err;
+      throw err;
   
     }
-    
-    return new Promise((resolve,reject) => {
-  
-      if(error){
-      
-        this.logger.info(this.accessory.displayName + ': Error!');  
-      
-        reject(error);
-      
-      
-      } else {
-      
-        this.logger.info(this.accessory.displayName + ': Collecting...');  
-      
-        resolve(inputArray);
-      }
-  
-    });
   
   }
   
