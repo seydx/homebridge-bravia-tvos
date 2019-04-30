@@ -696,7 +696,7 @@ class TelevisionAccessory {
         case 15:
     
           this.logger.info(this.accessory.displayName + ': Info');
-          await this.Bravia.setIRCC('AAAAAgAAAMQAAABNAw==');
+          await this.Bravia.setIRCC('AAAAAQAAAAEAAAA6Aw==');
     
           break;
       
