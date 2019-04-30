@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 3.0.3 - 2019-04-30
+- Bugfixes
+- Debugging improvements
+
+
+## 3.0.2
+- Debugging improvements
+
+
+## 3.0.1
+- Bugfixes
+
+
 ## 3.0
 - Completely rewritten code
 - Faster
