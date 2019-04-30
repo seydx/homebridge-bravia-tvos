@@ -181,10 +181,11 @@ class TelevisionAccessory {
       inputs.map( input => {
   
         const isTitleValid = input.title && input.title.length > 0;
-        this._inputs.set((isTitleValid ? input.title : input.title), input.uri);
+        const isLabelValid = input.label && input.label.length > 0;
+        
+        this._inputs.set((isLabelValid ? input.label : input.title), input.uri);
         this._sourceType.set((isTitleValid ? input.title : input.label), input.sourceType);
         this._deviceType.set((isTitleValid ? input.title : input.label), input.deviceType);
-
       });
       
       await this._removeInputs(true);
