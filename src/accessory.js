@@ -112,11 +112,13 @@ class TelevisionAccessory {
       
       }
       
-      if(external)
-        this.api.updatePlatformAccessories(this.accessories);
+      this.debug(this.accessory.displayName + ': Updating cached accessories..');      
       
+      await timeout(500);
+      this.api.updatePlatformAccessories(this.accessories);
+      await timeout(500);
       
-      this.debug(this.accessory.displayName + ': Accessory successfully processed');
+      this.debug(this.accessory.displayName + ': Accessory successfully updated!');
       this.getService();
 
     } catch(err){
@@ -179,13 +181,15 @@ class TelevisionAccessory {
       let inputs = await this._getInputs();
   
       inputs.map( input => {
-  
+
         const isTitleValid = input.title && input.title.length > 0;
         const isLabelValid = input.label && input.label.length > 0;
-        
+
         this._inputs.set((isLabelValid ? input.label : input.title), input.uri);
         this._sourceType.set((isTitleValid ? input.title : input.label), input.sourceType);
         this._deviceType.set((isTitleValid ? input.title : input.label), input.deviceType);
+
+
       });
       
       await this._removeInputs(true);
