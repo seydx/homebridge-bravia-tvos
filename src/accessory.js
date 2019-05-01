@@ -117,7 +117,7 @@ class TelevisionAccessory {
       await timeout(500);
       this.api.updatePlatformAccessories(this.accessories);
       await timeout(500);
-      
+
       this.debug(this.accessory.displayName + ': Accessory successfully updated!');
       this.getService();
 
@@ -604,7 +604,7 @@ class TelevisionAccessory {
           this.logger.info(this.accessory.displayName + ': Turn on ' + i[0]);
       }
       
-      if(uri.includes('tv')||uri.includes('extInput')){
+      if(uri.includes('tv:')||uri.includes('extInput:')){
         await this.Bravia.setPlayContent(uri);
       } else if(uri.includes('AAAAA')){
         await this.Bravia.setIRCC(uri);
