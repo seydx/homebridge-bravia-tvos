@@ -106,8 +106,9 @@ This plugin has been verified to work with the following apps on iOS 12.2:
 
 * iOS 12.2
 * Apple Home _(partial)_
-* All 3rd party apps like Elgato Eve etc. _(recommended)_
 * Homebridge v0.4.46
+
+(All 3rd party apps like Elgato Eve etc are not supported at this time. Apple is blocking 3th party apps from accessing the TV accessory)
 
 
 ## Contributing
