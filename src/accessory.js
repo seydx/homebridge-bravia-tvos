@@ -143,13 +143,17 @@ class TelevisionAccessory {
         Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
       );
     
-    Television.addCharacteristic(Characteristic.RemoteKey);
+    if(!Television.testCharacteristic(Characteristic.RemoteKey))
+      Television.addCharacteristic(Characteristic.RemoteKey);
     
-    Television.addCharacteristic(Characteristic.PowerModeSelection);
+    if(!Television.testCharacteristic(Characteristic.PowerModeSelection))
+      Television.addCharacteristic(Characteristic.PowerModeSelection);
 
-    Television.addCharacteristic(Characteristic.PictureMode);
+    if(!Television.testCharacteristic(Characteristic.PictureMode))
+      Television.addCharacteristic(Characteristic.PictureMode);
 
-    Television.addCharacteristic(Characteristic.DisplayOrder);
+    if(!Television.testCharacteristic(Characteristic.DisplayOrder))
+      Television.addCharacteristic(Characteristic.DisplayOrder);
   
     return Television;
   
