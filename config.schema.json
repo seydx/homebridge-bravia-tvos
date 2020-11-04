@@ -510,8 +510,6 @@
               "orderable": false,
               "items": [
                 "tvs[].speaker.output",
-                "tvs[].speaker.minVolume",
-                "tvs[].speaker.maxVolume",
                 "tvs[].speaker.increaseBy",
                 "tvs[].speaker.reduceBy",
                 "tvs[].speaker.accType"
