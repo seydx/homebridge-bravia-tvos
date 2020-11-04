@@ -42,5 +42,5 @@
 - Ability to add multiple TVs
 - Designed for iOS 12.1 and lower
 
-## 1.0 ([homebridge-bravia-tv](https://github.com/SeydX/homebridge-bravia-tv))
+## 1.0
 - Init release
