@@ -30,6 +30,7 @@ This plugin supports following functions:
 After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
 ```sudo npm i -g @seydx/bravia@latest```
+
 ```sudo npm i -g homebridge-bravia-tvos@latest```
 
 
