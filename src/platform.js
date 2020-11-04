@@ -1,16 +1,16 @@
 'use strict';
 
+const Logger = require('./helper/logger.js');
 const packageFile = require('../package.json');
-const LogUtil = require('../lib/LogUtil.js');
-const Bravia = require('../lib/Bravia.js');
-const debug = require('debug')('BraviaPlatform');
 
-//Accessory
-const Device = require('./accessory.js');
-const Speaker = require('./speaker_accessory.js');
+const Bravia = require('@seydx/bravia');
 
-const pluginName = 'homebridge-bravia-tvos';
-const platformName = 'BraviaOSPlatform';
+//Accessories
+const TVAccessory = require('./accessories/tv.js');
+const SpeakerAccessory = require('./accessories/speaker.js');
+
+const PLUGIN_NAME = 'homebridge-bravia-tvos';
+const PLATFORM_NAME = 'BraviaOSPlatform';
 
 var Accessory, Service, Characteristic, UUIDGen;
 
@@ -22,280 +22,276 @@ module.exports = function (homebridge) {
   UUIDGen = homebridge.hap.uuid;
   
   return BraviaOSPlatform;
+
 };
 
 function BraviaOSPlatform (log, config, api) {
-  if (!api || !config) return;
+  
+  if (!api||!config) 
+    return;
 
-  // HB
-  this.log = log;
-  this.logger = new LogUtil(null, log);
-  this.debug = debug;
+  Logger.init(log, config.debug);
+
+  this.api = api;
   this.accessories = [];
-  this._accessories = new Map();
-  this._devices = new Map();
   this.config = config;
   
-  this.config.interval = this.config.interval * 1000||10000;                    
-  this.config.tvs = Array.isArray(this.config.tvs) ? this.config.tvs : [];
-
-  if (api) {
+  this.polling = config.polling && config.polling >= 10 ? config.polling * 1000 : 10000;
   
-    if (api.version < 2.2) {
-      throw new Error('Unexpected API version. Please update your homebridge!');
-    }
+  this.devices = new Map();
+  
+  this.validIP = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  this.validMAC = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/;
     
-    this.log('**************************************************************');
-    this.log('BraviaOSPlatform v'+packageFile.version+' by SeydX');
-    this.log('GitHub: https://github.com/SeydX/homebridge-bravia-tvos');
-    this.log('Email: seyd55@outlook.de');
-    this.log('**************************************************************');
-    this.log('start success...');
+  if(this.config.tvs && this.config.tvs.length) {
+  
+    this.config.tvs.forEach(tv => {
     
-    this.api = api;
+      let error = false;
+
+      if (!tv.name) {
+        Logger.warn('One of the tv has no name configured. This tv will be skipped.');
+        error = true;
+      } else if (!tv.ip || !this.validIP.test(tv.ip)) {
+        Logger.warn('There is no valid ip configured for this tv. This tv will be skipped.', tv.name);
+        error = true;
+      } else if (!tv.psk && !tv.token) {
+        Logger.warn('There is no psk or token configured for this tv. This tv will be skipped.', tv.name);
+        error = true;
+      }
+
+      if (!error) {
       
-    this.api.on('didFinishLaunching', this._initPlatform.bind(this));
+        const uuid = UUIDGen.generate(tv.name);
+      
+        if (this.devices.has(uuid)) {
+     
+          Logger.warn('Multiple devices are configured with this name. Duplicate tv will be skipped.', tv.name);
+     
+        } else {  
+      
+          let options = {
+            host: tv.ip,
+            mac: this.validMAC.test(tv.mac) ? tv.mac : false,
+            port: tv.port || 80,
+            psk: tv.psk,
+            token: tv.token,
+            timeout: tv.timeout && tv.timeout < 5 ? 5000 : tv.timeout * 1000
+          };
+       
+          tv.bravia = new Bravia(options);
+          
+          tv.remote = {
+            REWIND: 'AAAAAgAAAJcAAAAbAw==',
+            FAST_FORWARD: 'AAAAAgAAAJcAAAAcAw==',
+            NEXT_TRACK: 'AAAAAgAAAJcAAAA9Aw==',
+            PREVIOUS_TRACK: 'AAAAAgAAAJcAAAA8Aw==',
+            ARROW_UP: 'AAAAAQAAAAEAAAB0Aw==',
+            ARROW_DOWN: 'AAAAAQAAAAEAAAB1Aw==',
+            ARROW_LEFT: 'AAAAAQAAAAEAAAA0Aw==',
+            ARROW_RIGHT: 'AAAAAQAAAAEAAAAzAw==',
+            SELECT: 'AAAAAQAAAAEAAABlAw==',
+            BACK: 'AAAAAgAAAJcAAAAjAw==',
+            EXIT: 'AAAAAQAAAAEAAABjAw==',
+            PLAY: 'AAAAAgAAAJcAAAAaAw==',
+            PAUSE: 'AAAAAgAAAJcAAAAZAw==',
+            INFORMATION: 'AAAAAQAAAAEAAAA6Aw==',
+            VOLUME_UP: 'AAAAAQAAAAEAAAASAw==',
+            VOLUME_DOWN: 'AAAAAQAAAAEAAAATAw==',
+            SETTINGS: 'AAAAAgAAAJcAAAA2Aw=='
+          };
+          
+          if(config.remote && config.remote.length){
+            config.remote.forEach(cmd => {
+              if(tv.remote[cmd.target] && /^[A]{5}[a-zA-Z0-9]{13}[\=]{2}$/.test(cmd.command))
+                tv.remote[cmd.target] = cmd.command;
+            });
+          }
+          
+          let speakerConfig;
+          
+          if(tv.speaker){
+          
+            let validTypes = ['speaker', 'lightbulb', 'switch'];
+          
+            speakerConfig = {
+              output: tv.speaker.output || 'speaker',
+              minVolume: tv.speaker.minVolume || 0,
+              maxVolue: tv.speaker.maxVolume || 100,
+              increaseBy: tv.speaker.increaseBy || 1,
+              reduceBy: tv.speaker.reduceBy || 1
+            };
+            
+            if(validTypes.includes(tv.speaker.accType)){
+            
+              let speaker = {
+                name: tv.name + ' Speaker',
+                type: 'speaker',
+                subtype: tv.speaker.accType,
+                speaker: speakerConfig,
+                remote: tv.remote,
+                bravia: tv.bravia
+              };
+              
+              const uuidSpeaker = UUIDGen.generate(speaker.name);
+            
+              this.devices.set(uuidSpeaker, speaker);
+            
+            }
+          
+          } else {
+          
+            speakerConfig = {
+              output: 'speaker',
+              minVolume: 0,
+              maxVolue: 100,
+              increaseBy: 1,
+              reduceBy: 1
+            };
+          
+          }
+          
+          tv.apps = tv.apps && tv.apps.length ? tv.apps : [];
+          tv.channels = tv.channels && tv.channels.length ? tv.channels : [];
+          tv.commands = tv.commands && tv.commands.length ? tv.commands : [];
+          tv.inputs = tv.inputs && tv.inputs.length ? tv.inputs : [];
+          
+          tv.type = 'tv';
+          tv.speaker = speakerConfig;
+          
+          this.devices.set(uuid, tv);
+          
+        }
+    
+      }
+      
+    });
+    
   }
+
+  this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
+  
 }
 
 BraviaOSPlatform.prototype = {
 
-  _initPlatform: function(){
-  
-    if(!this.config.tvs.length){
+  didFinishLaunching: function(){
+
+    for (const entry of this.devices.entries()) {
     
-      this._addOrRemoveDevice();
+      let uuid = entry[0];
+      let device = entry[1];
       
-    } else {
-    
-      this._confTVs();
-
-    }
-  
-  },
-  
-  _confTVs: function(){
-  
-    this.config.tvs.map( tv => {
-      this._devices.set(tv.name, tv);
-    
-      if(tv.customSpeaker)
-        this._devices.set(tv.name + ' Speaker', tv);
-    
-    });
-    
-    this.config.tvs.map( tv => {
-    
-      this._addOrRemoveDevice(tv);
-    
-      if(tv.customSpeaker){
-        tv.name = tv.name + ' Speaker';
-        this._addOrRemoveDevice(tv);
-      }
+      const cachedAccessory = this.accessories.find(curAcc => curAcc.UUID === uuid);
       
-    });
-    
-  },
-
-  _addOrRemoveDevice: function(object) {
-  
-    this.accessories.map( accessory => {
-
-      if(!this._devices.has(accessory.displayName)){
-
-        this._accessories.delete(accessory.displayName);
-        this.removeAccessory(accessory);
-
-      }
+      if (!cachedAccessory) {
       
-    });
+        const accessory = new Accessory(device.name, uuid);
 
-    
-    if(object){
-    
-      const accessory = this._accessories.get(object.name);
-
-      if(!accessory){
-
-        this._accessories.set(object.name, object);
-        this.addAccessory(object);
-
-      }
-    
-    }
-
-  },
-  
-  addAccessory: function(object){
-    
-    let external = this.accessories.length;
-
-    if(!external||object.name.includes('Speaker')){
-      this.logger.info('Adding new accessory: ' + object.name);
-    } else {
-      if(!object.name.includes('Speaker'))
-        this.debug('[Bravia Debug]: Adding new accessory: ' + object.name);
-    }
-    
-    let catagory;
-    
-    if(object.name.includes('Speaker')){
-      switch(object.speakerType){
-      
-        case 'lightbulb':
-          catagory = 5;
-          break;
-          
-        case 'switch':
-          catagory = 8;
-          break;
-          
-        case 'speaker':
-          catagory = 26;
-          break;
-          
-        default:
-          object.speakerType = 'speaker';
-          catagory = 26;
-      
-      }
-    } else {
-      catagory = 31;
-    }
-    
-    let uuid = UUIDGen.generate(object.name);
-    let accessory = new Accessory(object.name, uuid, catagory);
-
-    accessory.context = {};
-    
-    this.accessories.push(accessory);
-
-    this._addOrConfigure(accessory, object, true, external);
-
-  },
-  
-  _addOrConfigure: function(accessory, object, add, external){
-
-    this._refreshContext(accessory, object, add);    
-    this._AccessoryInformation(accessory);
-
-    this.config.tvs.map( tv => {
-      if((tv.name === accessory.displayName||(tv.name + ' Speaker' === accessory.displayName && accessory.context.customSpeaker)) && tv.ip){
-        if(!add) this.logger.info('Configuring accessory ' + accessory.displayName);
+        Logger.info('Configuring accessory...', accessory.displayName);
+        this.setupAccessory(accessory, device);
         
-        if(accessory.displayName.includes('Speaker')){
-          new Speaker(this, accessory, add);
+        if(device.type === 'tv'){
+          this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
         } else {
-          new Device(this, accessory, add, external);
+          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         }
-      } else {
-        if(!tv.ip) this.logger.warn('No IP defined in config.json for ' + accessory.displayName + '. Skipping...');
+        
+        this.accessories.push(accessory);
+        
       }
+      
+    }
+
+    this.accessories.forEach(accessory => {
+    
+      const tv = this.devices.get(accessory.UUID);
+      
+      try {
+      
+        if (!tv)
+          this.removeAccessory(accessory);
+    
+      } catch(err) {
+
+        Logger.info('It looks like the tv has already been removed. Skip removing.');
+        Logger.debug(err);
+     
+      }
+      
+    });
+  
+  },
+  
+  setupAccessory: async function(accessory, device){
+    
+    accessory.on('identify', () => {
+      Logger.info('Identify requested.', accessory.displayName);
     });
 
-  },
-  
-  _refreshContext: function(accessory, object, add){
-  
-    accessory.reachable = true;
-    accessory.context.interval = this.config.interval;
-  
-    if(add){ 
-
-      accessory.context.name = object.name;
-      accessory.context.ip = object.ip;
-      accessory.context.mac = object.mac;
-      accessory.context.port = object.port || 80;
-      accessory.context.psk = object.psk;
-      accessory.context.extraInputs = object.extraInputs || false;
-      accessory.context.cecInputs = object.cecInputs || false;
-      accessory.context.channelInputs = object.channelInputs || [];
-      accessory.context.channels = object.channels || [];
-      accessory.context.apps = object.apps || [];
-      accessory.context.commands = object.commands || [];
-      accessory.context.wol = object.wol || false;
-      accessory.context.customSpeaker = object.customSpeaker || false;
-      accessory.context.speakerType = object.speakerType || false;
-      accessory.context.Bravia = object.Bravia;
-      
-      if(!object.name.includes('Speaker'))
-        accessory.context.Bravia = new Bravia(this, object);
+    const AccessoryInformation = accessory.getService(this.api.hap.Service.AccessoryInformation);
     
-    } else {
+    const manufacturer = device.manufacturer && device.manufacturer !== '' ? device.manufacturer : 'Sony';
+    const model = device.model && device.model !== '' ? device.model : device.type;
+    const serialNumber = device.serialNumber && device.serialNumber !== '' ? device.serialNumber : 'Homebridge';
     
-      this.config.tvs.map( tv => {
-    
-        if(accessory.displayName === tv.name || accessory.displayName === tv.name + ' Speaker'){
-    
-          accessory.context.name = accessory.displayName.includes('Speaker') ? tv.name + ' Speaker' : tv.name;
-          accessory.context.ip = tv.ip;
-          accessory.context.mac = tv.mac;
-          accessory.context.port = tv.port || 80;
-          accessory.context.psk = tv.psk;
-          accessory.context.extraInputs = tv.extraInputs || false;
-          accessory.context.cecInputs = tv.cecInputs || false;
-          accessory.context.channelInputs = tv.channelInputs || [];
-          accessory.context.channels = tv.channels || [];
-          accessory.context.apps = tv.apps || [];
-          accessory.context.commands = tv.commands || [];
-          accessory.context.wol = tv.wol || false;
-          accessory.context.customSpeaker = tv.customSpeaker || false;
-          accessory.context.speakerType = tv.speakerType || false;
-          
-          if(accessory.displayName === tv.name)
-            accessory.context.Bravia = new Bravia(this, tv);
-    
-        }
-    
-      });
-
+    if (AccessoryInformation) {
+      AccessoryInformation.setCharacteristic(this.api.hap.Characteristic.Manufacturer, manufacturer);
+      AccessoryInformation.setCharacteristic(this.api.hap.Characteristic.Model, model);
+      AccessoryInformation.setCharacteristic(this.api.hap.Characteristic.SerialNumber, serialNumber);
+      AccessoryInformation.setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, packageFile.version);
     }
     
+    let bravia = device.bravia;
+    
+    delete device.bravia;
+    
+    accessory.context.config = device;
+    accessory.context.polling = this.polling;
+    
+    switch (device.type) {
+      case 'tv':
+        new TVAccessory(this.api, accessory, this.accessories, bravia);
+        break;
+      case 'speaker':
+        new SpeakerAccessory(this.api, accessory, this.accessories, bravia);
+        break;
+      default:
+        // fall through
+        break;
+    }
+
   },
-  
-  _AccessoryInformation: function(accessory){
 
-    let serial = accessory.displayName.includes('Speaker') ? 'S-' + accessory.context.ip.replace(/\./g, '') : accessory.context.ip.replace(/\./g, '');
-  
-    accessory.getService(Service.AccessoryInformation)
-      .setCharacteristic(Characteristic.Name, accessory.displayName)
-      .setCharacteristic(Characteristic.Identify, accessory.displayName)
-      .setCharacteristic(Characteristic.Manufacturer, 'SeydX')
-      .setCharacteristic(Characteristic.Model, 'Sony')
-      .setCharacteristic(Characteristic.SerialNumber, serial)
-      .setCharacteristic(Characteristic.FirmwareRevision, packageFile.version);
-  
-  },
+  configureAccessory: async function(accessory){
 
-  configureAccessory: function(accessory){
+    const device = this.devices.get(accessory.UUID);
 
-    this._accessories.set(accessory.displayName, accessory);  
+    if (device){
+      Logger.info('Configuring accessory...', accessory.displayName);                                                                                            
+      this.setupAccessory(accessory, device);
+    }
     
     this.accessories.push(accessory);
-    this._addOrConfigure(accessory);
   
   },
+  
+  removeAccessory: function(accessory) {
+  
+    Logger.info('Removing accessory...', accessory.displayName);
+    
+    let accessories = this.accessories.map( cachedAccessory => {
+      if(cachedAccessory.displayName !== accessory.displayName){
+        return cachedAccessory;
+      }
+    });
+    
+    this.accessories = accessories.filter(function (el) {
+      return el != null;
+    });
 
-  removeAccessory: function (accessory) {
-    if (accessory) {
-
-      this.logger.warn('Removing accessory: ' + accessory.displayName + '. No longer configured.');
-
-      let newAccessories = this.accessories.map( acc => {
-        if(acc.displayName !== accessory.displayName){
-          return acc;
-        }
-      });
-
-      let filteredAccessories = newAccessories.filter(function (el) {
-        return el != null;
-      });
-
-      this.api.unregisterPlatformAccessories(pluginName, platformName, [accessory]); 
-
-      this.accessories = filteredAccessories;
-
-    }
+    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+  
   }
 
 };
