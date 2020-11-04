@@ -514,7 +514,10 @@ class tvAccessory {
         this.inputs.set(input.uri, input);
       }
       this.allInputs.inputs = inputs;
-      await this.bravia.sleep();
+      if(powerState.status !== 'active'){
+        await this.bravia.sleep();
+        await TIMEOUT(750)(
+      }
     } catch(err) {
       Logger.error('An error occured during fetching sources, skip..', this.accessory.displayName);
       Logger.debug(err);
