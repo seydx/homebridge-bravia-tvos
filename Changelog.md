@@ -12,6 +12,8 @@
 - NEW: Customizable Apple Remote Commands
 - Bugfixes
 
+**BRAKING CHANGES:** If you use v3 of this plugin, please remove the added TV from Homekit/Homebridge before updating! Otherwise you have to reset Homebridge!
+
 ## 3.0.5 - 2019-05-01
 - Bugfixes
 - Use input label when defined [(#47)](https://github.com/SeydX/homebridge-bravia-tvos/pull/47)
