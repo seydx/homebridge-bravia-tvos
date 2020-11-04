@@ -103,7 +103,7 @@ class tvAccessory {
     
       Logger.debug('Polling tv state', this.accessory.displayName);
       let data = await this.bravia.avContent.invoke('getPlayingContentInfo');
-      //Logger.debug(data, this.accessory.displayName);
+      Logger.debug(data, this.accessory.displayName);
       
       if(data.uri){
         let index = this.getIndex('uri', data.uri) || 0;
@@ -131,7 +131,7 @@ class tvAccessory {
       
         Logger.debug('Polling speaker state', this.accessory.displayName);
         data = await this.bravia.audio.invoke('getVolumeInformation');
-        //Logger.debug(data, this.accessory.displayName);
+        Logger.debug(data, this.accessory.displayName);
         
         let target = this.accessory.context.config.speaker.output === 'other' 
           ? 'speaker' 
