@@ -1,23 +1,30 @@
 # Changelog
 
 
+## 4.0.0 - 2020-11-??
+- Refactored code
+- BETTER: Authetication flow
+- BETTER: Reduced cpu/ram usage
+- BETTER: Detection for tv inputs
+- NEW: IRCC commands as inputs
+- NEW: Config UI X support
+- NEW: Speaker types (switch, lightbulb, speaker)
+- NEW: Customizable Apple Remote Commands
+- Bugfixes
+
 ## 3.0.5 - 2019-05-01
 - Bugfixes
 - Use input label when defined [(#47)](https://github.com/SeydX/homebridge-bravia-tvos/pull/47)
-
 
 ## 3.0.3 - 2019-04-30
 - Bugfixes
 - Debugging improvements
 
-
 ## 3.0.2
 - Debugging improvements
 
-
 ## 3.0.1
 - Bugfixes
-
 
 ## 3.0
 - Completely rewritten code
