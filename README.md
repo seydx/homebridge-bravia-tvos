@@ -34,6 +34,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
 ## Preparing the TV
 
+### TV Settings
+
 - Set **Remote start** to **ON** _(Settings -> Network -> Remote Start)_
 - Change **Authentication** to **Normal and Pre-Shared Key** _(Settings -> Network -> IP Control -> Authentication)_
 
