@@ -1,7 +1,7 @@
 # Changelog
 
 
-## 4.0.0 - 2020-11-??
+## 4.0.0 - 2020-11-06
 - Refactored code
 - BETTER: Authetication flow
 - BETTER: Reduced cpu/ram usage
