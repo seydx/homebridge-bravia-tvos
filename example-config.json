@@ -1,72 +1,139 @@
 {
- "bridge": {
-   ...
-},
- "accessories": [
-   ...
-],
+  "bridge": {
+    ...
+  },
+  "accessories": [
+    ...
+  ],
   "platforms": [
     {
-      "platform": "BraviaOSPlatform",
+      "platform": "BraviaOSPlatform"
+      "name": "BraviaTVOS",
+      "debug": false,
       "tvs": [
         {
-          "name": "Sony Bedroom",
-          "ip": "192.168.178.1",
-          "mac": "04:5D:4B:0C:E3:01",
+          "name": "Sony TV",
+          "ip": "192.168.178.123",
+          "mac": "44:5D:4B:22:E3:11",
           "port": 80,
-          "psk": "decke123",
-          "extraInputs": false,
-          "cecInputs": true,
+          "timeout": 10,
+          "token": "A0B9B9D7580466F22EE8F8EA148863774ACCE203",
+          "manufacturer": "Sony",
+          "model": "KD5050",
+          "serialNumber": "123456",
+          "refreshInputs": false,
+          "inputs": [
+            "extInput:cec",
+            "extInput:component",
+            "extInput:composite",
+            "extInput:hdmi",
+            "extInput:scart",
+            "extInput:widi"
+          ],
           "apps": [
             "YouTube",
-            "Smart IPTV",
-            "Prime Video"
+            "Smart IPTV"
           ],
-          "wol": true,
-          "customSpeaker": true,
-          "speakerType": "lightbulb"
-        },
-        {
-          "name": "Sony Kitchen",
-          "ip": "192.168.178.2",
-          "port": 80,
-          "psk": "lol345",
-          "extraInputs": true,
-          "cecInputs": true,
-          "channelInputs": ["DVBT","DVBC"],
           "channels": [
             {
-              "channel":203,
-              "source":"DVBT"
+              "channel": 97,
+              "source": "tv:dvbt"
             },
             {
-              "channel":205,
-              "source":"DVBC"
+              "channel": 44,
+              "source": "tv:dvbc"
+            },
+            {
+              "channel": 22,
+              "source": "tv:dvbs"
+            },
+            {
+              "channel": 10,
+              "source": "tv:analog"
             }
           ],
-          "apps": [
-            "YouTube",
-            "Smart IPTV",
-            "Prime Video"
-          ],
           "commands": [
-            "AAAAAQAAAAEAAABgAw==",
-            "AAAAAQAAAAEAAAAVAw=="
+            "PowerOff",
+            "AAAAAQAAAAEAAABgAw=="
           ],
-          "wol": false,
-          "customSpeaker": true,
-          "speakerType": "switch"
-        },
-        {
-          "name": "Sony Lounge",
-          "ip": "192.168.178.3",
-          "port": 80,
-          "psk": "lipsum555",
-          "customSpeaker": true,
-          "speakerType": "speaker"
+          "speaker": {
+            "output": "speaker",
+            "increaseBy": 5,
+            "reduceBy": 5,
+            "accType": "lightbulb"
+          },
+          "remote": [
+            {
+              "command": "AAAAAgAAAJcAAAAbAw==",
+              "target": "REWIND"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAAcAw==",
+              "target": "FAST_FORWARD"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAA9Aw==",
+              "target": "NEXT_TRACK"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAA8Aw==",
+              "target": "PREVIOUS_TRACK"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAB0Aw==",
+              "target": "ARROW_UP"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAB1Aw==",
+              "target": "ARROW_DOWN"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAA0Aw==",
+              "target": "ARROW_LEFT"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAAzAw==",
+              "target": "ARROW_RIGHT"
+            },
+            {
+              "command": "AAAAAQAAAAEAAABlAw==",
+              "target": "SELECT"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAAjAw==",
+              "target": "BACK"
+            },
+            {
+              "command": "AAAAAQAAAAEAAABjAw==",
+              "target": "EXIT"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAAaAw==",
+              "target": "PLAY"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAAZAw==",
+              "target": "PAUSE"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAA6Aw==",
+              "target": "INFORMATION"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAASAw==",
+              "target": "VOLUME_UP"
+            },
+            {
+              "command": "AAAAAQAAAAEAAAATAw==",
+              "target": "VOLUME_DOWN"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAA2Aw==",
+              "target": "SETTINGS"
+            }
+          ]
         }
-      ],
-      "interval": 10
+      ]
     }
   ]
 }

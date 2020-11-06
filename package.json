@@ -1,12 +1,8 @@
 {
   "name": "homebridge-bravia-tvos",
-  "version": "3.0.7",
-  "description": "homebridge-bravia-tvos",
+  "version": "4.0.0-beta.4",
+  "description": "Homebridge plugin for Sony Bravia Android TVs",
   "main": "index.js",
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SeydX/homebridge-bravia-tvos.git"
@@ -27,15 +23,13 @@
     "android"
   ],
   "engines": {
-    "node":"^12.0.0",
-    "homebridge":"^1.0.0"
+    "node": ">=12.18.3",
+    "homebridge": "^1.2.0"
   },
+  "devDependencies": {},
   "dependencies": {
-    "axios": "^0.18.0",
-    "debug": "^4.1.1",
-    "wake_on_lan": "^1.0.0",
-    "tcp-ping":"^0.1.1",
-    "json-fs-store": "^1.0.1",
-    "base-64": "^0.1.0"
+    "@homebridge/plugin-ui-utils": "^0.0.10",
+    "@seydx/bravia": "^1.0.5",
+    "fs-extra": "^9.0.1"
   }
 }
