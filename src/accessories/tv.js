@@ -243,7 +243,7 @@ class tvAccessory {
         await this.bravia.send(cmds, 350);
       } else {
         try {
-          await this.bravia.audio.invoke('setAudioVolume', '1.0', { target: target, volume: volumeLevel.toString() });
+          await this.bravia.audio.invoke('setAudioVolume', '1.0', { target: target, volume: volumeLevel < 0 ? volumeLevel.toString() : '+' + volumeLevel.toString() });
         } catch(err) {
           if(!(err instanceof Error) && err.includes(40801)){
             Logger.warn('Can not ' + (value ? 'reduce' : 'increase') + ' volume. Volume Level out of range.', this.accessory.displayName);
