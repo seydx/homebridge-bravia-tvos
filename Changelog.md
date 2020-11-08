@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.0.2 - 2020-11-08
+- Fix volume up
+
 ## v4.0.1 - 2020-11-08
 - Fix apple remote volume
 
@@ -17,21 +20,21 @@
 
 **BRAKING CHANGES:** If you use v3 of this plugin, please remove the added TV from Homekit/Homebridge before updating! Otherwise you have to reset Homebridge!
 
-## 3.0.5 - 2019-05-01
+## v3.0.5 - 2019-05-01
 - Bugfixes
 - Use input label when defined [(#47)](https://github.com/SeydX/homebridge-bravia-tvos/pull/47)
 
-## 3.0.3 - 2019-04-30
+## v3.0.3 - 2019-04-30
 - Bugfixes
 - Debugging improvements
 
-## 3.0.2
+## v3.0.2
 - Debugging improvements
 
-## 3.0.1
+## v3.0.1
 - Bugfixes
 
-## 3.0
+## v3.0
 - Completely rewritten code
 - Faster
 - Bugfixes and Improvements
@@ -40,12 +43,12 @@
 - Designed for iOS 12.2
 - Debug mode
 
-## 2.0
+## v2.0
 - Dynamic Platform Plugin
 - Bugfixes
 - Performance improvements
 - Ability to add multiple TVs
 - Designed for iOS 12.1 and lower
 
-## 1.0
+## v1.0
 - Init release
