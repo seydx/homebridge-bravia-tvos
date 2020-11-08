@@ -1,7 +1,10 @@
 # Changelog
 
 
-## 4.0.0 - 2020-11-06
+## v4.0.1 - 2020-11-08
+- Fix apple remote volume
+
+## v4.0.0 - 2020-11-06
 - Refactored code
 - BETTER: Authetication flow
 - BETTER: Reduced cpu/ram usage
