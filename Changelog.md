@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.0.5 - 2020-11-09
+- Added new option to turn on TV over WOL
+
 ## v4.0.4 - 2020-11-09
 - Fixed fetching inputs
 
