@@ -510,7 +510,7 @@ class tvAccessory {
     //fetch all inputs
     try {
       Logger.debug('Fetching all tv inputs', this.accessory.displayName);
-      let powerState = this.bravia.system.invoke('getPowerStatus');
+      let powerState = await this.bravia.system.invoke('getPowerStatus');
       if(powerState.status !== 'active'){
         Logger.debug('TV is turned off, turning on to fetch all inputs..', this.accessory.displayName);
         Logger.debug(powerState, this.accessory.displayName)
@@ -543,7 +543,7 @@ class tvAccessory {
       for(let i = 0; i <= 10; i++){ //max channels 10 * 200 for source
         try {
           Logger.debug('Fetching ' + (i+1) + '. list of channels', this.accessory.displayName);
-          let channels = await this.bravia.avContent.invoke('getContentList', '1.5', {stIdx: i * 200, cnt: i * 200 + 200, uri: source});
+          let channels = await this.bravia.avContent.invoke('getContentList', '1.2', {stIdx: i * 200, cnt: i * 200 + 200, source: source});
           await TIMEOUT(750);
           allChannels = allChannels.concat(channels);
           if(channels[channels.length-1].index !== 199){
