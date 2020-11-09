@@ -158,28 +158,35 @@ class tvAccessory {
       }  
     
     } catch(err) {
-    
-      if(err === 'Display is turned off.'){
-        Logger.debug(err, this.accessory.displayName);
-        this.accessory
-          .getService(this.api.hap.Service.Television)
-          .getCharacteristic(this.api.hap.Characteristic.Active)
-          .updateValue(0);
-        if(speakerAccessory && !speakerAccessory.context.inProgress){
-          speakerAccessory
-            .getService(service)
-            .getCharacteristic(on)
-            .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
+        
+      if(err instanceof Error){
+        if(err.code && err.code === 'ECONNABORTED'){
+          Logger.warn('Timeout of ' + this.accessory.context.config.timeout + 'ms exceeded!', this.accessory.displayName);    
+        } else if(err.code && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'EHOSTUNREACH' || err.code === 'ECONNRESET')){
+          Logger.warn('Can not reach TV!', this.accessory.displayName);
         }
-      } else if(err.code && err.code === 'ECONNABORTED'){
-        Logger.warn('Timeout of ' + this.accessory.context.config.timeout + 'ms exceeded!', this.accessory.displayName);    
-      } else if(err.code && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'EHOSTUNREACH' || err.code === 'ECONNRESET')){
-        Logger.warn('Can not reach TV!', this.accessory.displayName);
+      } else if(Array.isArray(err)){
+        if(err.includes('Display is turned off') || err.includes('not power-on')){
+          Logger.debug(err, this.accessory.displayName);
+          this.accessory
+            .getService(this.api.hap.Service.Television)
+            .getCharacteristic(this.api.hap.Characteristic.Active)
+            .updateValue(0);
+          if(speakerAccessory && !speakerAccessory.context.inProgress){
+            speakerAccessory
+              .getService(service)
+              .getCharacteristic(on)
+              .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
+            }
+        } else {
+          Logger.error('An error occured during polling tv', this.accessory.displayName);
+          Logger.error(err);
+        }
       } else {
         Logger.error('An error occured during polling tv', this.accessory.displayName);
         Logger.error(err);
       }
-    
+      
     } finally {
     
       setTimeout(() => {
@@ -497,6 +504,7 @@ class tvAccessory {
     } catch(err) {
       Logger.error('An error occured during fetching apps, skip..', this.accessory.displayName);
       Logger.debug(err);
+      this.allInputs.apps = this.allInputs.apps || [];
     }
     
     //fetch all inputs
@@ -504,6 +512,8 @@ class tvAccessory {
       Logger.debug('Fetching all tv inputs', this.accessory.displayName);
       let powerState = this.bravia.system.invoke('getPowerStatus');
       if(powerState.status !== 'active'){
+        Logger.debug('TV is turned off, turning on to fetch all inputs..', this.accessory.displayName);
+        Logger.debug(powerState, this.accessory.displayName)
         await this.bravia.wake();
         await TIMEOUT(3000);
       }
@@ -515,12 +525,14 @@ class tvAccessory {
       }
       this.allInputs.inputs = inputs;
       if(powerState.status !== 'active'){
+        Logger.debug('Turning off tv..');
         await this.bravia.sleep();
         await TIMEOUT(750)
       }
     } catch(err) {
-      Logger.error('An error occured during fetching sources, skip..', this.accessory.displayName);
+      Logger.error('An error occured during fetching tv inputs, skip..', this.accessory.displayName);
       Logger.debug(err);
+      this.allInputs.inputs = this.allInputs.inputs || [];
     }
     
     //fetch all channels
@@ -541,6 +553,13 @@ class tvAccessory {
         } catch(err) {
           if(!(err instanceof Error) && err.includes('Illegal Argument')){
             Logger.debug('Source ' + source + ' not found, skip..', this.accessory.displayName);
+          } else if(Array.isArray(err)){
+            if(err.includes(14) && err.includes('1.5')){
+              Logger.debug('TV does not support fetching list for ' + source + ', skip..');
+            } else {
+              Logger.error('An error occured during fetching ' + source + ', skip..', this.accessory.displayName);
+              Logger.debug(err);
+            }
           } else {
             Logger.error('An error occured during fetching ' + source + ', skip..', this.accessory.displayName);
             Logger.debug(err);
@@ -568,6 +587,7 @@ class tvAccessory {
     } catch(err) {
       Logger.error('An error occured during fetching commands, skip..', this.accessory.displayName);
       Logger.debug(err);
+      this.allInputs.commands = this.allInputs.commands || [];
     }
     
     //store result
