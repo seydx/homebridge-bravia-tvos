@@ -87,6 +87,11 @@
             "type": "boolean",
             "description": "When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs)"
           },
+          "wol": {
+            "title": "Wake on LAN",
+            "type": "boolean",
+            "description": "When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified)"
+          },
           "inputs": {
             "title": "TV Inputs",
             "type": "array",
@@ -422,6 +427,7 @@
             "tvs[].port",
             "tvs[].timeout",
             "tvs[].refreshInputs",
+            "tvs[].wol",
             {
               "key": "tvs[]",
               "type": "section",

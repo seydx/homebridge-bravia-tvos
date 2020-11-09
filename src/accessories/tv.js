@@ -177,7 +177,7 @@ class tvAccessory {
               .getService(service)
               .getCharacteristic(on)
               .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
-            }
+          }
         } else {
           Logger.error('An error occured during polling tv', this.accessory.displayName);
           Logger.error(err);
@@ -206,7 +206,11 @@ class tvAccessory {
       if(!value){
         await this.bravia.sleep();
       } else {
-        await this.bravia.wake();
+        if(this.accessory.context.config.wol && this.accessory.context.config.mac){
+          await this.bravia.wake(this.accessory.context.config.mac, false, true);
+        } else {
+          await this.bravia.wake();
+        }
       } 
      
     } catch(err) {
@@ -513,8 +517,12 @@ class tvAccessory {
       let powerState = await this.bravia.system.invoke('getPowerStatus');
       if(powerState.status !== 'active'){
         Logger.debug('TV is turned off, turning on to fetch all inputs..', this.accessory.displayName);
-        Logger.debug(powerState, this.accessory.displayName)
-        await this.bravia.wake();
+        Logger.debug(powerState, this.accessory.displayName);
+        if(this.accessory.context.config.wol && this.accessory.context.config.mac){
+          await this.bravia.wake(this.accessory.context.config.mac, false, true);
+        } else {
+          await this.bravia.wake();
+        }
         await TIMEOUT(3000);
       }
       let inputs = await this.bravia.avContent.invoke('getCurrentExternalInputsStatus', '1.0.', false);
@@ -527,7 +535,7 @@ class tvAccessory {
       if(powerState.status !== 'active'){
         Logger.debug('Turning off tv..');
         await this.bravia.sleep();
-        await TIMEOUT(750)
+        await TIMEOUT(750);
       }
     } catch(err) {
       Logger.error('An error occured during fetching tv inputs, skip..', this.accessory.displayName);

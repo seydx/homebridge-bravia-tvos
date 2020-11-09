@@ -155,6 +155,7 @@ function BraviaOSPlatform (log, config, api) {
           tv.channels = tv.channels && tv.channels.length ? tv.channels : [];
           tv.commands = tv.commands && tv.commands.length ? tv.commands : [];
           tv.inputs = tv.inputs && tv.inputs.length ? tv.inputs : [];
+          tv.mac = this.validMAC.test(tv.mac) ? tv.mac : false;
           
           tv.type = 'tv';
           tv.speaker = speakerConfig;
@@ -191,7 +192,7 @@ BraviaOSPlatform.prototype = {
         Logger.info('Configuring accessory...', accessory.displayName);
         this.setupAccessory(accessory, device);
         
-        if(device.type === 'tv'){
+        if(device.type === 'tv'){   
           this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
         } else {
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
