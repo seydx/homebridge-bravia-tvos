@@ -166,7 +166,7 @@ class tvAccessory {
           Logger.warn('Can not reach TV!', this.accessory.displayName);
         }
       } else if(Array.isArray(err)){
-        if(err.includes('Display is turned off') || err.includes('not power-on')){
+        if(err[0] === 40005 || err[1] === 'Display Is Turned off' || err[1] === 'not power-on'){
           Logger.debug(err, this.accessory.displayName);
           this.accessory
             .getService(this.api.hap.Service.Television)
