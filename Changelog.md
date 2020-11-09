@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.0.3 - 2020-11-09
+- Partial support for non android TVs
+
 ## v4.0.2 - 2020-11-08
 - Fix volume up
 
