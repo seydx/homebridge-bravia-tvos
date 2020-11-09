@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.0.4 - 2020-11-09
+- Fixed fetching inputs
+
 ## v4.0.3 - 2020-11-09
 - Partial support for non android TVs
 
