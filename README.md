@@ -190,7 +190,7 @@ This plugin has been verified to work with the following apps on iOS 14:
 * iOS 14
 * Apple Home
 * 3rd party apps like Elgato EVE (TV accessory still not supported because apple blocking it)
-* Homebridge v1.0.0+
+* Homebridge v1.1.6+
 
 
 ## Contributing
