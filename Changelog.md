@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.0.7 - 2020-11-10
+- fixed getCurrentExternalInputsStatus
+
 ## v4.0.6 - 2020-11-10
 - Removed unnecessary deps
 - Updated bravia dep (need for debug)
