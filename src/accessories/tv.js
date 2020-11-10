@@ -525,7 +525,7 @@ class tvAccessory {
         }
         await TIMEOUT(3000);
       }
-      let inputs = await this.bravia.avContent.invoke('getCurrentExternalInputsStatus', '1.0.', false);
+      let inputs = await this.bravia.avContent.invoke('getCurrentExternalInputsStatus');
       await TIMEOUT(750);                 
       for(const input of inputs){
         input.type = 'input';
