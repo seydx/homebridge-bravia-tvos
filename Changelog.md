@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v4.0.6 - 2020-11-10
+- Removed unnecessary deps
+- Updated bravia dep (need for debug)
+
 ## v4.0.5 - 2020-11-09
 - Added new option to turn on TV over WOL
 
