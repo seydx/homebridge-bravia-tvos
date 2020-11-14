@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 4.0.8 - 2020-11-10
+- Added new DisplayOrder function to manually rearrange the order of inputs
+- Added CurrentVisibilityState & TargetVisibilityState to hide/show inputs from Apple Home
+- Fixed target channel uri
+- Better error handling
+- Better debug
+
 ## v4.0.7 - 2020-11-10
 - fixed getCurrentExternalInputsStatus
 
