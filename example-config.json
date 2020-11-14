@@ -63,6 +63,12 @@
             "reduceBy": 5,
             "accType": "lightbulb"
           },
+          "displayOrder": [
+            "inputs",
+            "apps",
+            "channels",
+            "commands"
+          ]
           "remote": [
             {
               "command": "AAAAAgAAAJcAAAAbAw==",
