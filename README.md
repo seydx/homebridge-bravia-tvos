@@ -179,6 +179,7 @@ You need to put the PSK entered in your tv also in your config.json.
 | speaker.increaseBy |  | Volume level to increse. (for Apple Remote) | 1
 | speaker.reduceBy |  | Volume level to reduce. (for Apple Remote) | 1
 | speaker.accType |  | Accessory type for the speaker. | false | speaker, switch, lightbulb
+| displayOrder |  | Array of catagories to sort inputs | ["apps", "channels", "commands", "inputs"] | "apps", "channels", "commands", "inputs"
 | remote |  | Customizable commands for Apple Remote |
 | remote.command | | IRCC command for choosen target
 | remote.target | | Target Apple Remote switch. | | ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP, BACK, EXIT, FAST_FORWARD, INFORMATION, NEXT_TRACK, PAUSE, PLAY, PREVIOUS_TRACK, REWIND, SELECT, SETTINGS, VOLUME_DOWN, VOLUME_UP
