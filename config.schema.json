@@ -205,6 +205,41 @@
               "description": "IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)"
             }
           },
+          "displayOrder": {
+            "title": "Display Order",
+            "type": "array",
+            "items": {
+              "title": "Catagory",
+              "type": "string",
+              "oneOf": [
+                {
+                  "title": "Apps",
+                  "enum": [
+                    "apps"
+                  ]
+                },
+                {
+                  "title": "Channels",
+                  "enum": [
+                    "channels"
+                  ]
+                },
+                {
+                  "title": "Commands",
+                  "enum": [
+                    "commands"
+                  ]
+                },
+                {
+                  "title": "Inputs",
+                  "enum": [
+                    "inputs"
+                  ]
+                }
+              ],
+              "description": "Name of the catagory."
+            }
+          },
           "speaker": {
             "titel": "Speaker",
             "type": "object",
@@ -537,6 +572,18 @@
                     "tvs[].remote[].target"
                   ]
                 }
+              ]
+            },
+            {
+              "key": "tvs[].displayOrder",
+              "type": "section",
+              "title": "Display Order",
+              "expandable": true,
+              "expanded": false,
+              "orderable": false,
+              "buttonText": "Add Catagory",
+              "items": [
+                "tvs[].displayOrder[]"
               ]
             }
           ]
