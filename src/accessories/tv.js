@@ -20,8 +20,6 @@ class tvAccessory {
     this.channels = new Map();
     this.commands = new Map();
     
-    this.activeIdentifiers = [];
-    
     this.getService(this.accessory);
 
   }
@@ -69,7 +67,11 @@ class tvAccessory {
       .on('set', this.setVolume.bind(this));
     
     await this.handleInputs();
-    await this.configureInputSources(service);
+    
+    this.addInputServices(service, this.configureInputs(service));
+    this.sortInputServices(this.configureInputs(service));
+
+    this.api.updatePlatformAccessories([this.accessory]);
     
     this.poll();
     
@@ -101,7 +103,7 @@ class tvAccessory {
   
     try {
     
-      Logger.debug('Polling tv state', this.accessory.displayName);
+      Logger.debug('Polling tv state', this.accessory.displayName);   
       let data = await this.bravia.avContent.invoke('getPlayingContentInfo');
       Logger.debug(data, this.accessory.displayName);
       
@@ -129,7 +131,7 @@ class tvAccessory {
       
         TIMEOUT(750);
       
-        Logger.debug('Polling speaker state', this.accessory.displayName);
+        Logger.debug('Polling speaker state', this.accessory.displayName); 
         data = await this.bravia.audio.invoke('getVolumeInformation');
         Logger.debug(data, this.accessory.displayName);
         
@@ -159,33 +161,8 @@ class tvAccessory {
     
     } catch(err) {
         
-      if(err instanceof Error){
-        if(err.code && err.code === 'ECONNABORTED'){
-          Logger.warn('Timeout of ' + this.accessory.context.config.timeout + 'ms exceeded!', this.accessory.displayName);    
-        } else if(err.code && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'EHOSTUNREACH' || err.code === 'ECONNRESET')){
-          Logger.warn('Can not reach TV!', this.accessory.displayName);
-        }
-      } else if(Array.isArray(err)){
-        if(err[0] === 40005 || err[1] === 'Display Is Turned off' || err[1] === 'not power-on'){
-          Logger.debug(err, this.accessory.displayName);
-          this.accessory
-            .getService(this.api.hap.Service.Television)
-            .getCharacteristic(this.api.hap.Characteristic.Active)
-            .updateValue(0);
-          if(speakerAccessory && !speakerAccessory.context.inProgress){
-            speakerAccessory
-              .getService(service)
-              .getCharacteristic(on)
-              .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
-          }
-        } else {
-          Logger.error('An error occured during polling tv', this.accessory.displayName);
-          Logger.error(err);
-        }
-      } else {
-        Logger.error('An error occured during polling tv', this.accessory.displayName);
-        Logger.error(err);
-      }
+      Logger.error('An error occured during polling tv/speaker state', this.accessory.displayName);
+      this.handleError(err);
       
     } finally {
     
@@ -216,7 +193,16 @@ class tvAccessory {
     } catch(err) {
      
       Logger.error('An error occured during powering ' + (value ? 'on' : 'off') + ' tv!', this.accessory.displayName);
-      Logger.error(err);
+      this.handleError(err);
+      
+      setTimeout(() => {
+        
+        this.accessory
+          .getService(this.api.hap.Television)
+          .getCharacteristic(this.api.hap.Characteristic.Active)
+          .updateValue(value ? 1 : 0);
+        
+      }, 1000);
      
     } finally {
      
@@ -267,7 +253,7 @@ class tvAccessory {
     } catch(err) {
      
       Logger.error('An error occured during ' + (value ? 'decreasing' : 'increasing') + ' volume!', this.accessory.displayName);
-      Logger.error(err);
+      this.handleError(err);
      
     }
   
@@ -283,15 +269,15 @@ class tvAccessory {
       try {
         switch(this.fetchedInputs[state].type){
           case 'input':
-            Logger.info('Changing input source to ' + name, this.accessory.displayName);  
+            Logger.info('Changing input source to ' + name + ' (' + this.fetchedInputs[state].uri + ')', this.accessory.displayName);  
             await this.bravia.avContent.invoke('setPlayContent', '1.0', { uri: this.fetchedInputs[state].uri });
             break;
           case 'channel':
-            Logger.info('Changing channel to ' + name, this.accessory.displayName);  
+            Logger.info('Changing channel to ' + name + ' (' + this.fetchedInputs[state].uri + ')', this.accessory.displayName); 
             await this.bravia.avContent.invoke('setPlayContent', '1.0', { uri: this.fetchedInputs[state].uri });
             break;
           case 'application':
-            Logger.info('Changing application to ' + name, this.accessory.displayName);  
+            Logger.info('Changing application to ' + name + ' (' + this.fetchedInputs[state].uri + ')', this.accessory.displayName);  
             await this.bravia.appControl.invoke('setActiveApp', '1.0', { uri: this.fetchedInputs[state].uri });
             break;
           case 'ircc':
@@ -304,7 +290,7 @@ class tvAccessory {
         }
       } catch(err) {
         Logger.error('An error occured during changing source (' + name + ')', this.accessory.displayName);
-        Logger.error(err);
+        this.handleError(err);
       }
     } else {
       Logger.warn('Can not change source. ' + name + ' not found! Try updating inputs and restart homebridge!', this.accessory.displayName);
@@ -416,14 +402,14 @@ class tvAccessory {
     } catch(err) {
     
       Logger.error('An error occured during sending command (' + state + ')', this.accessory.displayName);
-      Logger.error(err);
+      this.handleError(err);
     
     }
   
   }
 
   async handleInputs(){
-  
+                 
     try {
       await fs.ensureFile(this.api.user.storagePath() + '/bravia/' + this.fileName);  
       this.allInputs = await fs.readJson(this.api.user.storagePath() + '/bravia/' + this.fileName, { throws: false });
@@ -464,7 +450,7 @@ class tvAccessory {
       }
       if(this.allInputs.channels && this.allInputs.channels.length){
         for(const channel of this.allInputs.channels)
-          this.channels.set(channel.index + 1, channel);
+          this.channels.set(channel.uri, channel);
       } else {
         this.allInputs.channels = [];
       }
@@ -507,7 +493,7 @@ class tvAccessory {
       this.allInputs.apps = apps;
     } catch(err) {
       Logger.error('An error occured during fetching apps, skip..', this.accessory.displayName);
-      Logger.debug(err);
+      this.handleError(err);
       this.allInputs.apps = this.allInputs.apps || [];
     }
     
@@ -539,7 +525,7 @@ class tvAccessory {
       }
     } catch(err) {
       Logger.error('An error occured during fetching tv inputs, skip..', this.accessory.displayName);
-      Logger.debug(err);
+      this.handleError(err);
       this.allInputs.inputs = this.allInputs.inputs || [];
     }
     
@@ -566,11 +552,11 @@ class tvAccessory {
               Logger.debug('TV does not support fetching list for ' + source + ', skip..');
             } else {
               Logger.error('An error occured during fetching ' + source + ', skip..', this.accessory.displayName);
-              Logger.debug(err);
+              this.handleError(err);
             }
           } else {
             Logger.error('An error occured during fetching ' + source + ', skip..', this.accessory.displayName);
-            Logger.debug(err);
+            this.handleError(err);
           }
           break;
         }
@@ -578,7 +564,7 @@ class tvAccessory {
     }
     for(const channel of allChannels){
       channel.type = 'channel';
-      this.channels.set(channel.index + 1, channel);
+      this.channels.set(channel.uri, channel);
     }
     this.allInputs.channels = allChannels;
 
@@ -594,7 +580,7 @@ class tvAccessory {
       this.allInputs.commands = commands;
     } catch(err) {
       Logger.error('An error occured during fetching commands, skip..', this.accessory.displayName);
-      Logger.debug(err);
+      this.handleError(err); 
       this.allInputs.commands = this.allInputs.commands || [];
     }
     
@@ -611,15 +597,10 @@ class tvAccessory {
   
   }
   
-  async configureInputSources(service){
+  configureInputs(){
   
-    const DisplayOrderTypes = {
-      ARRAY_ELEMENT_START: 0x1,
-      ARRAY_ELEMENT_END: 0x0,
-    };
-  
-    let addedInputSources = [];
-    let identifiersTLV = Buffer.alloc(0);
+    let inputSources = [];
+    let inputSourceNames = [];
     
     this.accessory.context.config.inputs.forEach(input => {
     
@@ -627,33 +608,18 @@ class tvAccessory {
     
       for(const [uri, config] of this.inputs){
        
-        if(uri.includes(input) && !addedInputSources.includes((config.title||config.label))){
+        if(uri.includes(input) && !inputSourceNames.includes((config.title||config.label))){
           
-          addedInputSources.push((config.title||config.label));
+          inputSourceNames.push((config.title||config.label));
           
-          let name = config.title || config.label;
-          
-          let options = {
-            name: name,
+          inputSources.push({
+            name: config.title || config.label,
             identifier: this.getIndex('uri', input, i),
-            type: name.replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType(input)
-          };
-          
-          this.activeIdentifiers.push(options.identifier);
-         
-          Logger.debug('Adding new input source', this.accessory.displayName);
-          Logger.debug(options, this.accessory.displayName);
-         
-          const InputService = this.accessory.addService(this.api.hap.Service.InputSource, options.type, options.name);
-         
-          InputService
-            .setCharacteristic(this.api.hap.Characteristic.Identifier, options.identifier)
-            .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, options.name)
-            .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            .setCharacteristic(this.api.hap.Characteristic.InputSourceType, options.inputType);
-       
-          service.addLinkedService(InputService); 
+            type: 'input',
+            subtype: (config.title || config.label).replace(/\s+/g, '').toLowerCase(),
+            inputType: this.getInputSourceType(input),
+            deviceType: this.getInputDeviceType(input)
+          });
           
           i++;
          
@@ -667,34 +633,19 @@ class tvAccessory {
     
       for(const [uri, config] of this.apps){
        
-        if(config.title === app && !addedInputSources.includes(app)){
+        if(config.title === app && !inputSourceNames.includes(app)){
           
-          addedInputSources.push(app);
-          
-          let name = app;
-          
-          let options = {
-            name: name,
+          inputSourceNames.push(app);
+
+          inputSources.push({
+            name: app,
             identifier: this.getIndex('title', app),
-            type: name.replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType('app')
-          };
-          
-          this.activeIdentifiers.push(options.identifier);
-        
-          Logger.debug('Adding new input source', this.accessory.displayName);
-          Logger.debug(options, this.accessory.displayName);
-         
-          const InputService = this.accessory.addService(this.api.hap.Service.InputSource, options.type, options.name);
-         
-          InputService
-            .setCharacteristic(this.api.hap.Characteristic.Identifier, options.identifier)
-            .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, options.name)
-            .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            .setCharacteristic(this.api.hap.Characteristic.InputSourceType, options.inputType);
-       
-          service.addLinkedService(InputService); 
-         
+            type: 'app',
+            subtype: app.replace(/\s+/g, '').toLowerCase(),
+            inputType: this.getInputSourceType('app'),
+            deviceType: this.getInputDeviceType('app')
+          });
+
         }
        
       }
@@ -703,35 +654,20 @@ class tvAccessory {
     
     this.accessory.context.config.channels.forEach(channel => {
     
-      for(const [channelNumber, config] of this.channels){
+      for(const [uri, config] of this.channels){
        
-        if(channelNumber === channel.channel && config.uri.includes(channel.source) && !addedInputSources.includes(config.uri)){
+        if(uri.includes(channel.source) && (config.index + 1) === channel.channel && !inputSourceNames.includes(uri)){
           
-          addedInputSources.push(config.uri);
-          
-          let name = config.title;
-          
-          let options = {
-            name: name,
-            identifier: this.getIndex('index', (channelNumber-1).toString()),
-            type: name.replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType('channel')
-          };
-          
-          this.activeIdentifiers.push(options.identifier);
-        
-          Logger.debug('Adding new input source', this.accessory.displayName);
-          Logger.debug(options, this.accessory.displayName);
-         
-          const InputService = this.accessory.addService(this.api.hap.Service.InputSource, options.type, options.name);
-         
-          InputService
-            .setCharacteristic(this.api.hap.Characteristic.Identifier, options.identifier)
-            .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, options.name)
-            .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            .setCharacteristic(this.api.hap.Characteristic.InputSourceType, options.inputType);
-       
-          service.addLinkedService(InputService); 
+          inputSourceNames.push(uri);
+
+          inputSources.push({
+            name: config.title,
+            identifier: this.getIndex('index', config.index.toString()),
+            type: 'channel',
+            subtype: config.title.replace(/\s+/g, '').toLowerCase(),
+            inputType: this.getInputSourceType('channel'),
+            deviceType: this.getInputDeviceType('channel')
+          });
          
         }
        
@@ -743,33 +679,18 @@ class tvAccessory {
     
       for(const [name, config] of this.commands){
        
-        if(name === command && !addedInputSources.includes(command)){
+        if(name === command && !inputSourceNames.includes(command)){
           
-          addedInputSources.push(command);
-          
-          let name = config.name;
-          
-          let options = {
-            name: name,
+          inputSourceNames.push(command);
+  
+          inputSources.push({
+            name: config.name,
             identifier: this.getIndex(command.includes('w==') ? 'value' : 'name', command),
-            type: name.replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType('command')
-          };
-          
-          this.activeIdentifiers.push(options.identifier);
-        
-          Logger.debug('Adding new input source', this.accessory.displayName);
-          Logger.debug(options, this.accessory.displayName);
-         
-          const InputService = this.accessory.addService(this.api.hap.Service.InputSource, options.type, options.name);
-         
-          InputService
-            .setCharacteristic(this.api.hap.Characteristic.Identifier, options.identifier)
-            .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, options.name)
-            .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
-            .setCharacteristic(this.api.hap.Characteristic.InputSourceType, options.inputType);
-       
-          service.addLinkedService(InputService);
+            type: 'command',
+            subtype: config.name.replace(/\s+/g, '').toLowerCase(),
+            inputType: this.getInputSourceType('command'),
+            deviceType: this.getInputDeviceType('command')
+          });
          
         }
        
@@ -777,10 +698,75 @@ class tvAccessory {
     
     });
     
-    this.activeIdentifiers.forEach((identifier, index) => {
+    return inputSources;
+  
+  }
+  
+  addInputServices(service, inputSources){
     
-      const hapId = index + 1;
+    inputSources.forEach(input => {
       
+      Logger.debug('Adding new input', this.accessory.displayName);
+      Logger.debug(input, this.accessory.displayName);
+     
+      const InputService = this.accessory.addService(this.api.hap.Service.InputSource, input.name, input.subtype);
+     
+      InputService
+        .setCharacteristic(this.api.hap.Characteristic.Identifier, input.identifier)
+        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, input.name)
+        .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+        .setCharacteristic(this.api.hap.Characteristic.InputSourceType, input.inputType)
+        .setCharacteristic(this.api.hap.Characteristic.InputDeviceType, input.deviceType);
+        
+      InputService.getCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState)
+        .on('get', callback => {     
+          let state = this.accessory.context.config[input.name] || 0;
+          callback(null, state);        
+        });
+      
+      InputService.addCharacteristic(this.api.hap.Characteristic.TargetVisibilityState)
+        .on('get', callback => {     
+          let state = this.accessory.context.config[input.name] || 0;
+          callback(null, state);
+        })
+        .on('set', (state, callback) => {
+          this.accessory.context.config[input.name] = state;         
+          InputService
+            .getCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState)
+            .updateValue(state);     
+          callback(null);
+        });
+   
+      service.addLinkedService(InputService);
+    
+    });
+    
+  }
+  
+  sortInputServices(inputSources){
+  
+    const DisplayOrderTypes = {
+      ARRAY_ELEMENT_START: 0x1,
+      ARRAY_ELEMENT_END: 0x0,
+    };
+    
+    let identifiersTLV = Buffer.alloc(0);
+  
+    let sources = {
+      apps: inputSources.filter(source => source && source.type === 'app'),
+      channels: inputSources.filter(source => source && source.type === 'channel'),
+      commands: inputSources.filter(source => source && source.type === 'command'),
+      inputs: inputSources.filter(source => source && source.type === 'input')
+    };
+    
+    let displayOrder = this.accessory.context.config.displayOrder.map(catagory => {
+      return sources[catagory];
+    });
+    
+    displayOrder = displayOrder.flat();
+    
+    displayOrder.forEach(input => {
+    
       if (identifiersTLV.length !== 0) {
         identifiersTLV = Buffer.concat([
           identifiersTLV,
@@ -788,7 +774,7 @@ class tvAccessory {
         ]);
       }
       
-      const element = this.api.hap.writeUInt32(hapId);
+      const element = this.api.hap.writeUInt32(input.identifier);
       identifiersTLV = Buffer.concat([
         identifiersTLV,
         this.api.hap.encode(DisplayOrderTypes.ARRAY_ELEMENT_START, element),
@@ -798,8 +784,6 @@ class tvAccessory {
     
     this.accessory.getService(this.api.hap.Service.Television)
       .setCharacteristic(this.api.hap.Characteristic.DisplayOrder, identifiersTLV.toString('base64'));
-     
-    this.api.updatePlatformAccessories([this.accessory]);
   
   }
   
@@ -820,8 +804,23 @@ class tvAccessory {
         return this.api.hap.Characteristic.InputSourceType.S_VIDEO; 
       case (type.indexOf('widi') >= 0):
         return this.api.hap.Characteristic.InputSourceType.AIRPLAY; 
+      case (type.indexOf('command') >= 0):
+        return this.api.hap.Characteristic.InputSourceType.HOME_SCREEN; 
       default:
         return this.api.hap.Characteristic.InputSourceType.OTHER;
+    }
+  
+  }
+  
+  getInputDeviceType(type){
+  
+    switch(true) {
+      case (type.indexOf('cec') >= 0 || type.indexOf('hdmi') >= 0):
+        return this.api.hap.Characteristic.InputDeviceType.PLAYBACK; 
+      case (type.indexOf('channel') >= 0):
+        return this.api.hap.Characteristic.InputDeviceType.TUNER;
+      default:
+        return this.api.hap.Characteristic.InputDeviceType.OTHER;
     }
   
   }
@@ -851,6 +850,57 @@ class tvAccessory {
       
       return identifier[0];
     
+    }
+  
+  }
+  
+  handleError(err){
+  
+    let service, on;
+  
+    let speakerAccessory = this.accessories.find(accessory => accessory.displayName === (this.accessory.displayName + ' Speaker'));  
+  
+    if(speakerAccessory){
+    
+      if(speakerAccessory.getService(this.api.hap.Service.Speaker)){
+        service = this.api.hap.Service.Speaker;
+        on = this.api.hap.Characteristic.Mute;
+      } else if(speakerAccessory.getService(this.api.hap.Service.Lightbulb)){
+        service = this.api.hap.Service.Lightbulb;
+        on = this.api.hap.Characteristic.On;
+      } else {
+        service = this.api.hap.Service.Switch;
+        on = this.api.hap.Characteristic.On;
+      }
+    
+    } 
+  
+    if(err instanceof Error){
+      if(err.code && err.code === 'ECONNABORTED'){
+        Logger.warn('Timeout of ' + this.accessory.context.config.timeout + 's exceeded!', this.accessory.displayName);    
+      } else if(err.code && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'EHOSTUNREACH' || err.code === 'ECONNRESET')){
+        Logger.warn('Can not reach TV!', this.accessory.displayName);
+      }
+    } else if(Array.isArray(err)){
+      if(err[0] === 40005 || err[1] === 'Display Is Turned off' || err[1] === 'not power-on'){
+        Logger.debug(err, this.accessory.displayName);
+        this.accessory
+          .getService(this.api.hap.Service.Television)
+          .getCharacteristic(this.api.hap.Characteristic.Active)
+          .updateValue(0);
+        if(speakerAccessory && !speakerAccessory.context.inProgress){
+          speakerAccessory
+            .getService(service)
+            .getCharacteristic(on)
+            .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
+        }
+      } else {
+        Logger.error('An error occured during polling tv', this.accessory.displayName);
+        Logger.error(err);
+      }
+    } else {
+      Logger.error('An error occured during polling tv', this.accessory.displayName);
+      Logger.error(err);
     }
   
   }
