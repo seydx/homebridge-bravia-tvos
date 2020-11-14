@@ -12,13 +12,11 @@ const SpeakerAccessory = require('./accessories/speaker.js');
 const PLUGIN_NAME = 'homebridge-bravia-tvos';
 const PLATFORM_NAME = 'BraviaOSPlatform';
 
-var Accessory, Service, Characteristic, UUIDGen;
+var Accessory, UUIDGen;
 
 module.exports = function (homebridge) {
 
   Accessory = homebridge.platformAccessory;
-  Service = homebridge.hap.Service;
-  Characteristic = homebridge.hap.Characteristic;
   UUIDGen = homebridge.hap.uuid;
   
   return BraviaOSPlatform;
@@ -80,6 +78,24 @@ function BraviaOSPlatform (log, config, api) {
           };
        
           tv.bravia = new Bravia(options);
+
+          let validCatagories = ['apps', 'channels', 'commands', 'inputs'];
+          
+          let addedCatagories = [];
+          tv.displayOrder = tv.displayOrder || [];
+          tv.displayOrder = tv.displayOrder.map(catagory => {
+            if(validCatagories.includes(catagory) && !addedCatagories.includes(catagory) && addedCatagories.length <= 4){
+              addedCatagories.push(catagory);
+              return catagory;
+            }
+          }).filter(catagory => catagory);
+          
+          if(tv.displayOrder.length < 4){
+            validCatagories.forEach(catagory => {
+              if(!tv.displayOrder.includes(catagory))
+                tv.displayOrder.push(catagory); 
+            });
+          }
           
           tv.remote = {
             REWIND: 'AAAAAgAAAJcAAAAbAw==',
