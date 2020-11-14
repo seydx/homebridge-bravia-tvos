@@ -7,6 +7,16 @@
     "type": "git",
     "url": "git+https://github.com/SeydX/homebridge-bravia-tvos.git"
   },
+  "funding": [
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/seydx"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/SeydX"
+    }
+  ],
   "author": "SeydX (https://github.com/SeydX/homebridge-bravia-tvos)",
   "license": "MIT",
   "bugs": {
