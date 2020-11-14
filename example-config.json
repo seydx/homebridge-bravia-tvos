@@ -7,7 +7,7 @@
   ],
   "platforms": [
     {
-      "platform": "BraviaOSPlatform"
+      "platform": "BraviaOSPlatform",
       "name": "BraviaTVOS",
       "debug": false,
       "tvs": [
