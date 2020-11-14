@@ -160,8 +160,7 @@ class tvAccessory {
       }  
     
     } catch(err) {
-        
-      Logger.error('An error occured during polling tv/speaker state', this.accessory.displayName);
+
       this.handleError(err);
       
     } finally {
