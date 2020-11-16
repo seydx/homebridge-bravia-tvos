@@ -13,6 +13,7 @@ class tvAccessory {
     this.accessory = accessory;
     this.accessories = accessories;
     this.bravia = bravia;
+    
     this.fileName = accessory.displayName.replace(/\s+/g, '_') + '-inputs.json';
     
     this.inputs = new Map();
@@ -197,9 +198,9 @@ class tvAccessory {
       setTimeout(() => {
         
         this.accessory
-          .getService(this.api.hap.Television)
+          .getService(this.api.hap.Service.Television)
           .getCharacteristic(this.api.hap.Characteristic.Active)
-          .updateValue(value ? 1 : 0);
+          .updateValue(value ? 0 : 1);
         
       }, 1000);
      
@@ -879,6 +880,8 @@ class tvAccessory {
         Logger.warn('Timeout of ' + this.accessory.context.config.timeout + 's exceeded!', this.accessory.displayName);    
       } else if(err.code && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'EHOSTUNREACH' || err.code === 'ECONNRESET')){
         Logger.warn('Can not reach TV!', this.accessory.displayName);
+      } else {
+        Logger.error(err);
       }
     } else if(Array.isArray(err)){
       if(err[0] === 40005 || err[1] === 'Display Is Turned off' || err[1] === 'not power-on'){
@@ -894,12 +897,10 @@ class tvAccessory {
             .updateValue(on !== this.api.hap.Characteristic.Mute ? false : true);
         }
       } else {
-        Logger.error('An error occured during polling tv', this.accessory.displayName);
-        Logger.error(err);
+        Logger.error(err, this.accessory.displayName);
       }
     } else {
-      Logger.error('An error occured during polling tv', this.accessory.displayName);
-      Logger.error(err);
+      Logger.error(err, this.accessory.displayName);
     }
   
   }

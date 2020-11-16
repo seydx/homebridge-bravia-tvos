@@ -53,8 +53,8 @@ function BraviaOSPlatform (log, config, api) {
       } else if (!tv.ip || !this.validIP.test(tv.ip)) {
         Logger.warn('There is no valid ip configured for this tv. This tv will be skipped.', tv.name);
         error = true;
-      } else if (!tv.psk && !tv.token) {
-        Logger.warn('There is no psk or token configured for this tv. This tv will be skipped.', tv.name);
+      } else if (!tv.psk && (!tv.appName || !tv.appUUID)) {
+        Logger.warn('There is no psk or application name/uuid configured for this tv. This tv will be skipped.', tv.name);
         error = true;
       }
 
@@ -73,7 +73,8 @@ function BraviaOSPlatform (log, config, api) {
             mac: this.validMAC.test(tv.mac) ? tv.mac : false,
             port: tv.port || 80,
             psk: tv.psk,
-            token: tv.token,
+            name: tv.appName,
+            uuid: tv.appUUID,
             timeout: tv.timeout && tv.timeout < 5 ? 5000 : tv.timeout * 1000
           };
        

@@ -57,12 +57,17 @@
           "psk": {
             "title": "Pre-Shared Key",
             "type": "string",
-            "description": "Authentication through PSK."
+            "description": "Authentication through PSK. (If no PSK given, the plugin will use authentication through PIN)"
           },
-          "token": {
-            "title": "Token",
+          "appName": {
+            "title": "App Name",
             "type": "string",
-            "description": "Authentication through Token (PIN)."
+            "description": "Application name used to generate token. (Only required if you want authentication with generated credentials through PIN method)"
+          },
+          "appUUID": {
+            "title": "App UUID",
+            "type": "string",
+            "description": "Application UUID obtained by generating a token. (Only required if you want authentication with generated credentials through PIN method)"
           },
           "manufacturer": {
             "name": "Manufacturer",
@@ -462,17 +467,17 @@
             "tvs[].port",
             "tvs[].timeout",
             "tvs[].refreshInputs",
-            "tvs[].wol",
             {
               "key": "tvs[]",
               "type": "section",
               "title": "Authentication",
               "expandable": true,
-              "expanded": true,
+              "expanded": false,
               "orderable": false,
               "items": [
-                "tvs[].token",
-                "tvs[].psk"
+                "tvs[].psk",
+                "tvs[].appName",
+                "tvs[].appUUID"
               ]
             },
             {
