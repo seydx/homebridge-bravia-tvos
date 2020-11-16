@@ -61,11 +61,12 @@ The PIN displayed on the TV must then be entered in the terminal. This will gene
 {
   name: 'MyTV',
   uuid: 'e9812807-d394-407c-b657-c89a98804e65',
-  token: 'A0B9B9D7580466F22EE8F8EA148863774ACCE203'
+  token: 'A0B9B9D7580466F22EE8F8EA148863774ACCE203',
+  expires: 'Fr., 26 Apr. 2009 21:42:48 GMT+00:00'
 }
 ```
 
-You need to put the generated Token in your config.json.
+You need to put the application name and application uuid in your config.json.
 
 **Example:**
 
@@ -73,7 +74,8 @@ You need to put the generated Token in your config.json.
 {
   "name": "Sony TV",
   "ip": "192.168.178.123",
-  "token": "A0B9B9D7580466F22EE8F8EA148863774ACCE203"
+  "appName": "MyTV",
+  "appUUID": "e9812807-d394-407c-b657-c89a98804e65",
   ...
 }
 ```
