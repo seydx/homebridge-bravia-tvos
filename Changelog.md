@@ -5,6 +5,11 @@
 - Bugfixes
 - Changed PIN method from token to appName/appUUID
 
+**NOTE:**
+
+If you are using this plugin with token (PIN), you need to generate new credentials through the "pair" command.
+Read here: https://github.com/SeydX/homebridge-bravia-tvos#token-pin-authentication-prefered
+
 ## v4.0.8 - 2020-11-10
 - Added new DisplayOrder function to manually rearrange the order of inputs
 - Added CurrentVisibilityState & TargetVisibilityState to hide/show inputs from Apple Home
