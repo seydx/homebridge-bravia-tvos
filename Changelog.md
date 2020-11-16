@@ -1,7 +1,11 @@
 # Changelog
 
 
-## 4.0.8 - 2020-11-10
+## v4.0.9 - 2020-11-16
+- Bugfixes
+- Changed PIN method from token to appName/appUUID
+
+## v4.0.8 - 2020-11-10
 - Added new DisplayOrder function to manually rearrange the order of inputs
 - Added CurrentVisibilityState & TargetVisibilityState to hide/show inputs from Apple Home
 - Fixed target channel uri
