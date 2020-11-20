@@ -239,18 +239,25 @@ async function getInputs(tv){
 }
 
 async function createCustomSchema(tv){
-
-  let allInputs = {
-    apps: [],
-    channels: [],
-    commands: [],
-    inputs: []
-  };
   
-  tv.apps = [{ 'title': 'None', 'enum': ['none'] }];
-  tv.channels = [];
-  tv.commands = [{ 'title': 'None', 'enum': ['none'] }];
-  tv.inputs = [{ 'title': 'None', 'enum': ['none'] }];
+  let allInputs = {
+    apps: [{ 
+      title: 'None', 
+      enum: 'none'
+    }],
+    channels: [{ 
+      title: 'None', 
+      enum: 'none'
+    }],
+    commands: [{ 
+      name: 'None', 
+      enum: 'none'
+    }],
+    inputs: [{ 
+      title: 'None', 
+      enum: 'none'
+    }]
+  };
   
   try {
   
@@ -265,7 +272,7 @@ async function createCustomSchema(tv){
   allInputs.apps.forEach(app => {
     
     schema.schema.tvs.properties.apps.items.oneOf.push({
-      enum: [app.title],
+      enum: [app.enum || app.title],
       title: app.title
     });
     
@@ -273,9 +280,15 @@ async function createCustomSchema(tv){
   
   allInputs.inputs.forEach(input => {
     
+    let inputTitle = input.title || input.label;
+    
+    let title = input.uri
+      ? '[' + input.uri.split('?')[0] + '] ' + inputTitle
+      : inputTitle;
+    
     schema.schema.tvs.properties.inputs.items.oneOf.push({
-      enum: [input.title],
-      title: input.title
+      enum: [input.enum || title],
+      title: title
     });
     
   });
@@ -283,8 +296,21 @@ async function createCustomSchema(tv){
   allInputs.commands.forEach(command => {
     
     schema.schema.tvs.properties.commands.items.oneOf.push({
-      enum: [command.name],
+      enum: [command.enum || command.name],
       title: command.name
+    });
+    
+  });
+  
+  allInputs.channels.forEach(channel => {
+    
+    let title = channel.uri
+      ? '[' + (channel.index + 1) + '@' + channel.uri.split('?')[0] + '] ' + channel.title
+      : channel.title;
+    
+    schema.schema.tvs.properties.channels.items.oneOf.push({
+      enum: [channel.enum || title],
+      title: title
     });
     
   });
@@ -307,9 +333,13 @@ async function createCustomSchema(tv){
     });
     
     try {
+   
       await homebridge.updatePluginConfig(GLOBAL.pluginConfig);
+  
     } catch(err) {
+   
       homebridge.toast.error(err.message, 'Error');
+  
     }
   
   });
@@ -363,7 +393,7 @@ $('.back').on('click', e => {
   goBack();
 });
 
-$('#editTV').on('click', e => {
+$('#editTV').on('click', async e => {
 
   resetUI();
   
@@ -372,7 +402,7 @@ $('#editTV').on('click', e => {
 
   if(!tv)
     return homebridge.toast.error('Can not find the TV!', 'Error');
-
+    
   $('#main, #isConfigured').hide();
   $('#header').show();
   
@@ -388,10 +418,10 @@ $('#removeTV').on('click', async e => {
   try {
     
     await removeDeviceFromConfig();
+    
+    resetUI();
   
     transPage(false, GLOBAL.pluginConfig[0].tvs.length ? $('#isConfigured') : $('#notConfigured'));
-  
-    resetUI();
     
   } catch (err) {
     
@@ -403,11 +433,11 @@ $('#removeTV').on('click', async e => {
 
 $('.addTV').on('click', e => {
   
+  resetUI();
+  
   let activeContent = $('#notConfigured').css('display') !== 'none' ? $('#notConfigured') : $('#isConfigured');
   
   transPage(activeContent, $('#configureTV'));
-  
-  resetUI();
 
 });
 

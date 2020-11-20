@@ -20,7 +20,7 @@ class tvAccessory {
     this.apps = new Map();
     this.channels = new Map();
     this.commands = new Map();
-    
+
     this.getService(this.accessory);
 
   }
@@ -607,22 +607,49 @@ class tvAccessory {
       let i = 0;
     
       for(const [uri, config] of this.inputs){
-       
-        if(uri.includes(input) && !inputSourceNames.includes((config.title||config.label))){
+        
+        if(!input.includes('[')){
           
-          inputSourceNames.push((config.title||config.label));
+          if(uri.includes(input) && !inputSourceNames.includes((config.title||config.label))){
           
-          inputSources.push({
-            name: config.title || config.label,
-            identifier: this.getIndex('uri', input, i),
-            type: 'input',
-            subtype: (config.title || config.label).replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType(input),
-            deviceType: this.getInputDeviceType(input)
-          });
+            inputSourceNames.push((config.title||config.label));
+            
+            inputSources.push({
+              name: config.title || config.label,
+              identifier: this.getIndex('uri', input, i),
+              type: 'input',
+              subtype: (config.title || config.label).replace(/\s+/g, '').toLowerCase(),
+              inputType: this.getInputSourceType(input),
+              deviceType: this.getInputDeviceType(input)
+            });
+            
+            i++;
+           
+          }
           
-          i++;
-         
+        } else {
+          
+          let inputUri = input.split('[')[1].split(']')[0]; // extInput:cec
+          let inputTitle = input.split('] ')[1];
+          let inputType = inputUri.split(':')[1];
+          
+          if(uri.includes(inputUri) && !inputSourceNames.includes(inputTitle)){
+          
+            inputSourceNames.push(inputTitle);
+            
+            inputSources.push({
+              name: inputTitle,
+              identifier: this.getIndex('title', inputTitle, i),
+              type: 'input',
+              subtype: inputTitle.replace(/\s+/g, '').toLowerCase(),
+              inputType: this.getInputSourceType(inputType),
+              deviceType: this.getInputDeviceType(inputType)
+            });
+            
+            i++;
+           
+          }
+          
         }
        
       }
@@ -655,20 +682,53 @@ class tvAccessory {
     this.accessory.context.config.channels.forEach(channel => {
     
       for(const [uri, config] of this.channels){
-       
-        if(uri.includes(channel.source) && (config.index + 1) === channel.channel && !inputSourceNames.includes(uri)){
+        
+        if(typeof channel === 'object'){
           
-          inputSourceNames.push(uri);
-
-          inputSources.push({
-            name: config.title,
-            identifier: this.getIndex('index', config.index.toString()),
-            type: 'channel',
-            subtype: config.title.replace(/\s+/g, '').toLowerCase(),
-            inputType: this.getInputSourceType('channel'),
-            deviceType: this.getInputDeviceType('channel')
-          });
-         
+          if(uri.includes(channel.source) && (config.index + 1) === channel.channel && !inputSourceNames.includes(uri)){
+          
+            inputSourceNames.push(uri);
+  
+            inputSources.push({
+              name: config.title,
+              identifier: this.getIndex('index', config.index.toString()),
+              type: 'channel',
+              subtype: config.title.replace(/\s+/g, '').toLowerCase(),
+              inputType: this.getInputSourceType('channel'),
+              deviceType: this.getInputDeviceType('channel')
+            });
+           
+          }
+        
+        } else {
+          
+          let channelInfo = channel.includes('[')
+            ? channel.split('[')[1].split(']')[0] // = 1@tv:dvbt
+            : false;
+            
+          if(channelInfo){
+            
+            let channelTitle = channel.split('] ')[1];
+            let channelIndex = parseInt(channelInfo.split('@')[0]);
+            let channelUri = channelInfo.split('@')[1];
+            
+            if(uri.includes(channelUri) && (config.index + 1) === channelIndex && !inputSourceNames.includes(channelUri)){
+          
+              inputSourceNames.push(channelUri);
+    
+              inputSources.push({
+                name: channelTitle,
+                identifier: this.getIndex('index', channelIndex.toString()),
+                type: 'channel',
+                subtype: channelTitle.replace(/\s+/g, '').toLowerCase(),
+                inputType: this.getInputSourceType('channel'),
+                deviceType: this.getInputDeviceType('channel')
+              });
+             
+            }
+            
+          }
+          
         }
        
       }

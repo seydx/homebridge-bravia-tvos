@@ -115,47 +115,11 @@ const schema = {
           'title': 'Channels',
           'type': 'array',
           'items': {
-            'type': 'object',
-            'properties': {
-              'channel': {
-                'title': 'Channel Number',
-                'type': 'integer',
-                'description': 'Number of the channel as seen on the TV.',
-                'required': true
-              },
-              'source': {
-                'title': 'Channel Source',
-                'type': 'string',
-                'required': true,
-                'oneOf': [
-                  {
-                    'title': 'DVBT',
-                    'enum': [
-                      'tv:dvbt'
-                    ]
-                  },
-                  {
-                    'title': 'DVBC',
-                    'enum': [
-                      'tv:dvbc'
-                    ]
-                  },
-                  {
-                    'title': 'DVBS',
-                    'enum': [
-                      'tv:dvbs'
-                    ]
-                  },
-                  {
-                    'title': 'Analog',
-                    'enum': [
-                      'tv:analog'
-                    ]
-                  }
-                ],
-                'description': 'Source of the channel.'
-              }
-            }
+            'title': 'Channels',
+            'type': 'string', 
+            'required': true,
+            'oneOf': [],
+            'description': 'Name of the channel.'
           }
         },
         'commands': {
@@ -445,7 +409,7 @@ const schema = {
       'title': 'TV Inputs',
       'expandable': true,
       'expanded': false,
-      'orderable': false,
+      'orderable': true,
       'buttonText': 'Add Input',
       'items': [
         'tvs.inputs[]'
@@ -457,7 +421,7 @@ const schema = {
       'title': 'Applications',
       'expandable': true,
       'expanded': false,
-      'orderable': false,
+      'orderable': true,
       'buttonText': 'Add Application',
       'items': [
         'tvs.apps[]'
@@ -469,16 +433,10 @@ const schema = {
       'title': 'Channels',
       'expandable': true,
       'expanded': false,
-      'orderable': false,
+      'orderable': true,
       'buttonText': 'Add Channel',
       'items': [
-        {
-          'key': 'tvs.channels[]',
-          'items': [
-            'tvs.channels[].channel',
-            'tvs.channels[].source'
-          ]
-        }
+        'tvs.channels[]'
       ]
     },
     {
@@ -487,7 +445,7 @@ const schema = {
       'title': 'Commands',
       'expandable': true,
       'expanded': false,
-      'orderable': false,
+      'orderable': true,
       'buttonText': 'Add Command',
       'items': [
         'tvs.commands[]'
@@ -531,7 +489,7 @@ const schema = {
       'title': 'Display Order',
       'expandable': true,
       'expanded': false,
-      'orderable': false,
+      'orderable': true,
       'buttonText': 'Add Catagory',
       'items': [
         'tvs.displayOrder[]'
