@@ -44,6 +44,7 @@ function resetUI(){
   $('#tvMacAddress').val('');
   $('#tvPort').val('');
   $('#tvTimeout').val('');
+  $('#tvPSK').val('');
   
   $('.pin, .psk').hide();
   
@@ -519,37 +520,45 @@ $('#pskMethodConfirm').on('click', async e => {
   try {
      
     homebridge.showSpinner();
+    
+    GLOBAL.tvOptions.pin = false;
 
     await homebridge.request('/ping', GLOBAL.tvOptions);
     homebridge.toast.success('Paired successfully!', 'Success');
      
     homebridge.hideSpinner();
+    
+    transPage($('#authentication'), $('#fetchInputs'));
+     
+    let config = {
+      name: GLOBAL.tvOptions.name,
+      ip: GLOBAL.tvOptions.host,
+      mac: GLOBAL.tvOptions.mac || undefined,
+      port: GLOBAL.tvOptions.port,
+      timeout: GLOBAL.tvOptions.timeout / 1000,
+      psk: GLOBAL.tvOptions.psk
+    };
+      
+    await fetchInputs(config);
+    await addNewDeviceToConfig(config);
+      
+    transPage($('#fetchInputs'), $('#isConfigured'));
+      
+    resetUI();
    
   } catch(err) {
-     
+  
     homebridge.hideSpinner();
+    
+    $('#pskMethod').removeClass('btn-primary');
+    $('#pskMethod').addClass('btn-secondary');
+    
+    $('.psk').hide();
+    $('#tvPSK').val('');
      
-    return homebridge.toast.error(err.message, 'Error');
+    homebridge.toast.error(err.message, 'Error');
      
   }
-   
-  transPage($('#authentication'), $('#fetchInputs'));
-   
-  let config = {
-    name: GLOBAL.tvOptions.name,
-    ip: GLOBAL.tvOptions.host,
-    mac: GLOBAL.tvOptions.mac || undefined,
-    port: GLOBAL.tvOptions.port,
-    timeout: GLOBAL.tvOptions.timeout / 1000,
-    psk: GLOBAL.tvOptions.psk
-  };
-    
-  await fetchInputs(config);
-  await addNewDeviceToConfig(config);
-    
-  transPage($('#fetchInputs'), $('#isConfigured'));
-    
-  resetUI();
  
 });
 
@@ -565,6 +574,8 @@ $('#pinMethod').on('click', async e => {
   try {
      
     homebridge.showSpinner();
+    
+    GLOBAL.tvOptions.psk = false;
     
     GLOBAL.tvOptions = await homebridge.request('/requestPin', GLOBAL.tvOptions);
        
@@ -596,6 +607,9 @@ $('#pinMethod').on('click', async e => {
     }, 1000);
      
   } catch(err) {
+    
+    $('#pinMethod').removeClass('btn-primary');
+    $('#pinMethod').addClass('btn-secondary');
      
     homebridge.toast.error(err.message, 'Error');
      
@@ -609,27 +623,41 @@ $('#pinMethod').on('click', async e => {
 
 $('#startPair').on('click', async e => {
 
-  try {
-  
-    if(GLOBAL.tvOptions.pin && validate.pin.test(GLOBAL.tvOptions.pin)){
-       
-      //pair
-      try {
-        
-        homebridge.showSpinner();
-        
-        await homebridge.request('/requestPin', GLOBAL.tvOptions);
-        
-        homebridge.hideSpinner();
+  if(GLOBAL.tvOptions.pin && validate.pin.test(GLOBAL.tvOptions.pin)){
      
-      } catch(err) {
-        
-        homebridge.hideSpinner();
-        
-        return homebridge.toast.error(err.message, 'Error');
-     
-      }
+    //pair
+    try {
       
+      homebridge.showSpinner();
+      
+      GLOBAL.tvOptions = await homebridge.request('/requestPin', GLOBAL.tvOptions);
+      
+      homebridge.hideSpinner();
+      
+      if(!GLOBAL.tvOptions.token){
+      
+        $('#pinMethod').removeClass('btn-primary');
+        $('#pinMethod').addClass('btn-secondary');
+        
+        $('.pin').hide();
+        
+        if(GLOBAL.pinlogin){
+          GLOBAL.pinlogin.reset();
+          GLOBAL.pinlogin = false;
+        }
+        
+        if(GLOBAL.pinTimer){
+          clearInterval(GLOBAL.pinTimer);
+          GLOBAL.pinTimer = false;
+        }
+              
+        if(timerBar)
+          timerBar.set(1);
+      
+        return homebridge.toast.error('Pairing failed! Please try again.', 'Error')
+   
+      }    
+        
       homebridge.toast.success('Paired successfully!', 'Success');
       
       transPage($('#authentication'), $('#fetchInputs'));
@@ -650,17 +678,37 @@ $('#startPair').on('click', async e => {
       transPage($('#fetchInputs'), $('#isConfigured'));
       
       resetUI();
-       
-    } else {
-  
-      homebridge.toast.error('No or no valid pin entered!', 'Error');
-  
+   
+    } catch(err) {
+      
+      homebridge.hideSpinner();
+        
+      $('#pinMethod').removeClass('btn-primary');
+      $('#pinMethod').addClass('btn-secondary');
+      
+      $('.pin').hide();
+      
+      if(GLOBAL.pinlogin){
+        GLOBAL.pinlogin.reset();
+        GLOBAL.pinlogin = false;
+      }
+      
+      if(GLOBAL.pinTimer){
+        clearInterval(GLOBAL.pinTimer);
+        GLOBAL.pinTimer = false;
+      }
+            
+      if(timerBar)
+        timerBar.set(1);
+      
+      homebridge.toast.error(err.message, 'Error');
+   
     }
-  
-  } catch(err) {
-  
-    homebridge.toast.error(err.message, 'Error');
-  
+     
+  } else {
+
+    homebridge.toast.error('No or no valid pin entered!', 'Error');
+
   }
  
 });
