@@ -250,6 +250,7 @@ const schema = {
                 'name': 'Command',
                 'type': 'string',
                 'description': 'Set custom command for choosen target.',
+                'oneOf': [],
                 'required': true
               },
               'target': {

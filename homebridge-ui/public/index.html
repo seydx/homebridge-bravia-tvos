@@ -2,7 +2,7 @@
  
 <!-- header -->
 <div id="header" style="display:none; height: 50px;">
-  <button type="submit" class="btn btn-dark back" style="position: absolute; left: 0;">Back</button>
+  <button type="submit" class="btn btn-elegant back" style="position: absolute; left: 0;">Back</button>
   <button id="removeTV" type="submit" class="btn btn-primary" style="position: absolute; right: 0;">Remove</button>
 </div>
 
@@ -15,11 +15,11 @@
     <h6 class="text-center">Homebridge plugin for Sony Bravia Android TVs</h6>
     <div class="container mt-4" style="max-width: 360px;">
       <div class="form-row">
-        <div class="col-8">
+        <div class="col-9">
           <select class="custom-select" id="tvSelect"></select>
         </div>
-        <div class="col-4">
-          <button id="editTV" type="submit" class="btn btn-primary m-0 w-100">Edit</button>
+        <div class="col-3">
+          <button id="editTV" type="submit" class="btn btn-elegant m-0 w-100">Edit</button>
         </div>
       </div>
       <!-- <button id="editTV" type="submit" class="btn btn-primary">Config</button> -->
@@ -37,7 +37,7 @@
   
   <!-- configureTV -->
   <div id="configureTV" style="display:none;">
-    <button type="submit" class="btn btn-dark back" style="position: absolute;">Back</button>
+    <button type="submit" class="btn btn-elegant back" style="position: absolute;">Back</button>
     <img src="images/sony_hb_black.png" alt="Sony meets Homebridge" width="150px" class="center-it mt-4 braviaLogo">
     <h6 class="text-center">To start the process, we need some data from the TV. Please fill out all marked fields.</h6>
     <div class="container mt-5">
@@ -48,10 +48,6 @@
       <div class="form-group">
         <label for="tvIpAddress">IP Address <span class="text-danger">*</span> </label>
         <input type="text" class="form-control" id="tvIpAddress" placeholder="192.168.178.111">
-      </div>
-      <div class="form-group">
-        <label for="tvMacAddress">MAC Address</label>
-        <input type="text" class="form-control" id="tvMacAddress" placeholder="00:11:22:AA:BB:CC">
       </div>
       <div class="form-group">
         <label for="tvPort">Port</label>
@@ -67,17 +63,17 @@
   
   <!-- authentication -->
   <div id="authentication" style="display:none;">
-    <button type="submit" class="btn btn-dark back" style="position: absolute;">Back</button>
+    <button type="submit" class="btn btn-elegant back" style="position: absolute;">Back</button>
     <img src="images/sony_hb_black.png" alt="Sony meets Homebridge" width="150px" class="center-it mt-4 braviaLogo">
     <h3 class="text-center">Authentication</b></h3>
     <h6 class="text-center">Please choose between the two authentication methods.</h6>
     <div class="container d-flex justify-content-center">
-      <button id="pskMethod" type="submit" class="btn btn-secondary">PSK</button> 
-      <button id="pinMethod" type="submit" class="btn btn-secondary">PIN</button> 
+      <button id="pskMethod" type="submit" class="btn btn-elegant">PSK</button> 
+      <button id="pinMethod" type="submit" class="btn btn-elegant">PIN</button> 
     </div>
     <div class="container card card-body mt-5 mb-5 p-0 psk" style="width: 100%; max-width: 400px;display:none;">
       <p class="text-center card-header mb-4">Pre Shared Key <span class="text-danger">*</span></p>
-      <input type="text" class="form-control ml-2 mr-2" id="tvPSK" style="width: auto!important;">
+      <input type="text" class="form-control ml-2 mr-2" id="tvPSK" style="width: auto!important;" placeholder="Enter psk here">
       <button id="pskMethodConfirm" type="submit" class="btn btn-primary mt-3">Continue</button> 
     </div>
     <div id="loginpin" class="container card card-body mt-5 mb-5 p-0 pin" style="width: 100%; max-width: 400px;display:none;">
@@ -90,7 +86,7 @@
   
   <!-- fetchInputs -->
   <div id="fetchInputs" style="display:none;">
-    <button type="submit" class="btn btn-dark back" style="position: absolute;">Back</button>
+    <button type="submit" class="btn btn-elegant back" style="position: absolute;">Back</button>
     <img src="images/sony_hb_black.png" alt="Sony meets Homebridge" width="150px" class="center-it mt-4 braviaLogo">
     <h6 class="text-center">Inputs are searched. <br> Please be patient for a moment.</h6>
     <div id="fetchInputsBar" class="mt-3"></div>

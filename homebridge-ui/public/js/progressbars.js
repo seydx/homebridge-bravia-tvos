@@ -27,7 +27,7 @@ const fetchInputsBar = new ProgressBar.Circle('#fetchInputsBar', {
   step: function(state, circle) {
     circle.path.setAttribute('stroke', state.color);
     circle.path.setAttribute('stroke-width', state.width);
-    var value = Math.round(circle.value() * 100);
+    let value = Math.round(circle.value() * 100);
     if(value === 100){
       circle.setText('Stored!');
     } else if(value >= 80){
@@ -66,12 +66,12 @@ const timerBar = new ProgressBar.Circle('#timerBar', {
     },
     autoStyleContainer: false
   },
-  from: { color: '#ff0400', width: 3 },
-  to: { color: '#00eb5e', width: 3 },
+  from: { color: '#ff0400', width: 5 },
+  to: { color: '#00eb5e', width: 5 },
   step: function(state, circle) {
     circle.path.setAttribute('stroke', state.color);
     circle.path.setAttribute('stroke-width', state.width);
-    var value = Math.round((circle.value() * 100) / 1.67);
+    let value = Math.round((circle.value() * 100) / 1.67);
     circle.setText(value);
   }
 });

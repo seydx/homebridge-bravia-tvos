@@ -16,75 +16,52 @@ const validate = {
 
 const TIMEOUT = (ms) => new Promise((res) => setTimeout(res, ms)); 
 
-function resetUI(){
-  
-  if(timerBar)
-    timerBar.set(1);
-    
-  if(fetchInputsBar)
-    fetchInputsBar.set(0);
-    
-  if(GLOBAL.pinLogin)
-    GLOBAL.pinLogin.reset();
-    
-  if(GLOBAL.pinTimer){
-    clearInterval(GLOBAL.pinTimer);
-    GLOBAL.pinTimer = false;
-  }
-  
-  GLOBAL.tvOptions = false;
-  
-  if(GLOBAL.customSchema){
-    GLOBAL.customSchema.end();
-    GLOBAL.customSchema = false;
-  }
-  
-  $('#tvName').val('');
-  $('#tvIpAddress').val('');
-  $('#tvMacAddress').val('');
-  $('#tvPort').val('');
-  $('#tvTimeout').val('');
-  $('#tvPSK').val('');
-  
-  $('.pin, .psk').hide();
-  
-  if($('#pinMethod').hasClass('btn-primary'))
-    $('#pinMethod').removeClass('btn-primary');
-  
-  if(!($('#pinMethod').hasClass('btn-secondary')))
-    $('#pinMethod').addClass('btn-secondary');
-  
-  if($('#pskMethod').hasClass('btn-primary'))
-    $('#pskMethod').removeClass('btn-primary');
- 
-  if(!($('#pskMethod').hasClass('btn-secondary')))
-    $('#pskMethod').addClass('btn-secondary');
-    
-  schema.schema.tvs.properties.apps.items.oneOf = [];
-  schema.schema.tvs.properties.channels.items.oneOf = [];
-  schema.schema.tvs.properties.commands.items.oneOf = [];
-  schema.schema.tvs.properties.inputs.items.oneOf = [];
-  
-}
+function toggleLightTheme(){
 
-function addTvToList(tv){
+  $('.braviaLogo').each(() => {
+    $('.braviaLogo').attr('src', 'images/sony_hb_black.png');
+  });
 
-  let name = typeof tv === 'string' ? tv : tv.name;
-  $('#tvSelect').append('<option value="' + name + '">'+ name + '</option>');
+  $('.psk, .pin').attr('style', 'max-width: 400px;');
 
 }
 
-function removeTvFromList(tv){
+function toggleDarkTheme(){
 
-  let name = typeof tv === 'string' ? tv : tv.name;
-  $('#tvSelect option[value=\'' + name + '\']').remove();
+  $('.braviaLogo').each(() => {
+    $('.braviaLogo').attr('src', 'images/sony_hb_white.png');
+  });
+
+  $('.psk, .pin').attr('style', 'max-width: 400px; background-color: #3c3c3c!important');
 
 }
 
-function transPage(cur, next, removed) {
+function toggleContent(){
 
   $('#header').hide();
   $('#main').show();
+  
+  return;
+  
+}
+
+function transPage(cur, next, removed, showSchema) {
+
+  if(showSchema){
+ 
+    cur.hide();
+    next.show();
+    
+    GLOBAL.previousContent.push($('#isConfigured'));
+    GLOBAL.currentContent = next;
+ 
+    return;
+ 
+  } else {
+  
+    toggleContent();
+  
+  }
   
   if(cur){
 
@@ -112,6 +89,8 @@ function transPage(cur, next, removed) {
 
   if(GLOBAL.customSchema)
     GLOBAL.customSchema.end();
+    
+  return;
 
 }
 
@@ -136,6 +115,122 @@ function goBack(index) {
 
 }
 
+function hideAll(){
+
+  toggleContent();
+  
+  $('#isConfigured').hide();
+  $('#notConfigured').hide();
+  $('#configureTV').hide();
+  $('#authentication').hide();
+  $('#fetchInputs').hide();
+  
+  return;
+
+}
+
+function resetUI(){
+  
+  resetPIN();
+  resetPSK();
+  resetForm();
+  resetSchema();
+  
+  return;
+
+}
+
+function resetPIN(){
+
+  $('.pin').hide();
+
+  if($('#pinMethod').hasClass('btn-primary'))
+    $('#pinMethod').removeClass('btn-primary');
+  
+  if(!($('#pinMethod').hasClass('btn-elegant')))
+    $('#pinMethod').addClass('btn-elegant');
+
+  if(GLOBAL.pinLogin)
+    GLOBAL.pinLogin.reset();
+    
+  if(GLOBAL.pinTimer){
+    clearInterval(GLOBAL.pinTimer);
+    GLOBAL.pinTimer = false;
+  }
+  
+  if(timerBar)
+    timerBar.set(1);
+
+  return;
+
+}
+
+function resetPSK(){
+
+  $('.psk').hide();
+  $('#tvPSK').val('');
+
+  if($('#pskMethod').hasClass('btn-primary'))
+    $('#pskMethod').removeClass('btn-primary');
+  
+  if(!($('#pskMethod').hasClass('btn-elegant')))
+    $('#pskMethod').addClass('btn-elegant');
+
+  return;
+
+}
+
+function resetForm(){
+
+  $('#tvName').val('');
+  $('#tvIpAddress').val('');
+  $('#tvPort').val('');
+  $('#tvTimeout').val('');
+  $('#tvPSK').val('');
+  
+  if(fetchInputsBar)
+    fetchInputsBar.set(0);
+
+  GLOBAL.tvOptions = false;
+
+  return;
+
+}
+
+function resetSchema(){
+
+  schema.schema.tvs.properties.apps.items.oneOf = [];
+  schema.schema.tvs.properties.channels.items.oneOf = [];
+  schema.schema.tvs.properties.commands.items.oneOf = [];
+  schema.schema.tvs.properties.inputs.items.oneOf = [];
+
+  if(GLOBAL.customSchema){
+    GLOBAL.customSchema.end();
+    GLOBAL.customSchema = false;
+  }
+  
+  return;
+
+}
+
+function addTvToList(tv){
+
+  let name = typeof tv === 'string' ? tv : tv.name;
+  $('#tvSelect').append('<option value="' + name + '">'+ name + '</option>');
+
+  return;
+
+}
+
+function removeTvFromList(tv){
+
+  let name = typeof tv === 'string' ? tv : tv.name;
+  $('#tvSelect option[value=\'' + name + '\']').remove();
+
+  return;
+
+}
+
 async function addNewDeviceToConfig(tv){
 
   try {
@@ -151,6 +246,8 @@ async function addNewDeviceToConfig(tv){
     homebridge.toast.error(err.message, 'Error');
 
   }
+  
+  return;
 
 }
 
@@ -222,8 +319,6 @@ async function fetchInputs(config){
     fetchInputsBar.animate(1);
      
     await TIMEOUT(2000);
-     
-    return allInputs;
    
   } catch(err) {
 
@@ -233,22 +328,41 @@ async function fetchInputs(config){
     homebridge.toast.error(err.message, 'Error');
    
   }
+  
+  return;
      
 }
 
 async function getInputs(tv){
 
+  let allInputs;
+
   try {
      
-    let allInputs = await homebridge.request('/getInputs', tv.name);
-     
-    return allInputs;
+    allInputs = await homebridge.request('/getInputs', tv.name);
    
   } catch(err) {
      
     homebridge.toast.error(err.message, 'Error');
    
   }
+  
+  allInputs = {
+    apps: allInputs && allInputs.apps && allInputs.apps.length
+      ? allInputs.apps
+      : [],
+    channels: allInputs && allInputs.channels && allInputs.channels.length
+      ? allInputs.channels
+      : [],
+    commands: allInputs && allInputs.commands && allInputs.commands.length
+      ? allInputs.commands
+      : [],
+    inputs: allInputs && allInputs.inputs && allInputs.inputs.length
+      ? allInputs.inputs
+      : [],
+  };
+  
+  return allInputs;
      
 }
 
@@ -264,78 +378,89 @@ async function createCustomSchema(tv){
   
   }
   
-   allInputs = {
-    apps: allInputs && allInputs.apps && allInputs.apps.length
-      ? allInputs.apps
-      : [{ 
-        title: 'None', 
-        enum: 'none'
-      }],
-    channels: allInputs && allInputs.channels && allInputs.channels.length
-      ? allInputs.channels
-      : [{ 
-        title: 'None', 
-        enum: 'none'
-      }],
-    commands: allInputs && allInputs.commands && allInputs.commands.length
-      ? allInputs.commands
-      : [{ 
-        name: 'None', 
-        enum: 'none'
-      }],
-    inputs: allInputs && allInputs.inputs && allInputs.inputs.length
-      ? allInputs.inputs
-      : [{ 
-        title: 'None', 
-        enum: 'none'
-      }],
-  };
+  if(!allInputs.apps.length){
   
-  allInputs.apps.forEach(app => {
-    
-    schema.schema.tvs.properties.apps.items.oneOf.push({
-      enum: [app.enum || app.title],
-      title: app.title
-    });
-    
-  });
+    delete schema.schema.tvs.properties.apps.items.oneOf; 
   
-  allInputs.inputs.forEach(input => {
-    
-    let inputTitle = input.title || input.label;
-    
-    let title = input.uri
-      ? '[' + input.uri.split('?')[0] + '] ' + inputTitle
-      : inputTitle;
-    
-    schema.schema.tvs.properties.inputs.items.oneOf.push({
-      enum: [input.enum || title],
-      title: title
-    });
-    
-  });
+  } else {
   
-  allInputs.commands.forEach(command => {
-    
-    schema.schema.tvs.properties.commands.items.oneOf.push({
-      enum: [command.enum || command.name],
-      title: command.name
+    allInputs.apps.forEach(app => {
+      
+      schema.schema.tvs.properties.apps.items.oneOf.push({
+        enum: [app.enum || app.title],
+        title: app.title
+      });
+      
     });
-    
-  });
   
-  allInputs.channels.forEach(channel => {
-    
-    let title = channel.uri
-      ? '[' + (channel.index + 1) + '@' + channel.uri.split('?')[0] + '] ' + channel.title
-      : channel.title;
-    
-    schema.schema.tvs.properties.channels.items.oneOf.push({
-      enum: [channel.enum || title],
-      title: title
+  }
+  
+  if(!allInputs.inputs.length){
+  
+    delete schema.schema.tvs.properties.inputs.items.oneOf; 
+  
+  } else {
+  
+    allInputs.inputs.forEach(input => {
+      
+      let inputTitle = input.title || input.label;
+      
+      let title = input.uri
+        ? '[' + input.uri.split('?')[0] + '] ' + inputTitle
+        : inputTitle;
+      
+      schema.schema.tvs.properties.inputs.items.oneOf.push({
+        enum: [input.enum || title],
+        title: title
+      });
+      
     });
-    
-  });
+  
+  }
+  
+  if(!allInputs.commands.length){
+  
+    delete schema.schema.tvs.properties.commands.items.oneOf; 
+    delete schema.schema.tvs.properties.remote.items.properties.command.oneOf; 
+  
+  } else {
+  
+    allInputs.commands.forEach(command => {
+      
+      schema.schema.tvs.properties.commands.items.oneOf.push({
+        enum: [command.enum || command.name],
+        title: command.name
+      });
+      
+      schema.schema.tvs.properties.remote.items.properties.command.oneOf.push({
+        enum: [command.enum || command.name],
+        title: command.name
+      });
+      
+    });
+  
+  }
+  
+  if(!allInputs.channels.length){
+  
+    delete schema.schema.tvs.properties.channels.items.oneOf; 
+  
+  } else {
+  
+    allInputs.channels.forEach(channel => {
+      
+      let title = channel.uri
+        ? '[' + (channel.index + 1) + '@' + channel.uri.split('?')[0] + '] ' + channel.title
+        : channel.title;
+      
+      schema.schema.tvs.properties.channels.items.oneOf.push({
+        enum: [channel.enum || title],
+        title: title
+      });
+      
+    });
+  
+  }
 
   GLOBAL.customSchema = homebridge.createForm(schema, {
     name: GLOBAL.pluginConfig[0].name,
@@ -368,24 +493,23 @@ async function createCustomSchema(tv){
 
 }
 
-//init
-
 (async () => {
                                        
   try {
       
+    //toggle dark/light theme
     homebridge.addEventListener('ready', () => {
+   
       if(window.document.body.classList.contains('dark-mode')){
-        $('.braviaLogo').each(() => {
-          $('.braviaLogo').attr('src', 'images/sony_hb_white.png');
-        });
-        $('.psk, .pin').addClass('dark-card');
-      } else {
-        $('.braviaLogo').each(() => {
-          $('.braviaLogo').attr('src', 'images/sony_hb_black.png');
-        });
-        $('.psk, .pin').removeClass('dark-card');
+   
+        toggleDarkTheme();
+   
+      } else {  
+   
+        toggleLightTheme();
+   
       }
+   
     });
     
     GLOBAL.pluginConfig = await homebridge.getPluginConfig();
@@ -398,9 +522,15 @@ async function createCustomSchema(tv){
         tvs: [] 
       }];
       
+      resetUI();
+      hideAll();
+      
       transPage(false, $('#notConfigured'));
       
     } else {
+    
+      resetUI();
+      hideAll();
     
       if(!GLOBAL.pluginConfig[0].tvs || (GLOBAL.pluginConfig[0].tvs && !GLOBAL.pluginConfig[0].tvs.length)){
         GLOBAL.pluginConfig[0].tvs = [];
@@ -438,12 +568,8 @@ $('#editTV').on('click', async e => {
 
   if(!tv)
     return homebridge.toast.error('Can not find the TV!', 'Error');
-    
-  $('#main, #isConfigured').hide();
-  $('#header').show();
-  
-  GLOBAL.previousContent.push($('#isConfigured'));
-  GLOBAL.currentContent = $('#header');
+
+  transPage($('#main, #isConfigured'), $('#header'), false, true);
     
   createCustomSchema(tv);
 
@@ -484,7 +610,6 @@ $('#chooseAuth').on('click', async e => {
     GLOBAL.tvOptions = {
       name: $('#tvName').val(),
       host: $('#tvIpAddress').val(),
-      mac: $('#tvMacAddress').val(),
       port: parseInt($('#tvPort').val()) || 80,
       timeout: parseInt($('#tvTimeout').val()) 
         ? parseInt($('#tvTimeout').val()) < 5 ? 5000 : parseInt($('#tvTimeout').val()) 
@@ -501,11 +626,6 @@ $('#chooseAuth').on('click', async e => {
       return homebridge.toast.error('There is no valid ip configured for this tv!', 'Error');
     }
     
-    if(GLOBAL.tvOptions.mac && !validate.mac.test(GLOBAL.tvOptions.mac)){
-      homebridge.toast.warning('The given mac address is not valid!', 'Warning');
-      GLOBAL.tvOptions.mac = false;
-    }
-    
     transPage($('#configureTV'), $('#authentication'));
     
   } catch(err) {
@@ -518,36 +638,20 @@ $('#chooseAuth').on('click', async e => {
 
 $('#pskMethod').on('click', e => {
 
-  $('.pin').hide();
-  timerBar.set(1);
-   
-  if(GLOBAL.pinlogin)
-    GLOBAL.pinlogin.reset();
-    
-  if($('#pinMethod').hasClass('btn-primary'))
-    $('#pinMethod').removeClass('btn-primary');
- 
-  if(!($('#pinMethod').hasClass('btn-secondary')))
-    $('#pinMethod').addClass('btn-secondary');
-
   let isVisible = $('.psk').css('display') !== 'none';
    
   if(isVisible){
      
-    $('.psk').fadeOut(500);
-    
-    if($('#pskMethod').hasClass('btn-primary'))
-      $('#pskMethod').removeClass('btn-primary');
-   
-    if(!($('#pskMethod').hasClass('btn-secondary')))
-      $('#pskMethod').addClass('btn-secondary');
+    resetPSK();
    
   } else {
+  
+    resetPIN();
    
     $('.psk').fadeIn(500);
     
-    if($('#pskMethod').hasClass('btn-secondary'))
-      $('#pskMethod').removeClass('btn-secondary');
+    if($('#pskMethod').hasClass('btn-elegant'))
+      $('#pskMethod').removeClass('btn-elegant');
    
     if(!($('#pskMethod').hasClass('btn-primary')))
       $('#pskMethod').addClass('btn-primary');
@@ -579,7 +683,6 @@ $('#pskMethodConfirm').on('click', async e => {
     let config = {
       name: GLOBAL.tvOptions.name,
       ip: GLOBAL.tvOptions.host,
-      mac: GLOBAL.tvOptions.mac || undefined,
       port: GLOBAL.tvOptions.port,
       timeout: GLOBAL.tvOptions.timeout / 1000,
       psk: GLOBAL.tvOptions.psk
@@ -594,16 +697,9 @@ $('#pskMethodConfirm').on('click', async e => {
    
   } catch(err) {
   
+    resetPSK();
+  
     homebridge.hideSpinner();
-    
-    if($('#pskMethod').hasClass('btn-primary'))
-      $('#pskMethod').removeClass('btn-primary');
-   
-    if(!($('#pskMethod').hasClass('btn-secondary')))
-      $('#pskMethod').addClass('btn-secondary');
-    
-    $('.psk').hide();
-    $('#tvPSK').val('');
      
     homebridge.toast.error(err.message, 'Error');
      
@@ -613,70 +709,74 @@ $('#pskMethodConfirm').on('click', async e => {
 
 $('#pinMethod').on('click', async e => {
 
-  $('.psk').hide();
-  
-  if($('#pskMethod').hasClass('btn-primary'))
-    $('#pskMethod').removeClass('btn-primary');
- 
-  if(!($('#pskMethod').hasClass('btn-secondary')))
-    $('#pskMethod').addClass('btn-secondary');
-    
-  if($('#pinMethod').hasClass('btn-secondary'))
-    $('#pinMethod').removeClass('btn-secondary');
- 
-  if(!($('#pinMethod').hasClass('btn-primary')))
-    $('#pinMethod').addClass('btn-primary'); 
+  let isVisible = $('.pin').css('display') !== 'none';
    
-  try {
+  if(isVisible){
      
-    homebridge.showSpinner();
+    resetPIN();
+   
+  } else {
+  
+    resetPSK();
     
-    GLOBAL.tvOptions.psk = false;
+    if($('#pinMethod').hasClass('btn-elegant'))
+      $('#pinMethod').removeClass('btn-elegant');
+   
+    if(!($('#pinMethod').hasClass('btn-primary')))
+      $('#pinMethod').addClass('btn-primary'); 
     
-    GLOBAL.tvOptions = await homebridge.request('/requestPin', GLOBAL.tvOptions);
+    try {
        
-    GLOBAL.pinlogin = $('#pinlogin').pinlogin({
-      fields : 4,
-      placeholder:'*',
-      reset: false,
-      complete :function(code){
-        GLOBAL.tvOptions.pin = code;
-      }
-    });
-  
-    $('.pin').fadeIn(500);
-     
-    timerBar.set(1);
-     
-    if(GLOBAL.pinTimer){
-      clearInterval(GLOBAL.pinTimer);
-      GLOBAL.pinTimer = false;
-    }
-     
-    let counter = 59;
-    GLOBAL.pinTimer = setInterval(function(){
-      counter--;                    
-      if (counter === 0) {
+      homebridge.showSpinner();
+      
+      GLOBAL.tvOptions.psk = false;
+      
+      GLOBAL.tvOptions = await homebridge.request('/requestPin', GLOBAL.tvOptions);
+         
+      GLOBAL.pinlogin = $('#pinlogin').pinlogin({
+        fields : 4,
+        placeholder:'*',
+        reset: false,
+        complete :function(code){
+          GLOBAL.tvOptions.pin = code;
+        }
+      });
+    
+      $('.pin').fadeIn(500);
+       
+      timerBar.set(1);
+       
+      if(GLOBAL.pinTimer){
         clearInterval(GLOBAL.pinTimer);
+        GLOBAL.pinTimer = false;
       }
-      timerBar.set((counter * 1.67) / 100);
-    }, 1000);
+       
+      let counter = 59;
+      GLOBAL.pinTimer = setInterval(function(){
+        counter--;                    
+        if (counter === 0) {
+          clearInterval(GLOBAL.pinTimer);
+        }
+        timerBar.set((counter * 1.67) / 100);
+      }, 1000);
+       
+    } catch(err) {
+    
+      if($('#pinMethod').hasClass('btn-primary'))
+        $('#pinMethod').removeClass('btn-primary');
      
-  } catch(err) {
-  
-    if($('#pinMethod').hasClass('btn-primary'))
-      $('#pinMethod').removeClass('btn-primary');
+      if(!($('#pinMethod').hasClass('btn-elegant')))
+        $('#pinMethod').addClass('btn-elegant');
+       
+      homebridge.toast.error(err.message, 'Error');
+       
+    } finally {
+       
+      homebridge.hideSpinner();
+       
+    }
    
-    if(!($('#pinMethod').hasClass('btn-secondary')))
-      $('#pinMethod').addClass('btn-secondary');
-     
-    homebridge.toast.error(err.message, 'Error');
-     
-  } finally {
-     
-    homebridge.hideSpinner();
-     
-  }
+  } 
 
 });
 
@@ -694,30 +794,8 @@ $('#startPair').on('click', async e => {
       homebridge.hideSpinner();
       
       if(!GLOBAL.tvOptions.token){
-        
-        if($('#pinMethod').hasClass('btn-primary'))
-          $('#pinMethod').removeClass('btn-primary');
-       
-        if(!($('#pinMethod').hasClass('btn-secondary')))
-          $('#pinMethod').addClass('btn-secondary');
-        
-        $('.pin').hide();
-        
-        if(GLOBAL.pinlogin){
-          GLOBAL.pinlogin.reset();
-          GLOBAL.pinlogin = false;
-        }
-        
-        if(GLOBAL.pinTimer){
-          clearInterval(GLOBAL.pinTimer);
-          GLOBAL.pinTimer = false;
-        }
-              
-        if(timerBar)
-          timerBar.set(1);
-      
-        return homebridge.toast.error('Pairing failed! Please try again.', 'Error')
-   
+        resetPIN();
+        return homebridge.toast.error('Pairing failed! Please try again.', 'Error');
       }    
         
       homebridge.toast.success('Paired successfully!', 'Success');
@@ -727,7 +805,6 @@ $('#startPair').on('click', async e => {
       let config = {
         name: GLOBAL.tvOptions.name,
         ip: GLOBAL.tvOptions.host,
-        mac: GLOBAL.tvOptions.mac || undefined,
         port: GLOBAL.tvOptions.port,
         timeout: GLOBAL.tvOptions.timeout / 1000,
         appName: GLOBAL.tvOptions.name,
@@ -742,29 +819,10 @@ $('#startPair').on('click', async e => {
       resetUI();
    
     } catch(err) {
+    
+      resetPIN();
       
       homebridge.hideSpinner();
-      
-      if($('#pinMethod').hasClass('btn-primary'))
-        $('#pinMethod').removeClass('btn-primary');
-     
-      if(!($('#pinMethod').hasClass('btn-secondary')))
-        $('#pinMethod').addClass('btn-secondary');
-      
-      $('.pin').hide();
-      
-      if(GLOBAL.pinlogin){
-        GLOBAL.pinlogin.reset();
-        GLOBAL.pinlogin = false;
-      }
-      
-      if(GLOBAL.pinTimer){
-        clearInterval(GLOBAL.pinTimer);
-        GLOBAL.pinTimer = false;
-      }
-            
-      if(timerBar)
-        timerBar.set(1);
       
       homebridge.toast.error(err.message, 'Error');
    
