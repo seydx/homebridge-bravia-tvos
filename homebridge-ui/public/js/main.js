@@ -51,14 +51,19 @@ function resetUI(){
   if($('#pinMethod').hasClass('btn-primary'))
     $('#pinMethod').removeClass('btn-primary');
   
-  if($('#pinMethod').hasClass('btn-secondary'))
+  if(!($('#pinMethod').hasClass('btn-secondary')))
     $('#pinMethod').addClass('btn-secondary');
   
   if($('#pskMethod').hasClass('btn-primary'))
     $('#pskMethod').removeClass('btn-primary');
-  
-  if($('#pskMethod').hasClass('btn-secondary'))
+ 
+  if(!($('#pskMethod').hasClass('btn-secondary')))
     $('#pskMethod').addClass('btn-secondary');
+    
+  schema.schema.tvs.properties.apps.items.oneOf = [];
+  schema.schema.tvs.properties.channels.items.oneOf = [];
+  schema.schema.tvs.properties.commands.items.oneOf = [];
+  schema.schema.tvs.properties.inputs.items.oneOf = [];
   
 }
 
@@ -76,7 +81,7 @@ function removeTvFromList(tv){
 
 }
 
-function transPage(cur, next) {
+function transPage(cur, next, removed) {
 
   $('#header').hide();
   $('#main').show();
@@ -84,17 +89,25 @@ function transPage(cur, next) {
   if(cur){
 
     cur.fadeOut(500, () =>{
+      
       next.fadeIn(500);
-      GLOBAL.previousContent.push(cur);
+      
+      if(!removed)
+        GLOBAL.previousContent.push(cur);
+      
       GLOBAL.currentContent = next;
+    
     });
 
   } else {
 
     next.fadeIn(500);
-    GLOBAL.previousContent.push(next);
+   
+    if(!removed)
+      GLOBAL.previousContent.push(next);
+    
     GLOBAL.currentContent = next;
-
+    
   }
 
   if(GLOBAL.customSchema)
@@ -110,8 +123,8 @@ function goBack(index) {
       ? GLOBAL.previousContent.length - 1
       : index;
 
-    transPage(GLOBAL.currentContent, GLOBAL.previousContent[index]);
-    GLOBAL.currentContent = GLOBAL.previousContent[index];
+    transPage(GLOBAL.currentContent, GLOBAL.previousContent[index], true);
+    //GLOBAL.currentContent = GLOBAL.previousContent[index];
     GLOBAL.previousContent.splice(index, 1);
     
     if(GLOBAL.customSchema)
@@ -241,25 +254,6 @@ async function getInputs(tv){
 
 async function createCustomSchema(tv){
   
-  let allInputs = {
-    apps: [{ 
-      title: 'None', 
-      enum: 'none'
-    }],
-    channels: [{ 
-      title: 'None', 
-      enum: 'none'
-    }],
-    commands: [{ 
-      name: 'None', 
-      enum: 'none'
-    }],
-    inputs: [{ 
-      title: 'None', 
-      enum: 'none'
-    }]
-  };
-  
   try {
   
     allInputs = await getInputs(tv); 
@@ -269,6 +263,33 @@ async function createCustomSchema(tv){
     homebridge.toast.error(err.message, 'Error');
   
   }
+  
+   allInputs = {
+    apps: allInputs && allInputs.apps && allInputs.apps.length
+      ? allInputs.apps
+      : [{ 
+        title: 'None', 
+        enum: 'none'
+      }],
+    channels: allInputs && allInputs.channels && allInputs.channels.length
+      ? allInputs.channels
+      : [{ 
+        title: 'None', 
+        enum: 'none'
+      }],
+    commands: allInputs && allInputs.commands && allInputs.commands.length
+      ? allInputs.commands
+      : [{ 
+        name: 'None', 
+        enum: 'none'
+      }],
+    inputs: allInputs && allInputs.inputs && allInputs.inputs.length
+      ? allInputs.inputs
+      : [{ 
+        title: 'None', 
+        enum: 'none'
+      }],
+  };
   
   allInputs.apps.forEach(app => {
     
@@ -352,6 +373,20 @@ async function createCustomSchema(tv){
 (async () => {
                                        
   try {
+      
+    homebridge.addEventListener('ready', () => {
+      if(window.document.body.classList.contains('dark-mode')){
+        $('.braviaLogo').each(() => {
+          $('.braviaLogo').attr('src', 'images/sony_hb_white.png');
+        });
+        $('.psk, .pin').addClass('dark-card');
+      } else {
+        $('.braviaLogo').each(() => {
+          $('.braviaLogo').attr('src', 'images/sony_hb_black.png');
+        });
+        $('.psk, .pin').removeClass('dark-card');
+      }
+    });
     
     GLOBAL.pluginConfig = await homebridge.getPluginConfig();
     
@@ -488,23 +523,34 @@ $('#pskMethod').on('click', e => {
    
   if(GLOBAL.pinlogin)
     GLOBAL.pinlogin.reset();
-   
-  $('#pinMethod').removeClass('btn-primary');
-  $('#pinMethod').addClass('btn-secondary');
+    
+  if($('#pinMethod').hasClass('btn-primary'))
+    $('#pinMethod').removeClass('btn-primary');
+ 
+  if(!($('#pinMethod').hasClass('btn-secondary')))
+    $('#pinMethod').addClass('btn-secondary');
 
   let isVisible = $('.psk').css('display') !== 'none';
    
   if(isVisible){
      
     $('.psk').fadeOut(500);
-    $('#pskMethod').removeClass('btn-primary');
-    $('#pskMethod').addClass('btn-secondary');
+    
+    if($('#pskMethod').hasClass('btn-primary'))
+      $('#pskMethod').removeClass('btn-primary');
+   
+    if(!($('#pskMethod').hasClass('btn-secondary')))
+      $('#pskMethod').addClass('btn-secondary');
    
   } else {
    
     $('.psk').fadeIn(500);
-    $('#pskMethod').removeClass('btn-secondary');
-    $('#pskMethod').addClass('btn-primary');
+    
+    if($('#pskMethod').hasClass('btn-secondary'))
+      $('#pskMethod').removeClass('btn-secondary');
+   
+    if(!($('#pskMethod').hasClass('btn-primary')))
+      $('#pskMethod').addClass('btn-primary');
    
   }
 
@@ -550,8 +596,11 @@ $('#pskMethodConfirm').on('click', async e => {
   
     homebridge.hideSpinner();
     
-    $('#pskMethod').removeClass('btn-primary');
-    $('#pskMethod').addClass('btn-secondary');
+    if($('#pskMethod').hasClass('btn-primary'))
+      $('#pskMethod').removeClass('btn-primary');
+   
+    if(!($('#pskMethod').hasClass('btn-secondary')))
+      $('#pskMethod').addClass('btn-secondary');
     
     $('.psk').hide();
     $('#tvPSK').val('');
@@ -565,11 +614,18 @@ $('#pskMethodConfirm').on('click', async e => {
 $('#pinMethod').on('click', async e => {
 
   $('.psk').hide();
-  $('#pskMethod').removeClass('btn-primary');
-  $('#pskMethod').addClass('btn-secondary');
+  
+  if($('#pskMethod').hasClass('btn-primary'))
+    $('#pskMethod').removeClass('btn-primary');
  
-  $('#pinMethod').removeClass('btn-secondary');
-  $('#pinMethod').addClass('btn-primary');
+  if(!($('#pskMethod').hasClass('btn-secondary')))
+    $('#pskMethod').addClass('btn-secondary');
+    
+  if($('#pinMethod').hasClass('btn-secondary'))
+    $('#pinMethod').removeClass('btn-secondary');
+ 
+  if(!($('#pinMethod').hasClass('btn-primary')))
+    $('#pinMethod').addClass('btn-primary'); 
    
   try {
      
@@ -607,9 +663,12 @@ $('#pinMethod').on('click', async e => {
     }, 1000);
      
   } catch(err) {
-    
-    $('#pinMethod').removeClass('btn-primary');
-    $('#pinMethod').addClass('btn-secondary');
+  
+    if($('#pinMethod').hasClass('btn-primary'))
+      $('#pinMethod').removeClass('btn-primary');
+   
+    if(!($('#pinMethod').hasClass('btn-secondary')))
+      $('#pinMethod').addClass('btn-secondary');
      
     homebridge.toast.error(err.message, 'Error');
      
@@ -635,9 +694,12 @@ $('#startPair').on('click', async e => {
       homebridge.hideSpinner();
       
       if(!GLOBAL.tvOptions.token){
-      
-        $('#pinMethod').removeClass('btn-primary');
-        $('#pinMethod').addClass('btn-secondary');
+        
+        if($('#pinMethod').hasClass('btn-primary'))
+          $('#pinMethod').removeClass('btn-primary');
+       
+        if(!($('#pinMethod').hasClass('btn-secondary')))
+          $('#pinMethod').addClass('btn-secondary');
         
         $('.pin').hide();
         
@@ -682,9 +744,12 @@ $('#startPair').on('click', async e => {
     } catch(err) {
       
       homebridge.hideSpinner();
-        
-      $('#pinMethod').removeClass('btn-primary');
-      $('#pinMethod').addClass('btn-secondary');
+      
+      if($('#pinMethod').hasClass('btn-primary'))
+        $('#pinMethod').removeClass('btn-primary');
+     
+      if(!($('#pinMethod').hasClass('btn-secondary')))
+        $('#pinMethod').addClass('btn-secondary');
       
       $('.pin').hide();
       

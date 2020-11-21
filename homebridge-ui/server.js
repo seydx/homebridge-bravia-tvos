@@ -90,10 +90,8 @@ class UiServer extends HomebridgePluginUiServer {
       
       if(err.response){
         
-        if(err.response.status === 401){
-          
+        if(err.response.status === 401)
           return options;
-        }
           
         if(err.response.data && err.response.data.error){
           

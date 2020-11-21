@@ -4,6 +4,10 @@
   transform: translateX(-50%);
 }
 
+.dark-card {
+  background-color: #3c3c3c!important;
+}
+
 #fetchInputsBar {
   margin: 20px;
   width: 200px;
