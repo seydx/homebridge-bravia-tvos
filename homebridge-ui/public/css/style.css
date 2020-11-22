@@ -8,6 +8,13 @@
   background-color: #3c3c3c!important;
 }
 
+.addBtn {
+  font-size: 15px;
+  border-radius: 20px;
+  width: 40px;
+  height: 40px;
+}
+
 #fetchInputsBar {
   margin: 20px;
   width: 200px;

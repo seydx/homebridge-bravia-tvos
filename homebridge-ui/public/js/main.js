@@ -1,3 +1,5 @@
+/*global $, homebridge, timerBar, fetchInputsBar, schema, allInputs:writable*/
+
 const GLOBAL = {
   pluginConfig: false,
   customSchema: false,
@@ -15,6 +17,21 @@ const validate = {
 };
 
 const TIMEOUT = (ms) => new Promise((res) => setTimeout(res, ms)); 
+
+function showOldSchema() {
+
+  $('#main').removeClass('pb-5');
+  $('#notSupported').show();
+  
+  setTimeout(() => {
+    $('#main').fadeOut(500);
+  }, 5000);
+  
+  homebridge.showSchemaForm();
+  
+  return;
+
+}
 
 function toggleLightTheme(){
 
@@ -294,7 +311,7 @@ async function removeDeviceFromConfig(){
   
 }
 
-async function fetchInputs(config){
+async function fetchInputs(){
 
   try {
      
@@ -368,10 +385,28 @@ async function getInputs(tv){
 
 async function createCustomSchema(tv){
   
+  GLOBAL.tvOptions = {
+    name: tv.name,
+    host: tv.ip,
+    port: tv.port,
+    timeout: tv.timeout * 1000
+  };
+  
+  if(tv.psk){
+    GLOBAL.tvOptions.psk = tv.psk;
+    GLOBAL.tvOptions.pin = false;
+  }
+    
+  if(tv.appUUID){
+    GLOBAL.tvOptions.uuid = tv.appUUID;
+    GLOBAL.tvOptions.psk = false;
+    GLOBAL.tvOptions.pin = true;
+  }
+  
   try {
   
     allInputs = await getInputs(tv); 
-  
+    
   } catch(err) {
   
     homebridge.toast.error(err.message, 'Error');
@@ -490,12 +525,22 @@ async function createCustomSchema(tv){
     }
   
   });
+  
+  return;
 
 }
 
 (async () => {
                                        
   try {
+    
+    //check version before load ui
+    if(window.compareVersions(window.homebridge.serverEnv.env.packageVersion, '4.34.0') < 0){
+      return showOldSchema();
+    }
+    
+    resetUI();
+    hideAll();
       
     //toggle dark/light theme
     homebridge.addEventListener('ready', () => {
@@ -522,15 +567,9 @@ async function createCustomSchema(tv){
         tvs: [] 
       }];
       
-      resetUI();
-      hideAll();
-      
       transPage(false, $('#notConfigured'));
       
     } else {
-    
-      resetUI();
-      hideAll();
     
       if(!GLOBAL.pluginConfig[0].tvs || (GLOBAL.pluginConfig[0].tvs && !GLOBAL.pluginConfig[0].tvs.length)){
         GLOBAL.pluginConfig[0].tvs = [];
@@ -555,11 +594,21 @@ async function createCustomSchema(tv){
 
 //jquery listener
 
-$('.back').on('click', e => {
+$('.back').on('click', () => {
   goBack();
 });
 
-$('#editTV').on('click', async e => {
+$('#addTV, #start').on('click', () => {
+  
+  resetUI();
+  
+  let activeContent = $('#notConfigured').css('display') !== 'none' ? $('#notConfigured') : $('#isConfigured');
+  
+  transPage(activeContent, $('#configureTV'));
+
+});
+
+$('#editTV').on('click', () => {
 
   resetUI();
   
@@ -569,13 +618,35 @@ $('#editTV').on('click', async e => {
   if(!tv)
     return homebridge.toast.error('Can not find the TV!', 'Error');
 
-  transPage($('#main, #isConfigured'), $('#header'), false, true);
-    
   createCustomSchema(tv);
+  
+  transPage($('#main, #isConfigured'), $('#header'), false, true);
 
 });
 
-$('#removeTV').on('click', async e => {
+$('#refreshTV').on('click', async () => {  
+    
+  if(GLOBAL.customSchema && GLOBAL.tvOptions){
+  
+    resetSchema();
+  
+    let tv = GLOBAL.pluginConfig[0].tvs.find(tv => tv.name === GLOBAL.tvOptions.name);
+
+    if(!tv)
+      return homebridge.toast.error('Can not find TV in config!', 'Error');
+    
+    transPage($('#isConfigured'), $('#fetchInputs'));
+      
+    await fetchInputs();
+    await createCustomSchema(tv);
+    
+    transPage($('#main, #fetchInputs'), $('#header'), false, true);
+    
+  }
+  
+});
+
+$('#removeTV').on('click', async () => {
   
   try {
     
@@ -593,17 +664,7 @@ $('#removeTV').on('click', async e => {
 
 });
 
-$('.addTV').on('click', e => {
-  
-  resetUI();
-  
-  let activeContent = $('#notConfigured').css('display') !== 'none' ? $('#notConfigured') : $('#isConfigured');
-  
-  transPage(activeContent, $('#configureTV'));
-
-});
-
-$('#chooseAuth').on('click', async e => {
+$('#chooseAuth').on('click', () => {
 
   try {
       
@@ -636,7 +697,7 @@ $('#chooseAuth').on('click', async e => {
     
 });
 
-$('#pskMethod').on('click', e => {
+$('#pskMethod').on('click', () => {
 
   let isVisible = $('.psk').css('display') !== 'none';
    
@@ -660,7 +721,7 @@ $('#pskMethod').on('click', e => {
 
 });
 
-$('#pskMethodConfirm').on('click', async e => {
+$('#pskMethodConfirm').on('click', async () => {
 
   GLOBAL.tvOptions.psk = $('#tvPSK').val();
    
@@ -688,7 +749,7 @@ $('#pskMethodConfirm').on('click', async e => {
       psk: GLOBAL.tvOptions.psk
     };
       
-    await fetchInputs(config);
+    await fetchInputs();
     await addNewDeviceToConfig(config);
       
     transPage($('#fetchInputs'), $('#isConfigured'));
@@ -707,7 +768,7 @@ $('#pskMethodConfirm').on('click', async e => {
  
 });
 
-$('#pinMethod').on('click', async e => {
+$('#pinMethod').on('click', async () => {
 
   let isVisible = $('.pin').css('display') !== 'none';
    
@@ -780,7 +841,7 @@ $('#pinMethod').on('click', async e => {
 
 });
 
-$('#startPair').on('click', async e => {
+$('#startPair').on('click', async () => {
 
   if(GLOBAL.tvOptions.pin && validate.pin.test(GLOBAL.tvOptions.pin)){
      
@@ -811,7 +872,7 @@ $('#startPair').on('click', async e => {
         appUUID: GLOBAL.tvOptions.uuid
       };
       
-      await fetchInputs(config);
+      await fetchInputs();
       await addNewDeviceToConfig(config);
       
       transPage($('#fetchInputs'), $('#isConfigured'));

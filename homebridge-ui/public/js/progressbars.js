@@ -1,3 +1,5 @@
+/*global ProgressBar*/
+
 const fetchInputsBar = new ProgressBar.Circle('#fetchInputsBar', {
   color: '#aaa',
   strokeWidth: 4,

@@ -24,7 +24,7 @@ class UiServer extends HomebridgePluginUiServer {
     
     this.onRequest('/storeInputs', this.storeInputs.bind(this));
     this.onRequest('/getInputs', this.getInputs.bind(this));
-
+    
     this.ready();
   }
 
@@ -182,6 +182,9 @@ class UiServer extends HomebridgePluginUiServer {
   
     const bravia = new Bravia(options);
     
+    console.log(tv);
+    console.log(bravia);
+    
     //fetch all applications
     try {
       
@@ -321,7 +324,7 @@ class UiServer extends HomebridgePluginUiServer {
     
     } catch(err) {
       
-      console.log('%s: An error occured during fetching apps, skip..', options.name);
+      console.log('%s: An error occured during fetching commands, skip..', options.name);
       allInputs.commands = allInputs.commands || [];
     
     }

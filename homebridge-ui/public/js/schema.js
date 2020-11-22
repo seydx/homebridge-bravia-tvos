@@ -369,7 +369,7 @@ const schema = {
       }
     }
   },
-  'layout': [
+  'form': [
     'name',
     'debug',
     'tvs.name',
@@ -377,7 +377,6 @@ const schema = {
     'tvs.mac',
     'tvs.port',
     'tvs.timeout',
-    'tvs.refreshInputs',
     {
       'key': 'tvs',
       'type': 'section',
