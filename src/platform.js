@@ -135,8 +135,8 @@ function BraviaOSPlatform (log, config, api) {
               output: tv.speaker.output || 'speaker',
               minVolume: tv.speaker.minVolume || 0,
               maxVolue: tv.speaker.maxVolume || 100,
-              increaseBy: tv.speaker.increaseBy || 1,
-              reduceBy: tv.speaker.reduceBy || 1
+              increaseBy: tv.speaker.increaseBy && tv.speaker.increaseBy <= 5 ? tv.speaker.increaseBy : 1,
+              reduceBy: tv.speaker.reduceBy && tv.speaker.reduceBy <= 5 ? tv.speaker.reduceBy : 1
             };
             
             if(validTypes.includes(tv.speaker.accType)){

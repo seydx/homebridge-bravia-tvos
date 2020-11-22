@@ -17,13 +17,14 @@
           "mac": "44:5D:4B:22:E3:11",
           "port": 80,
           "timeout": 10,
-          "token": "A0B9B9D7580466F22EE8F8EA148863774ACCE203",
+          "psk": "12345",
           "manufacturer": "Sony",
           "model": "KD5050",
           "serialNumber": "123456",
           "refreshInputs": false,
-          "wol": false,
           "inputs": [
+            "[extInput:hdmi] HDMI 1",
+            "[extInput:hdmi] HDMI 2",
             "extInput:cec",
             "extInput:component",
             "extInput:composite",
@@ -51,7 +52,9 @@
             {
               "channel": 10,
               "source": "tv:analog"
-            }
+            },
+            "[14@tv:dvbt] Sky",
+            "[123@tv:dvbs] S RTL"
           ],
           "commands": [
             "PowerOff",
@@ -63,12 +66,6 @@
             "reduceBy": 5,
             "accType": "lightbulb"
           },
-          "displayOrder": [
-            "inputs",
-            "apps",
-            "channels",
-            "commands"
-          ],
           "remote": [
             {
               "command": "AAAAAgAAAJcAAAAbAw==",
@@ -87,7 +84,7 @@
               "target": "PREVIOUS_TRACK"
             },
             {
-              "command": "AAAAAQAAAAEAAAB0Aw==",
+              "command": "Up",
               "target": "ARROW_UP"
             },
             {
@@ -103,7 +100,7 @@
               "target": "ARROW_RIGHT"
             },
             {
-              "command": "AAAAAQAAAAEAAABlAw==",
+              "command": "Confirm",
               "target": "SELECT"
             },
             {
@@ -115,7 +112,7 @@
               "target": "EXIT"
             },
             {
-              "command": "AAAAAgAAAJcAAAAaAw==",
+              "command": "Play",
               "target": "PLAY"
             },
             {

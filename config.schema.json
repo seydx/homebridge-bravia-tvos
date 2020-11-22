@@ -2,7 +2,7 @@
   "pluginAlias": "BraviaOSPlatform",
   "pluginType": "platform",
   "singular": true,
-  "customUi": false,
+  "customUi": true,
   "footerDisplay": "For documentation please see [GitHub repository](https://github.com/SeydX/homebridge-bravia-tvos)",
   "schema": {
     "name": {
@@ -279,14 +279,16 @@
                 "title": "Increase Volume by",
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 100,
+                "maximum": 5,
+                "default": 1,
                 "description": "Volume level to increse."
               },
               "reduceBy": {
                 "title": "Reduce Volume by",
                 "type": "integer",
                 "minimum": 1,
-                "maximum": 100,
+                "maximum": 5,
+                "default": 1,
                 "description": "Volume level to set."
               },
               "accType": {
@@ -459,7 +461,6 @@
           "key": "tvs",
           "type": "array",
           "orderable": false,
-          "buttonText": "Add TV",
           "items": [
             "tvs[].name",
             "tvs[].ip",
