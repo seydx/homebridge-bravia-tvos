@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v4.1.0 - 2020-11-22
+- Config UI X - Custom UI Support
+- Bugfixes
+
 ## v4.0.9 - 2020-11-16
 - Bugfixes
 - Changed PIN method from token to appName/appUUID
