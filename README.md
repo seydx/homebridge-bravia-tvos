@@ -49,7 +49,7 @@ If you want to use authentication with a Pre-Shared key, please do following ste
 
 Bravia TV OS v4.1 supports a custom user interface making configuration via **homebridge-config-ui-x** even easier! Below you can see how easy it is to create, edit or delete a new TV for the config.json using the custom user interface. To use the custom user interface you need at least homebridge-config-ui-x v4.34.0!
 
-<img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/custom-ui/images/hb_braviatvos_ui_final.gif" align="center" alt="CustomUI">
+<img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/master/images/hb_braviatvos_ui_final.gif" align="center" alt="CustomUI">
 
 ## Configuration (Manually)
 
