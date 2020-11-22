@@ -182,9 +182,6 @@ class UiServer extends HomebridgePluginUiServer {
   
     const bravia = new Bravia(options);
     
-    console.log(tv);
-    console.log(bravia);
-    
     //fetch all applications
     try {
       
