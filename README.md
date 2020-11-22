@@ -3,7 +3,7 @@
 </p>
 
 
-# homebridge-bravia-tvos 4.0
+# homebridge-bravia-tvos 4.1
 
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -18,19 +18,18 @@ This is a plugin for [Homebridge](https://github.com/nfarina/homebridge) to cont
 This plugin supports following functions:
 
 - **Power Switch**
-- **Inputs:** like HDMI, Scart, CEC Devices, AV, WIFI, DVB:T, DVB:C etc.
+- **Inputs:** like HDMI, Scart, CEC Devices, AV, WIFI etc.
 - **Apps:** like YouTube, Prime Video etc.
 - **Channels:** Your favourite channels as inputs.
 - **Remote control:** native iOS Remote control with customizable commands
 - **Login:** with Pre-Shared Key or Token (PIN)
 - **WOL:** supports Wake on Lan
 - **Speaker:** with support for three types of speaker (speaker, switch with custom charactersitic or lightbulb)
+- **Config UI X Custom UI** 
 
 ## Installation instructions
 
 After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
-
-```sudo npm i -g @seydx/bravia@latest```
 
 ```sudo npm i -g homebridge-bravia-tvos@latest```
 
@@ -42,11 +41,32 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 - Set **Remote start** to **ON** _(Settings -> Network -> Remote Start)_
 - Change **Authentication** to **Normal and Pre-Shared Key** _(Settings -> Network -> IP Control -> Authentication)_
 
-### Token (PIN) Authentication (prefered)
+If you want to use authentication with a Pre-Shared key, please do following steps:
 
-To be able to use the plugin with the PIN procedure a "token" must be created first.
+- Enter a **Pre-Shared Key** _(Settings -> Network -> IP control -> Pre-Shared Key)_
 
-You can create a token as follows:
+## Configuration (Config UI X)
+
+Bravia TV OS v4.1 supports a custom user interface making configuration via **homebridge-config-ui-x** even easier! Below you can see how easy it is to create, edit or delete a new TV for the config.json using the custom user interface. To use the custom user interface you need at least homebridge-config-ui-x v4.34.0!
+
+<img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/custom-ui/images/hb_braviatvos_ui_final.gif" align="center" alt="CustomUI">
+
+## Configuration (Manually)
+
+If you cannot use the custom user interface or want to edit the config.json manually, you must first decide which authentication to use.
+
+
+### a) PIN Authentication (prefered)
+
+To use the PIN authentication you must first install the bravia module:
+
+``
+sudo npm i -g @seydx/bravia@latest
+``
+
+And to be able to use the plugin with the PIN procedure your credentials must be created first.
+
+You can create the credentials as follows:
 
 ``bravia pair <host> -p 80 -n MyTV -t 5``
 
@@ -80,7 +100,7 @@ You need to put the application name and application uuid in your config.json.
 }
 ```
 
-### PSK Authentication
+### b) PSK Authentication
 
 - Enter a **Pre-Shared Key** _(Settings -> Network -> IP control -> Pre-Shared Key)_
 
@@ -116,7 +136,7 @@ You need to put the PSK entered in your tv also in your config.json.
         {
           "name": "Sony TV",
           "ip": "192.168.178.123",
-          "token": "A0B9B9D1230466F22EE8F8EA148863774AABC203",
+          "psk": "0000",
           "inputs": [
             "extInput:cec",
             "extInput:hdmi"
