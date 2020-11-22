@@ -1,6 +1,6 @@
 {
   "name": "homebridge-bravia-tvos",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Homebridge plugin for Sony Bravia Android TVs",
   "main": "index.js",
   "repository": {
@@ -38,6 +38,7 @@
   },
   "devDependencies": {},
   "dependencies": {
+    "@homebridge/plugin-ui-utils": "^0.0.16",
     "@seydx/bravia": "^1.0.9",
     "fs-extra": "^9.0.1"
   }
