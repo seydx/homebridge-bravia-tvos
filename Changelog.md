@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.1.1 - 2020-11-22
+- Bugfix: Added plugin ui utils as dependency
+
 ## v4.1.0 - 2020-11-22
 - Config UI X - Custom UI Support
 - Bugfixes
