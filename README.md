@@ -184,8 +184,9 @@ You need to put the PSK entered in your tv also in your config.json.
 | ip | **X** | Sony TV IP Address. | 
 | mac | | Sony TV MAC Address. |
 | port |  | Sony TV Port. | 80
-| psk | **X** | Either psk **OR** token must be setted. (see preparing the TV above) |
-| token | **X** | Either psk **OR** token must be setted. (see preparing the TV above) |
+| psk | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
+| appName | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
+| appUUID | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
 | timeout |  | Timer in seconds to wait for a response. | 5s
 | manufacturer | | Manufacturer name for display in the Home app. | Sony
 | model |  | Model name for display in the Home app. | tv/speaker
