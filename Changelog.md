@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.1.3 - 2020-11-23
+- Bugfix macros if not defined
+
 ## v4.1.2 - 2020-11-23
 - Added new inputs types: Macros
 - Bump bravia dependency
