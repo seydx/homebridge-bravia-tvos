@@ -11,7 +11,7 @@ class speakerAccessory {
     this.accessories = accessories;
     this.bravia = bravia;
     
-    this.getService(this.accessory);
+    //this.getService(this.accessory);
 
   }
 
@@ -19,28 +19,28 @@ class speakerAccessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  async getService (accessory) {
+  async getService () {
   
     let service, serviceCharacteristic, onCharacteristic, volumeCharacteristic;
-    let accType = accessory.context.config.subtype;
+    let accType = this.accessory.context.config.subtype;
     
-    accessory.context.inProgress = false;
-    accessory.context.settingVolume = false;
+    this.accessory.context.inProgress = false;
+    this.accessory.context.settingVolume = false;
       
     if(accType === 'speaker'){
-      if(accessory.getService(this.api.hap.Service.Lightbulb)){
+      if(this.accessory.getService(this.api.hap.Service.Lightbulb)){
         Logger.debug('Removing lightbulb service', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Lightbulb));
-      } else if(accessory.getService(this.api.hap.Service.Switch)){
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Lightbulb));
+      } else if(this.accessory.getService(this.api.hap.Service.Switch)){
         Logger.debug('Removing switch service', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Switch));
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Switch));
       }
       
-      service = accessory.getService(this.api.hap.Service.Speaker);
+      service = this.accessory.getService(this.api.hap.Service.Speaker);
       
       if(!service) {
-        Logger.debug('Adding speaker service', accessory.displayName);
-        service = accessory.addService(this.api.hap.Service.Speaker, this.accessory.displayName, this.accessory.displayName);
+        Logger.debug('Adding speaker service', this.accessory.displayName);
+        service = this.accessory.addService(this.api.hap.Service.Speaker, this.accessory.displayName, this.accessory.displayName);
       }
       
       if(!service.testCharacteristic(this.api.hap.Characteristic.Volume))
@@ -53,19 +53,19 @@ class speakerAccessory {
     }
     
     if(accType === 'lightbulb'){
-      if(accessory.getService(this.api.hap.Service.Speaker)){
+      if(this.accessory.getService(this.api.hap.Service.Speaker)){
         Logger.debug('Removing speaker service', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Speaker));
-      } else if(accessory.getService(this.api.hap.Service.Switch)){
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Speaker));
+      } else if(this.accessory.getService(this.api.hap.Service.Switch)){
         Logger.debug('Removing switch speaker', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Switch));
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Switch));
       }
       
-      service = accessory.getService(this.api.hap.Service.Lightbulb);
+      service = this.accessory.getService(this.api.hap.Service.Lightbulb);
       
       if(!service) {
-        Logger.debug('Adding lightbulb service', accessory.displayName);
-        service = accessory.addService(this.api.hap.Service.Lightbulb, this.accessory.displayName, this.accessory.displayName);
+        Logger.debug('Adding lightbulb service', this.accessory.displayName);
+        service = this.accessory.addService(this.api.hap.Service.Lightbulb, this.accessory.displayName, this.accessory.displayName);
       }
       
       if(!service.testCharacteristic(this.api.hap.Characteristic.Brightness))
@@ -78,19 +78,19 @@ class speakerAccessory {
     }
     
     if(accType === 'switch'){
-      if(accessory.getService(this.api.hap.Service.Speaker)){
+      if(this.accessory.getService(this.api.hap.Service.Speaker)){
         Logger.debug('Removing speaker service', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Speaker));
-      } else if(accessory.getService(this.api.hap.Service.Lightbulb)){
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Speaker));
+      } else if(this.accessory.getService(this.api.hap.Service.Lightbulb)){
         Logger.debug('Removing lightbulb speaker', this.accessory.displayName);
-        accessory.removeService(accessory.getService(this.api.hap.Service.Lightbulb));
+        this.accessory.removeService(this.accessory.getService(this.api.hap.Service.Lightbulb));
       }
       
-      service = accessory.getService(this.api.hap.Service.Switch);
+      service = this.accessory.getService(this.api.hap.Service.Switch);
       
       if(!service) {
-        Logger.debug('Adding switch service', accessory.displayName);
-        service = accessory.addService(this.api.hap.Service.Switch, this.accessory.displayName, this.accessory.displayName);
+        Logger.debug('Adding switch service', this.accessory.displayName);
+        service = this.accessory.addService(this.api.hap.Service.Switch, this.accessory.displayName, this.accessory.displayName);
       }
       
       if(!service.testCharacteristic(this.api.hap.Characteristic.Volume))
@@ -107,6 +107,8 @@ class speakerAccessory {
       
     service.getCharacteristic(volumeCharacteristic)
       .on('set', this.setVolume.bind(this, serviceCharacteristic, onCharacteristic, volumeCharacteristic));
+    
+    return;
     
   }
   

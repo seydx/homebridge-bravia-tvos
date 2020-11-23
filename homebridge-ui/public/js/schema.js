@@ -136,7 +136,7 @@ const schema = {
           'title': 'Display Order',
           'type': 'array',
           'items': {
-            'title': 'Catagory',
+            'title': 'Category',
             'type': 'string',
             'oneOf': [
               {
@@ -161,6 +161,12 @@ const schema = {
                 'title': 'Inputs',
                 'enum': [
                   'inputs'
+                ]
+              },
+              {
+                'title': 'Macros',
+                'enum': [
+                  'macros'
                 ]
               }
             ],
@@ -237,6 +243,37 @@ const schema = {
                 }
               ],
               'description': 'Accessory type for the speaker.'
+            }
+          }
+        },
+        'macros': {
+          'title': 'Macros',
+          'type': 'array',
+          'items':{
+            'type': 'object',
+            'properties': {
+              'name': {
+                'title': 'Name',
+                'type': 'string',
+                'required': true,
+                'description': 'Name of the macro.'
+              }, 
+              'delay': {
+                'title': 'Delay',
+                'type': 'integer',
+                'description': 'Delay between sending commands (in ms). (Default 1000ms)'
+              },
+              'commands': {
+                'title': 'Commands',
+                'type': 'array',
+                'items': {
+                  'title': 'Command',
+                  'type': 'string',
+                  'oneOf': [],
+                  'required': true,
+                  'description': 'IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)'
+                }
+              }
             }
           }
         },
@@ -369,7 +406,7 @@ const schema = {
       }
     }
   },
-  'form': [
+  'layout': [
     'name',
     'debug',
     'tvs.name',
@@ -449,6 +486,36 @@ const schema = {
       'buttonText': 'Add Command',
       'items': [
         'tvs.commands[]'
+      ]
+    },
+    {
+      'key': 'tvs.macros',
+      'type': 'section',
+      'title': 'Macros',
+      'expandable': true,
+      'expanded': false,
+      'orderable': true,
+      'buttonText': 'Add Macro',
+      'items': [
+        {
+          'key': 'tvs.macros[]',
+          'items': [
+            'tvs.macros[].name',
+            'tvs.macros[].delay',
+            {
+              'key': 'tvs.macros[].commands',
+              'type': 'section',
+              'title': 'Commands',
+              'expandable': true,
+              'expanded': false,
+              'orderable': true,
+              'buttonText': 'Add Command',
+              'items': [
+                'tvs.macros[].commands[]'
+              ]
+            }
+          ]
+        }
       ]
     },
     {

@@ -220,6 +220,8 @@ function resetSchema(){
   schema.schema.tvs.properties.channels.items.oneOf = [];
   schema.schema.tvs.properties.commands.items.oneOf = [];
   schema.schema.tvs.properties.inputs.items.oneOf = [];
+  schema.schema.tvs.properties.remote.items.properties.command.oneOf = [];
+  schema.schema.tvs.properties.macros.items.properties.commands.items.oneOf = [];
 
   if(GLOBAL.customSchema){
     GLOBAL.customSchema.end();
@@ -456,7 +458,8 @@ async function createCustomSchema(tv){
   if(!allInputs.commands.length){
   
     delete schema.schema.tvs.properties.commands.items.oneOf; 
-    delete schema.schema.tvs.properties.remote.items.properties.command.oneOf; 
+    delete schema.schema.tvs.properties.remote.items.properties.command.oneOf;
+    delete schema.schema.tvs.properties.macros.items.properties.commands.items.oneOf; 
   
   } else {
   
@@ -471,6 +474,11 @@ async function createCustomSchema(tv){
         enum: [command.enum || command.name],
         title: command.name
       });
+      
+      schema.schema.tvs.properties.macros.items.properties.commands.items.oneOf.push({
+        enum: [command.enum || command.name],
+        title: command.name
+      }); 
       
     });
   

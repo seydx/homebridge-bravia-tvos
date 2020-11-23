@@ -77,7 +77,8 @@ function BraviaOSPlatform (log, config, api) {
             uuid: tv.appUUID,
             timeout: tv.timeout && tv.timeout < 5 ? 5000 : tv.timeout * 1000
           };
-       
+          
+          tv.mac = this.validMAC.test(tv.mac) ? tv.mac : false;
           tv.bravia = new Bravia(options);
 
           let validCatagories = ['apps', 'channels', 'commands', 'inputs'];
@@ -168,11 +169,19 @@ function BraviaOSPlatform (log, config, api) {
           
           }
           
+          if(config.macros && config.macros.length){
+            tv.macros = config.macros.map(macro => { 
+              if(macro.name && macro.commands && macro.commands.length){
+                macro.delay = macro.delay || 1000;
+                return macro;
+              }
+            }).filter(macro => macro);
+          }
+          
           tv.apps = tv.apps && tv.apps.length ? tv.apps : [];
           tv.channels = tv.channels && tv.channels.length ? tv.channels : [];
           tv.commands = tv.commands && tv.commands.length ? tv.commands : [];
           tv.inputs = tv.inputs && tv.inputs.length ? tv.inputs : [];
-          tv.mac = this.validMAC.test(tv.mac) ? tv.mac : false;
           
           tv.type = 'tv';
           tv.speaker = speakerConfig;
@@ -193,7 +202,7 @@ function BraviaOSPlatform (log, config, api) {
 
 BraviaOSPlatform.prototype = {
 
-  didFinishLaunching: function(){
+  didFinishLaunching: async function(){
 
     for (const entry of this.devices.entries()) {
     
@@ -206,8 +215,11 @@ BraviaOSPlatform.prototype = {
       
         const accessory = new Accessory(device.name, uuid);
 
-        Logger.info('Configuring accessory...', accessory.displayName);
-        this.setupAccessory(accessory, device);
+        Logger.info('Configuring accessory...', accessory.displayName); 
+        
+        await this.setupAccessory(accessory, device);
+        
+        Logger.info('Configured!', accessory.displayName);
         
         if(device.type === 'tv'){   
           this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
@@ -269,15 +281,19 @@ BraviaOSPlatform.prototype = {
     
     switch (device.type) {
       case 'tv':
-        new TVAccessory(this.api, accessory, this.accessories, bravia);
+        const tvAccessory = new TVAccessory(this.api, accessory, this.accessories, bravia);
+        await tvAccessory.getService();
         break;
       case 'speaker':
-        new SpeakerAccessory(this.api, accessory, this.accessories, bravia);
+        const speakerAccessory = new SpeakerAccessory(this.api, accessory, this.accessories, bravia);
+        await speakerAccessory.getService();
         break;
       default:
         // fall through
         break;
     }
+    
+    return;
 
   },
 

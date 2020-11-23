@@ -20,8 +20,11 @@ class tvAccessory {
     this.apps = new Map();
     this.channels = new Map();
     this.commands = new Map();
+    this.macros = new Map();
+    
+    this.occupiedIdentifier = [];
 
-    this.getService(this.accessory);
+    //this.getService(this.accessory);
 
   }
 
@@ -29,24 +32,24 @@ class tvAccessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  async getService (accessory) {
+  async getService () {
   
-    accessory.category = this.api.hap.Categories.TELEVISION;
+    this.accessory.category = this.api.hap.Categories.TELEVISION;
     
-    let service = accessory.getService(this.api.hap.Service.Television);
-    let speakerService = accessory.getService(this.api.hap.Service.TelevisionSpeaker);
+    let service = this.accessory.getService(this.api.hap.Service.Television);
+    let speakerService = this.accessory.getService(this.api.hap.Service.TelevisionSpeaker);
     
     if(!service) {
-      Logger.debug('Adding tv service', accessory.displayName);
-      service = accessory.addService(this.api.hap.Service.Television, this.accessory.displayName, 'tv');
+      Logger.debug('Adding tv service', this.accessory.displayName);
+      service = this.accessory.addService(this.api.hap.Service.Television, this.accessory.displayName, 'tv');
       service
-        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, accessory.displayName)
+        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, this.accessory.displayName)
         .setCharacteristic(this.api.hap.Characteristic.SleepDiscoveryMode, this.api.hap.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
     }
     
     if(!speakerService){
-      Logger.debug('Adding speaker service', accessory.displayName);
-      speakerService = accessory.addService(this.api.hap.Service.TelevisionSpeaker, this.accessory.displayName);
+      Logger.debug('Adding speaker service', this.accessory.displayName);
+      speakerService = this.accessory.addService(this.api.hap.Service.TelevisionSpeaker, this.accessory.displayName);
       speakerService
         .setCharacteristic(this.api.hap.Characteristic.Active, this.api.hap.Characteristic.Active.ACTIVE)
         .setCharacteristic(this.api.hap.Characteristic.VolumeControlType, this.api.hap.Characteristic.VolumeControlType.ABSOLUTE);
@@ -69,12 +72,16 @@ class tvAccessory {
     
     await this.handleInputs();
     
-    this.addInputServices(service, this.configureInputs(service));
-    this.sortInputServices(this.configureInputs(service));
+    let inputs = this.configureInputs(service);
+    
+    this.addInputServices(service, inputs);
+    this.sortInputServices(inputs);
 
-    this.api.updatePlatformAccessories([this.accessory]);
+    //this.api.updatePlatformAccessories([this.accessory]);
     
     this.poll();
+    
+    return;
     
   }
   
@@ -263,8 +270,15 @@ class tvAccessory {
   
     callback(null);
     
-    let name = this.fetchedInputs[state].title || this.fetchedInputs[state].label || this.fetchedInputs[state].name;
+    /*if(state >= 1500){ //macros
     
+      Logger.info('Sending "' + name + '" command (' + this.fetchedInputs[state].value + ')', this.accessory.displayName);
+      await this.bravia.send(this.fetchedInputs[state].value);
+    
+    } else {*/
+    
+    let name = this.fetchedInputs[state].title || this.fetchedInputs[state].label || this.fetchedInputs[state].name;
+      
     if(name){
       try {
         switch(this.fetchedInputs[state].type){
@@ -284,6 +298,10 @@ class tvAccessory {
             Logger.info('Sending "' + name + '" command (' + this.fetchedInputs[state].value + ')', this.accessory.displayName);
             await this.bravia.send(this.fetchedInputs[state].value);
             break;
+          case 'macro':
+            Logger.info('Sending [' + this.fetchedInputs[state].commands.toString() + '] commands with ' + this.fetchedInputs[state].delay + 'ms delay', this.accessory.displayName);
+            await this.bravia.send(this.fetchedInputs[state].commands, this.fetchedInputs[state].delay);
+            break;
           default:
             Logger.warn('Can not change source (' + name + ')', this.accessory.displayName);
             break;
@@ -295,6 +313,8 @@ class tvAccessory {
     } else {
       Logger.warn('Can not change source. ' + name + ' not found! Try updating inputs and restart homebridge!', this.accessory.displayName);
     }
+    
+    //}
   
   }
   
@@ -443,35 +463,56 @@ class tvAccessory {
       }
     } else {
       if(this.allInputs.apps && this.allInputs.apps.length){
-        for(const app of this.allInputs.apps)
+        for(const app of this.allInputs.apps){
+          app.type = 'application';
           this.apps.set(app.uri, app);
+        }
       } else {
         this.allInputs.apps = [];
       }
       if(this.allInputs.channels && this.allInputs.channels.length){
-        for(const channel of this.allInputs.channels)
+        for(const channel of this.allInputs.channels){
+          channel.type = 'channel';
           this.channels.set(channel.uri, channel);
+        }
       } else {
         this.allInputs.channels = [];
       }
       if(this.allInputs.inputs && this.allInputs.inputs.length){
-        for(const input of this.allInputs.inputs)
+        for(const input of this.allInputs.inputs){
+          input.type = 'input';
           this.inputs.set(input.uri, input);
+        }
       } else {
         this.allInputs.inputs = [];
       }
       if(this.allInputs.commands && this.allInputs.commands.length){
         for(const command of this.allInputs.commands){
+          command.type = 'ircc';
           this.commands.set(command.name, command);
           this.commands.set(command.value, command);
         }
       } else {
         this.allInputs.commands = [];
       }
+      if(this.accessory.context.config.macros && this.accessory.context.config.macros.length){
+        for(const macro of this.accessory.context.config.macros){
+          macro.type = 'macro';
+          this.macros.set(macro.name, macro.commands);
+        }
+        this.allInputs.macros = this.accessory.context.config.macros;
+      } else {
+        this.allInputs.macros = [];
+      }
     }
     
     this.fetchedInputs = [];
-    this.fetchedInputs = this.fetchedInputs.concat(this.allInputs.apps).concat(this.allInputs.channels).concat(this.allInputs.inputs).concat(this.allInputs.commands);
+    this.fetchedInputs = this.fetchedInputs
+      .concat(this.allInputs.apps)
+      .concat(this.allInputs.channels)
+      .concat(this.allInputs.inputs)
+      .concat(this.allInputs.commands)
+      .concat(this.allInputs.macros);
     
     return;
   
@@ -582,6 +623,17 @@ class tvAccessory {
       Logger.error('An error occured during fetching commands, skip..', this.accessory.displayName);
       this.handleError(err); 
       this.allInputs.commands = this.allInputs.commands || [];
+    }
+    
+    //fetch all macros
+    if(this.accessory.context.config.macros && this.accessory.context.config.macros.length){
+      for(const macro of this.accessory.context.config.macros){
+        macro.type = 'macro';
+        this.macros.set(macro.name, macro.commands);
+      }
+      this.allInputs.macros = this.accessory.context.config.macros;
+    } else {
+      this.allInputs.macros = [];
     }
     
     //store result
@@ -758,6 +810,29 @@ class tvAccessory {
     
     });
     
+    this.accessory.context.config.macros.forEach(macro => {
+    
+      for(const [name, commands] of this.macros){
+       
+        if(name === macro.name && !inputSourceNames.includes(macro.name)){
+          
+          inputSourceNames.push(macro.name);
+  
+          inputSources.push({
+            name: macro.name,
+            identifier: this.getIndex('name', macro.name),
+            type: 'macro',
+            subtype: macro.name.replace(/\s+/g, '').toLowerCase(),
+            inputType: this.getInputSourceType('command'),
+            deviceType: this.getInputDeviceType('command')
+          });
+         
+        }
+       
+      }
+    
+    });
+    
     return inputSources;
   
   }
@@ -766,7 +841,7 @@ class tvAccessory {
     
     inputSources.forEach(input => {
       
-      Logger.debug('Adding new input', this.accessory.displayName);
+      Logger.debug('Adding new input: ' + input.name, this.accessory.displayName);
       Logger.debug(input, this.accessory.displayName);
      
       const InputService = this.accessory.addService(this.api.hap.Service.InputSource, input.name, input.subtype);
@@ -795,7 +870,7 @@ class tvAccessory {
             .getCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState)
             .updateValue(state);     
           callback(null);
-        });
+        });   
    
       service.addLinkedService(InputService);
     
@@ -816,7 +891,8 @@ class tvAccessory {
       apps: inputSources.filter(source => source && source.type === 'app'),
       channels: inputSources.filter(source => source && source.type === 'channel'),
       commands: inputSources.filter(source => source && source.type === 'command'),
-      inputs: inputSources.filter(source => source && source.type === 'input')
+      inputs: inputSources.filter(source => source && source.type === 'input'),
+      macros: inputSources.filter(source => source && source.type === 'macro')
     };
     
     let displayOrder = this.accessory.context.config.displayOrder.map(catagory => {
@@ -886,31 +962,47 @@ class tvAccessory {
   }
   
   getIndex(target, name, index){
+  
+    let identifier;
     
-    if(index !== undefined){
+    if(target){
+      
+      if(index !== undefined){
+      
+        let availableInputs = this.fetchedInputs.filter(input => input && input[target] && input[target].includes(name));
+        let selectedInput = availableInputs[index];
+        
+        identifier = this.fetchedInputs.map((input, index) => {
+          if(input && input[target] === selectedInput[target]){
+            return index;
+          }
+        }).filter(input => input);
+        
+      } else {
+      
+        identifier = this.fetchedInputs.map((input, index) => {
+          if(input && input[target] && input[target].toString().includes(name)){
+            return index;
+          }
+        }).filter(input => input);
+      
+      }
     
-      let availableInputs = this.fetchedInputs.filter(input => input && input[target] && input[target].includes(name));
-      let selectedInput = availableInputs[index];
-      
-      let identifier = this.fetchedInputs.map((input, index) => {
-        if(input && input[target] === selectedInput[target]){
-          return index;
-        }
-      }).filter(input => input);
-      
-      return identifier[0];    
-      
     } else {
     
-      let identifier = this.fetchedInputs.map((input, index) => {
-        if(input && input[target] && input[target].toString().includes(name)){
-          return index;
-        }
-      }).filter(input => input);
+      let randomNum = Math.floor(Math.random() * (2001 - 1500)) + 1500; //  1500-2000 for macros
       
-      return identifier[0];
+      if(this.occupiedIdentifier.includes(randomNum)){
+        return this.getIndex();
+      }
+      
+      identifier = [randomNum];
     
     }
+    
+    this.occupiedIdentifier.push(identifier[0]);
+    
+    return identifier[0];
   
   }
   

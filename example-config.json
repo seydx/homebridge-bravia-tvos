@@ -66,6 +66,38 @@
             "reduceBy": 5,
             "accType": "lightbulb"
           },
+          "macros": [
+            {
+              "name": "Audiosystem",
+              "delay": 1000,
+              "commands": [
+                "ActionMenu",
+                "Down",
+                "Down",
+                "Down",
+                "Down",
+                "Down",
+                "Confirm",
+                "Down",
+                "Confirm"
+              ]
+            },
+            {
+              "name": "TV Speaker",
+              "delay": 1000,
+              "commands": [
+                "ActionMenu",
+                "Down",
+                "Down",
+                "Down",
+                "Down",
+                "Down",
+                "Confirm",
+                "Up",
+                "Confirm"
+              ]
+            }
+          ],
           "remote": [
             {
               "command": "AAAAAgAAAJcAAAAbAw==",
