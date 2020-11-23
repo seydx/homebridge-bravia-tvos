@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v4.1.2 - 2020-11-23
+- Added new inputs types: Macros
+- Bump bravia dependency
+- Bugfixes
+
 ## v4.1.1 - 2020-11-22
 - Bugfix: Added plugin ui utils as dependency
 
