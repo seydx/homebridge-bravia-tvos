@@ -182,6 +182,7 @@ function BraviaOSPlatform (log, config, api) {
           tv.channels = tv.channels && tv.channels.length ? tv.channels : [];
           tv.commands = tv.commands && tv.commands.length ? tv.commands : [];
           tv.inputs = tv.inputs && tv.inputs.length ? tv.inputs : [];
+          tv.macros = tv.macros && tv.macros.length ? tv.macros : [];
           
           tv.type = 'tv';
           tv.speaker = speakerConfig;
