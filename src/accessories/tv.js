@@ -762,23 +762,32 @@ class tvAccessory {
             
             let channelTitle = channel.split('] ')[1];
             let channelIndex = parseInt(channelInfo.split('@')[0]);
-            let channelUri = channelInfo.split('@')[1];
+            let channelSource = channelInfo.split('@')[1];
             
-            if(uri.includes(channelUri) && (config.index + 1) === channelIndex && !inputSourceNames.includes(channelUri)){
+            if(uri.includes(channelSource) && (config.index + 1) === channelIndex && !inputSourceNames.includes(uri)){
           
-              inputSourceNames.push(channelUri);
+              inputSourceNames.push(uri);
     
               inputSources.push({
-                name: channelTitle,
-                identifier: this.getIndex('index', channelIndex.toString()),
+                name: config.title,
+                identifier: this.getIndex('index', config.index.toString()),
                 type: 'channel',
-                subtype: channelTitle.replace(/\s+/g, '').toLowerCase(),
+                subtype: config.title.replace(/\s+/g, '').toLowerCase(),
                 inputType: this.getInputSourceType('channel'),
                 deviceType: this.getInputDeviceType('channel')
               });
              
+            } else {
+            
+              if(inputSourceNames.includes(uri))
+                Logger.warn('Skip ' + channelTitle + ' (' + channelIndex + '). Already in use.', this.accessory.displayName);
+            
             }
             
+          } else {
+          
+            Logger.warn('Skip ' + channel + '. Malformed Name.', this.accessory.displayName);
+          
           }
           
         }
