@@ -654,6 +654,8 @@ class tvAccessory {
     let inputSources = [];
     let inputSourceNames = [];
     
+    let r = () => '-' + Math.random().toString(36).substr(2, 5);
+    
     this.accessory.context.config.inputs.forEach(input => {
     
       let i = 0;
@@ -670,7 +672,7 @@ class tvAccessory {
               name: config.title || config.label,
               identifier: this.getIndex('uri', input, i),
               type: 'input',
-              subtype: (config.title || config.label).replace(/\s+/g, '').toLowerCase(),
+              subtype: (config.title || config.label).replace(/\s+/g, '').toLowerCase() + r(),
               inputType: this.getInputSourceType(input),
               deviceType: this.getInputDeviceType(input)
             });
@@ -693,7 +695,7 @@ class tvAccessory {
               name: inputTitle,
               identifier: this.getIndex('title', inputTitle, i),
               type: 'input',
-              subtype: inputTitle.replace(/\s+/g, '').toLowerCase(),
+              subtype: inputTitle.replace(/\s+/g, '').toLowerCase() + r(),
               inputType: this.getInputSourceType(inputType),
               deviceType: this.getInputDeviceType(inputType)
             });
@@ -720,7 +722,7 @@ class tvAccessory {
             name: app,
             identifier: this.getIndex('title', app),
             type: 'app',
-            subtype: app.replace(/\s+/g, '').toLowerCase(),
+            subtype: app.replace(/\s+/g, '').toLowerCase() + r(),
             inputType: this.getInputSourceType('app'),
             deviceType: this.getInputDeviceType('app')
           });
@@ -745,7 +747,7 @@ class tvAccessory {
               name: config.title,
               identifier: this.getIndex('uri', uri),
               type: 'channel',
-              subtype: config.title.replace(/\s+/g, '').toLowerCase(),
+              subtype: config.title.replace(/\s+/g, '').toLowerCase() + r(),
               inputType: this.getInputSourceType('channel'),
               deviceType: this.getInputDeviceType('channel')
             });
@@ -772,7 +774,7 @@ class tvAccessory {
                 name: config.title,
                 identifier: this.getIndex('uri', uri),
                 type: 'channel',
-                subtype: config.title.replace(/\s+/g, '').toLowerCase(),
+                subtype: config.title.replace(/\s+/g, '').toLowerCase() + r(),
                 inputType: this.getInputSourceType('channel'),
                 deviceType: this.getInputDeviceType('channel')
               });
@@ -808,7 +810,7 @@ class tvAccessory {
             name: config.name,
             identifier: this.getIndex(command.includes('w==') ? 'value' : 'name', command),
             type: 'command',
-            subtype: config.name.replace(/\s+/g, '').toLowerCase(),
+            subtype: config.name.replace(/\s+/g, '').toLowerCase() + r(),
             inputType: this.getInputSourceType('command'),
             deviceType: this.getInputDeviceType('command')
           });
@@ -831,7 +833,7 @@ class tvAccessory {
             name: macro.name,
             identifier: this.getIndex('name', macro.name),
             type: 'macro',
-            subtype: macro.name.replace(/\s+/g, '').toLowerCase(),
+            subtype: macro.name.replace(/\s+/g, '').toLowerCase() + r(),
             inputType: this.getInputSourceType('command'),
             deviceType: this.getInputDeviceType('command')
           });
