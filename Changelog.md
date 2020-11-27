@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v4.1.5 - 2020-11-27
+- Fixed incorrect channels, again...
+- Added random string to input subtypes to avoid inputs with same subtype
+
 ## v4.1.4 - 2020-11-27
 - Fixed incorrect channels
 - Updated deps
