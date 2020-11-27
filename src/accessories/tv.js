@@ -743,7 +743,7 @@ class tvAccessory {
   
             inputSources.push({
               name: config.title,
-              identifier: this.getIndex('index', config.index.toString()),
+              identifier: this.getIndex('uri', uri),
               type: 'channel',
               subtype: config.title.replace(/\s+/g, '').toLowerCase(),
               inputType: this.getInputSourceType('channel'),
@@ -770,7 +770,7 @@ class tvAccessory {
     
               inputSources.push({
                 name: config.title,
-                identifier: this.getIndex('index', config.index.toString()),
+                identifier: this.getIndex('uri', uri),
                 type: 'channel',
                 subtype: config.title.replace(/\s+/g, '').toLowerCase(),
                 inputType: this.getInputSourceType('channel'),
