@@ -3,6 +3,7 @@
 
 ## v4.1.4 - 2020-11-27
 - Fixed incorrect channels
+- Updated deps
 
 ## v4.1.3 - 2020-11-23
 - Bugfix macros if not defined
