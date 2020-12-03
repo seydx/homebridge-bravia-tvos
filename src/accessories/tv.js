@@ -571,7 +571,15 @@ class tvAccessory {
     }
     
     //fetch all channels
-    let channelSources = ['tv:dvbt', 'tv:dvbc', 'tv:dvbs', 'tv:analog'];
+    let channelSources = [
+      'tv:dvbt', 
+      'tv:dvbc', 
+      'tv:dvbs', 
+      'tv:isdbt', 
+      'tv:isdbs', 
+      'tv:isdbc', 
+      'tv:analog'
+    ];
     let allChannels = [];
     for(const source of channelSources){
       Logger.debug('Fetching all channels for ' + source, this.accessory.displayName);
