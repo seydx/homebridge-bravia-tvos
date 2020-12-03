@@ -257,7 +257,16 @@ class UiServer extends HomebridgePluginUiServer {
     const bravia = new Bravia(options);
     
     //fetch all channels
-    let channelSources = ['tv:dvbt', 'tv:dvbc', 'tv:dvbs', 'tv:analog'];
+    let channelSources = [
+      'tv:dvbt', 
+      'tv:dvbc', 
+      'tv:dvbs', 
+      'tv:isdbt', 
+      'tv:isdbs', 
+      'tv:isdbc', 
+      'tv:analog'
+    ];
+    
     let allChannels = [];
     
     console.log('%s: Fetching all channels', options.name);
@@ -279,7 +288,7 @@ class UiServer extends HomebridgePluginUiServer {
         
         } catch(err) {
           
-          console.log('%s: An error occured during fetching ' + source + ', skip..', options.name);
+          console.log('%s: Skip fetching ' + source, options.name);
           
           break;
         
