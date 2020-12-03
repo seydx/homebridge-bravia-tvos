@@ -190,6 +190,24 @@
                       ]
                     },
                     {
+                      "title": "ISDBT",
+                      "enum": [
+                        "tv:isdbt"
+                      ]
+                    },
+                    {
+                      "title": "ISDBS",
+                      "enum": [
+                        "tv:isdbs"
+                      ]
+                    },
+                    {
+                      "title": "ISDBC",
+                      "enum": [
+                        "tv:isdbc"
+                      ]
+                    },
+                    {
                       "title": "Analog",
                       "enum": [
                         "tv:analog"
