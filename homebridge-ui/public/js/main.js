@@ -69,7 +69,8 @@ function transPage(cur, next, removed, showSchema) {
     cur.hide();
     next.show();
     
-    GLOBAL.previousContent.push($('#isConfigured'));
+    //GLOBAL.previousContent.push($('#isConfigured'));
+    GLOBAL.previousContent.push(cur);
     GLOBAL.currentContent = next;
  
     return;
@@ -106,6 +107,8 @@ function transPage(cur, next, removed, showSchema) {
 
   if(GLOBAL.customSchema)
     GLOBAL.customSchema.end();
+    
+  homebridge.hideSchemaForm();
     
   return;
 
@@ -601,6 +604,18 @@ async function createCustomSchema(tv){
 })();
 
 //jquery listener
+
+$('.oldConfig').on('click', () => {
+
+  let activeContent = $('#notConfigured').css('display') !== 'none' 
+    ? '#notConfigured'
+    : '#isConfigured';
+    
+  homebridge.showSchemaForm();
+
+  transPage($('#main, ' + activeContent), $('#headerOld'), false, true);
+  
+});
 
 $('.back').on('click', () => {
   goBack();
