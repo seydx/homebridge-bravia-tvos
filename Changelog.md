@@ -1,6 +1,12 @@
 # Changelog
 
 
+## v4.1.7 - 2020-12-06
+- Added more channel types
+- Added new function to save tvs in cache*
+
+*It is now possible to change the tv or inputs name and visibility state from inputs without losing the data on next restart!
+
 ## v4.1.6 - 2020-12-01
 - Bump dependencies
 
