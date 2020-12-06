@@ -24,8 +24,6 @@ class tvAccessory {
     
     this.occupiedIdentifier = [];
 
-    //this.getService(this.accessory);
-
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -43,7 +41,7 @@ class tvAccessory {
       Logger.debug('Adding tv service', this.accessory.displayName);
       service = this.accessory.addService(this.api.hap.Service.Television, this.accessory.displayName, 'tv');
       service
-        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, this.accessory.displayName)
+        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, this.accessory.context.cache.tvName || this.accessory.displayName)
         .setCharacteristic(this.api.hap.Characteristic.SleepDiscoveryMode, this.api.hap.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
     }
     
@@ -54,6 +52,12 @@ class tvAccessory {
         .setCharacteristic(this.api.hap.Characteristic.Active, this.api.hap.Characteristic.Active.ACTIVE)
         .setCharacteristic(this.api.hap.Characteristic.VolumeControlType, this.api.hap.Characteristic.VolumeControlType.ABSOLUTE);
     }
+    
+    service.getCharacteristic(this.api.hap.Characteristic.ConfiguredName)
+      .on('set', (name, callback) => {
+        this.accessory.context.cache.tvName = name;
+        callback(null);
+      });
       
     service.getCharacteristic(this.api.hap.Characteristic.Active)
       .on('set', this.setPower.bind(this));
@@ -76,8 +80,6 @@ class tvAccessory {
     
     this.addInputServices(service, inputs);
     this.sortInputServices(inputs);
-
-    //this.api.updatePlatformAccessories([this.accessory]);
     
     this.poll();
     
@@ -862,34 +864,42 @@ class tvAccessory {
       
       Logger.debug('Adding new input: ' + input.name, this.accessory.displayName);
       Logger.debug(input, this.accessory.displayName);
+      
+      this.accessory.context.cache.inputs[input.name] = this.accessory.context.cache.inputs[input.name] || {};
      
       const InputService = this.accessory.addService(this.api.hap.Service.InputSource, input.name, input.subtype);
      
       InputService
         .setCharacteristic(this.api.hap.Characteristic.Identifier, input.identifier)
-        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, input.name)
+        .setCharacteristic(this.api.hap.Characteristic.ConfiguredName, this.accessory.context.cache.inputs[input.name].inputName || input.name)
         .setCharacteristic(this.api.hap.Characteristic.IsConfigured, this.api.hap.Characteristic.IsConfigured.CONFIGURED)
+        .setCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState, this.accessory.context.cache.inputs[input.name].visibility || 0)
+        .setCharacteristic(this.api.hap.Characteristic.TargetVisibilityState, this.accessory.context.cache.inputs[input.name].visibility || 0)
         .setCharacteristic(this.api.hap.Characteristic.InputSourceType, input.inputType)
         .setCharacteristic(this.api.hap.Characteristic.InputDeviceType, input.deviceType);
         
       InputService.getCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState)
         .on('get', callback => {     
-          let state = this.accessory.context.config[input.name] || 0;
-          callback(null, state);        
+          callback(null, this.accessory.context.cache.inputs[input.name].visibility || 0);        
         });
       
-      InputService.addCharacteristic(this.api.hap.Characteristic.TargetVisibilityState)
+      InputService.getCharacteristic(this.api.hap.Characteristic.TargetVisibilityState)
         .on('get', callback => {     
-          let state = this.accessory.context.config[input.name] || 0;
-          callback(null, state);
+          callback(null, this.accessory.context.cache.inputs[input.name].visibility || 0);
         })
         .on('set', (state, callback) => {
-          this.accessory.context.config[input.name] = state;         
+          this.accessory.context.cache.inputs[input.name].visibility = state;         
           InputService
             .getCharacteristic(this.api.hap.Characteristic.CurrentVisibilityState)
             .updateValue(state);     
           callback(null);
-        });   
+        });
+        
+      InputService.getCharacteristic(this.api.hap.Characteristic.ConfiguredName)
+        .on('set', (name, callback) => {
+          this.accessory.context.cache.inputs[input.name].inputName = name;
+          callback(null);
+        });
    
       service.addLinkedService(InputService);
     
