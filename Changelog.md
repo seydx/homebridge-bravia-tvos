@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v4.1.8 - 2020-12-06
+- Bump bravia module
+
 ## v4.1.7 - 2020-12-06
 - Added more channel types
 - Added new function to save tvs in cache*
