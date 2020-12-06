@@ -4,6 +4,7 @@ const Logger = require('./helper/logger.js');
 const packageFile = require('../package.json');
 
 const Bravia = require('@seydx/bravia');
+const fs = require('fs-extra');
 
 //Accessories
 const TVAccessory = require('./accessories/tv.js');
@@ -197,6 +198,32 @@ function BraviaOSPlatform (log, config, api) {
     
   }
 
+  this.api.on('shutdown', async () => {
+    
+    try {
+    
+      Logger.debug('Storing TVs in cache');
+      
+      let accessories = this.accessories
+        .filter(accessory => accessory.category === 31)
+        .map(accessory => {
+          return {
+            displayName: accessory.displayName,
+            cache: accessory.context.cache
+          };
+        });
+    
+      await fs.writeJson(this.api.user.storagePath() + '/accessories/cachedTVs.json', accessories, { spaces: 4 });
+    
+    } catch(err) {
+    
+      Logger.error('An error occured during storing TVs in cache!');
+      Logger.error(err);
+    
+    }
+    
+  });
+
   this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
   
 }
@@ -281,21 +308,61 @@ BraviaOSPlatform.prototype = {
     accessory.context.polling = this.polling;
     
     switch (device.type) {
+   
       case 'tv':
+      
+        accessory.context.cache = await this.getAccessoryFromCache(accessory) || {};
+        accessory.context.cache.inputs = accessory.context.cache.inputs || {};
+        accessory.context.cache.tvName = accessory.context.cache.tvName || accessory.displayName;
+      
         const tvAccessory = new TVAccessory(this.api, accessory, this.accessories, bravia);
         await tvAccessory.getService();
+      
         break;
+      
       case 'speaker':
+      
         const speakerAccessory = new SpeakerAccessory(this.api, accessory, this.accessories, bravia);
         await speakerAccessory.getService();
+      
         break;
+      
       default:
+      
         // fall through
         break;
+    
     }
     
     return;
 
+  },
+  
+  getAccessoryFromCache: async function(accessory) {
+  
+    try {
+    
+      await fs.ensureFile(this.api.user.storagePath() + '/accessories/cachedTVs.json');
+      let cache = await fs.readJson(this.api.user.storagePath() + '/accessories/cachedTVs.json', { throws: false });
+      
+      if(cache){
+      
+        let accessoryCache = cache.find(acc => acc.displayName === accessory.displayName);
+        
+        if(accessoryCache && accessoryCache.cache)
+          return accessoryCache.cache;
+
+      }
+    
+    } catch(err) {
+    
+      Logger.error('An error occured during getting TV from cache!', this.accessory.displayName);
+      Logger.error(err);
+    
+    }
+    
+    return;
+  
   },
 
   configureAccessory: async function(accessory){
