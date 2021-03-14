@@ -3,6 +3,7 @@
 
 ## v4.1.10 - 2021-03-14
 - Bump deps
+- Bugfix
 
 ## v4.1.9 - 2021-03-14
 - Bugfixes
