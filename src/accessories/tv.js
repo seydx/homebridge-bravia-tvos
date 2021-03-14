@@ -185,6 +185,8 @@ class tvAccessory {
   
   async setPower(value, callback){
   
+    callback(null);
+  
     try {
        
       Logger.info(value ? 'ON' : 'OFF', this.accessory.displayName);
@@ -212,10 +214,6 @@ class tvAccessory {
           .updateValue(value ? 0 : 1);
         
       }, 1000);
-     
-    } finally {
-     
-      callback(null);
      
     }
   
