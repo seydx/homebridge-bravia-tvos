@@ -26,7 +26,7 @@ function showOldSchema() {
   setTimeout(() => {
     $('#main').fadeOut(500);
   }, 5000);
-  
+
   homebridge.showSchemaForm();
   
   return;
@@ -547,6 +547,9 @@ async function createCustomSchema(tv){
     
     //check version before load ui
     if(window.compareVersions(window.homebridge.serverEnv.env.packageVersion, '4.34.0') < 0){
+      let configured = await homebridge.getPluginConfig();
+      if(!configured.length) 
+        homebridge.updatePluginConfig([{}]); 
       return showOldSchema();
     }
     
@@ -605,11 +608,16 @@ async function createCustomSchema(tv){
 
 //jquery listener
 
-$('.oldConfig').on('click', () => {
+$('.oldConfig').on('click', async () => {
 
   let activeContent = $('#notConfigured').css('display') !== 'none' 
     ? '#notConfigured'
     : '#isConfigured';
+  
+  let configured = await homebridge.getPluginConfig();
+  
+  if(!configured.length) 
+    homebridge.updatePluginConfig([{}]); 
     
   homebridge.showSchemaForm();
 
