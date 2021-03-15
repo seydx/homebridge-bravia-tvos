@@ -233,3 +233,8 @@ Pull requests are accepted.
 ## Troubleshooting
 
 If you have any issues with the plugin or TV services then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues. Just enable ``Debug`` in your config and restart homebridge.
+
+
+## Disclaimer
+
+All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
