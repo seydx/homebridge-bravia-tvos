@@ -14,6 +14,11 @@
 
 **Creating and maintaining Homebridge plugins consume a lot of time and effort, if you would like to share your appreciation, feel free to "Star" or donate.**
 
+[Click here](https://github.com/SeydX) to review more of my plugins.
+
+
+## Info
+
 This is a plugin for [Homebridge](https://github.com/nfarina/homebridge) to control your **Sony Bravia Android TV**. 
 
 This plugin supports following functions:
