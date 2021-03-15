@@ -1,9 +1,9 @@
 <p align="center">
-    <img src="https://i.imgur.com/xnQyZaU.png" height="200">
+    <img src="https://i.imgur.com/xnQyZaU.png" height="300">
 </p>
 
 
-# homebridge-bravia-tvos 4.1
+# homebridge-bravia-tvos
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
 [![npm](https://img.shields.io/npm/dt/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
