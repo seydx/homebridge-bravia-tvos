@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://i.imgur.com/xnQyZaU.png" height="200">
+    <img src="https://github.com/SeydX/homebridge-bravia-tvos/blob/master/homebridge-ui/public/images/sony_hb_black.png" height="200">
 </p>
 
 
