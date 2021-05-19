@@ -1,6 +1,6 @@
 # Changelog
 
-## NEXT
+## v4.1.11 - 2021-05-19
 - Minor improvements & bugfixes
 - Bump dependencies
 
