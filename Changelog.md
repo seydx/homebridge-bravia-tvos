@@ -1,5 +1,8 @@
 # Changelog
 
+## NEXT
+- Minor improvements & bugfixes
+- Bump dependencies
 
 ## v4.1.10 - 2021-03-14
 - Bump deps

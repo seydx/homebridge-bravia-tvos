@@ -21,6 +21,9 @@
       "url": "https://github.com/sponsors/seydx"
     }
   ],
+  "scripts": {
+    "lint": "eslint --fix ."
+  },
   "author": "SeydX (https://github.com/SeydX/homebridge-bravia-tvos)",
   "license": "MIT",
   "bugs": {
@@ -40,10 +43,19 @@
     "node": ">=12.18.3",
     "homebridge": "^1.1.6"
   },
-  "devDependencies": {},
   "dependencies": {
-    "@homebridge/plugin-ui-utils": "^0.0.18",
+    "@homebridge/plugin-ui-utils": "^0.0.19",
     "@seydx/bravia": "^1.1.0-beta.8",
-    "fs-extra": "^9.1.0"
+    "fs-extra": "^10.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.14.3",
+    "@babel/eslint-parser": "7.14.3",
+    "@babel/eslint-plugin": "7.13.16",
+    "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.2",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.0"
   }
 }
