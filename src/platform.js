@@ -121,9 +121,7 @@ function BraviaOSPlatform(log, config, api) {
 
           if (config.remote && config.remote.length) {
             config.remote.forEach((cmd) => {
-              // eslint-disable-next-line no-useless-escape
-              if (tv.remote[cmd.target] && /^[A]{5}[a-zA-Z0-9]{13}[\=]{2}$/.test(cmd.command))
-                tv.remote[cmd.target] = cmd.command;
+              if (tv.remote[cmd.target]) tv.remote[cmd.target] = cmd.command;
             });
           }
 

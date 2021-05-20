@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.1.12 - 2021-05-20
+- Fix [#127](https://github.com/SeydX/homebridge-bravia-tvos/issues/127)
+
 ## v4.1.11 - 2021-05-19
 - Minor improvements & bugfixes
 - Bump dependencies
