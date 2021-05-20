@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^0.0.19",
-    "@seydx/bravia": "^1.1.0-beta.8",
+    "@seydx/bravia": "^1.1.0-beta.9",
     "fs-extra": "^10.0.0"
   },
   "devDependencies": {
