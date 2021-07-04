@@ -62,4 +62,4 @@ example-config.json
 .prettierrc.json
 .eslintrc.js
 images/hb_braviatvos_ui_final.gif
-
+homebridge-ui/ui
