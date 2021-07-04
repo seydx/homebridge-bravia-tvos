@@ -57,5 +57,3 @@ typings/
 # dotenv environment variables file
 .env
 homebridge-ui/public
-homebridge-ui/public/*
-homebridge-ui/public/index.html
