@@ -10,62 +10,91 @@
       "platform": "BraviaOSPlatform",
       "name": "BraviaTVOS",
       "debug": false,
+      "warn": true,
+      "error": true,
+      "extendedError": true,
+      "polling": 10,
       "tvs": [
         {
+          "active": true,
           "name": "Sony TV",
           "ip": "192.168.178.123",
           "mac": "44:5D:4B:22:E3:11",
           "port": 80,
-          "timeout": 10,
           "psk": "12345",
           "manufacturer": "Sony",
           "model": "KD5050",
           "serialNumber": "123456",
+          "wol": false,
           "refreshInputs": false,
           "inputs": [
-            "[extInput:hdmi] HDMI 1",
-            "[extInput:hdmi] HDMI 2",
-            "extInput:cec",
-            "extInput:component",
-            "extInput:composite",
-            "extInput:hdmi",
-            "extInput:scart",
-            "extInput:widi"
+            {
+              "name": "Apple TV",
+              "identifier": "Wohnzimmer",
+              "source": "cec"
+            },
+            {
+              "name": "HDMI 3",
+              "identifier": "HDMI 3/ARC",
+              "source": "hdmi"
+            },
+            {
+              "name": "Scart",
+              "identifier": "Scart",
+              "source": "scart"
+            },
+            {
+              "name": "HDMI 4",
+              "identifier": "HDMI 4",
+              "source": "hdmi"
+            }
           ],
           "apps": [
-            "YouTube",
-            "Smart IPTV"
+            {
+              "name": "You Tube",
+              "identifier": "YouTube"
+            },
+            {
+              "name": "Dadas Play",
+              "identifier": "Dadasplay"
+            }
           ],
           "channels": [
             {
+              "name": "Test",
               "channel": 97,
-              "source": "tv:dvbt"
+              "source": "dvbt"
             },
             {
+              "name": "Test 2",
               "channel": 44,
-              "source": "tv:dvbc"
+              "source": "dvbc"
             },
             {
+              "name": "Test 3",
               "channel": 22,
-              "source": "tv:dvbs"
+              "source": "dvbs"
             },
             {
+              "name": "Test 4",
               "channel": 10,
-              "source": "tv:analog"
-            },
-            "[14@tv:dvbt] Sky",
-            "[123@tv:dvbs] S RTL"
+              "source": "analog"
+            }
           ],
           "commands": [
-            "PowerOff",
-            "AAAAAQAAAAEAAABgAw=="
+            {
+              "name": "Power Off",
+              "value": "PowerOff"
+            },
+            {
+              "name": "Volume Up",
+              "value": "AAAAAQAAAAEAAABgAw=="
+            },
+            {
+              "name": "Volume Down",
+              "value": "AAAAAQAAAAEAAABgAw=="
+            }
           ],
-          "speaker": {
-            "output": "speaker",
-            "increaseBy": 5,
-            "reduceBy": 5,
-            "accType": "lightbulb"
-          },
           "macros": [
             {
               "name": "Audiosystem",
@@ -160,14 +189,35 @@
               "target": "VOLUME_UP"
             },
             {
+              "command": "AAAAAQAAAAEAAAASAw==",
+              "target": "VOLUME_UP"
+            },
+            {
               "command": "AAAAAQAAAAEAAAATAw==",
               "target": "VOLUME_DOWN"
             },
             {
               "command": "AAAAAgAAAJcAAAA2Aw==",
               "target": "SETTINGS"
+            },
+            {
+              "command": "AAAAAgAAAJcAAAAYAw==",
+              "target": "STOP"
             }
-          ]
+          ],
+          "displayOrder": [
+            "inputs",
+            "apps",
+            "channels",
+            "commands"
+          ],
+          "speaker": {
+            "active": true,
+            "output": "speaker",
+            "increaseBy": 5,
+            "reduceBy": 5,
+            "accType": "lightbulb"
+          }
         }
       ]
     }

@@ -1,5 +1,42 @@
 # Changelog
 
+# v5.0.0
+I am happy to present you version 5 of homebridge-bravia-tvos. The plugin has been redesigned from scratch, offers a new config UI and works much faster than v4. However, most of the changes have been done in the backend to make the plugin even more stable.
+
+Unfortunately some changes had to be made in config.json to improve readability and adapt it to the new version. For this reason I recommend you to delete the TV from your config.json and then reconfigure it via homebridge-config-ui-x. (If you enter the same name as before as TV name, the TV does not have to be removed from HomeKit).
+
+Have fun with version 5
+
+_- seydx_
+
+---
+
+## Breaking Changes
+- **Homebridge**
+  - Dropped support for homebridge below v1.3.0
+- **Config**
+  - **Televisions**
+    - Added `active` key to `tvs` to enable/disable the tv without removing it from config. Warning: Default value for active is **false**, this means, that if you DON'T adjust your config.json and add `"active": true` to the tv, the tv will be removed/not exposed from/to HomeKit!
+    - Refactored `apps`
+    - Refactored `channels`
+    - Refactored `commands`
+    - Refactored `inputs`
+  - **Speaker**
+    - Added `active` key to `tvs.speaker` to enable/disable the speaker without removing it from config. Warning: Default value for active is **false**, this means, that if you DON'T adjust your config.json and add `"active": true` to the speaker, the speaker will be removed/not exposed from/to HomeKit!
+    - The `Speaker` Accessory will no longer be exposed as an additional accessory in HomeKit. Instead, it now appears as an additional service in the TV.
+    - The accessory type `speaker` was removed
+
+## Notable Changes
+- **Homebridge UI**
+  - The config ui was completely rewritten in `@vue` for a better user experience
+
+## Other Changes
+- The code has been refactored (again)
+- The backend module `@seydx/bravia` was completely rewritten
+- Adjusted config.schema.json to reflect the changes mentioned above
+- Bug fixes
+- Updated dependencies
+
 ## v4.1.12 - 2021-05-20
 - Fix [#127](https://github.com/SeydX/homebridge-bravia-tvos/issues/127)
 

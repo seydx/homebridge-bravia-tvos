@@ -1,398 +1,225 @@
-const { HomebridgePluginUiServer } = require('@homebridge/plugin-ui-utils');
-const { RequestError } = require('@homebridge/plugin-ui-utils');
-
-const axios = require('axios');
-const base64 = require('base-64');
+const { HomebridgePluginUiServer, RequestError } = require('@homebridge/plugin-ui-utils');
 const Bravia = require('@seydx/bravia');
-const fs = require('fs-extra');
 
-const TIMEOUT = (ms) => new Promise((res) => setTimeout(res, ms)); 
+const { setTimeoutAsync } = require('../src/utils/utils');
+
+const {
+  fetchApps,
+  fetchChannels,
+  fetchCommands,
+  fetchInputs,
+  changeTVFromCache,
+  getTvFromCache,
+  removeTVFromCache,
+  writeTvToCache,
+} = require('../src/accessories/accessory.utils');
 
 class UiServer extends HomebridgePluginUiServer {
-  constructor () { 
-
+  constructor() {
     super();
 
-    this.onRequest('/ping', this.ping.bind(this));
-    
-    this.onRequest('/requestPin', this.requestPin.bind(this));
-    
-    this.onRequest('/fetchApps', this.fetchApps.bind(this));
-    this.onRequest('/fetchInputs', this.fetchInputs.bind(this));
-    this.onRequest('/fetchChannels', this.fetchChannels.bind(this));
-    this.onRequest('/fetchCommands', this.fetchCommands.bind(this));
-    
-    this.onRequest('/storeInputs', this.storeInputs.bind(this));
+    this.onRequest('/auth', this.auth.bind(this));
+    this.onRequest('/checkAuth', this.checkAuth.bind(this));
+
+    this.onRequest('/getApps', this.getApps.bind(this));
+    this.onRequest('/getChannels', this.getChannels.bind(this));
+    this.onRequest('/getCommands', this.getCommands.bind(this));
     this.onRequest('/getInputs', this.getInputs.bind(this));
-    
+
+    this.onRequest('/changeTV', this.changeTV.bind(this));
+    this.onRequest('/getTV', this.getTV.bind(this));
+    this.onRequest('/refreshTV', this.refreshTV.bind(this));
+    this.onRequest('/removeTV', this.removeTV.bind(this));
+    this.onRequest('/storeTV', this.storeTV.bind(this));
+
     this.ready();
   }
 
-  async requestPin(options){
-  
-    const bravia = new Bravia(options);
-    
-    try { 
-      
-      options.uuid = options.uuid || this.genUUID();
-       
-      const headers = {};
-      
-      if(options.pin)
-        headers.Authorization = 'Basic ' + base64.encode(':' + options.pin);
-        
-      const post_data = `{
-        "id": 8,
-        "method": "actRegister",
-        "version": "1.0",
-        "params": [
-          {
-            "clientid":"${options.name}:${options.uuid}",
-            "nickname":"${options.name}"
-          },
-          [
-            {
-              "clientid":"${options.name}:${options.uuid}",
-              "value":"yes",
-              "nickname":"${options.name}",
-              "function":"WOL"
-            }
-          ]
-        ]
-      }`;  
-       
-      const response = await axios.post(bravia._url + '/accessControl', post_data, { headers: headers });
-       
-      if(response.headers['set-cookie']){
-    
-        options.token = response.headers['set-cookie'][0].split(';')[0].split('auth=')[1];
-        options.expires = response.headers['set-cookie'][0].split(';')[3].split('Expires=')[1];
-    
-        return options;
-    
-      } else if(response.data && response.data.error){
-      
-        if(response.data.error.length){
-          
-          throw new RequestError(response.data.error.length > 1 ? response.data.error[1] : response.data.error[0]);
-        
-        } else {
-          
-          throw new RequestError(response.data.error);
-        
-        }
-       
-      }
-     
-    } catch(err) {
-     
-      let error;
-      
-      if(err.response){
-        
-        if(err.response.status === 401)
-          return options;
-          
-        if(err.response.data && err.response.data.error){
-          
-          error = err.response.data.error.length 
-            ? err.response.data.error.length > 1 
-              ? err.response.data.error[1] 
-              : err.response.data.error[0]
-            : err.response.data.error;
-              
-        } else {
-          
-          error = err.response.statusText;
-          
-        } 
-        
-      } else if(err.request) {
-        
-        if(err.request.data && err.request.data.error){
-          
-          error = err.request.data.error.length 
-            ? err.request.data.error.length > 1 
-              ? err.request.data.error[1] 
-              : err.request.data.error[0]
-            : err.request.data.error;
-          
-        } else {
-          
-          error = err.message;
-          
-        }
-    
-      } else {
-        
-        error = err;
-        
-      }
-      
-      throw new RequestError(error);
-     
-    }
-  
-  }
-  
-  async ping(options) {
-  
-    //get systemInformation to check if we can connect to tv
-    
-    try {
-      
-      const bravia = new Bravia(options);
-    
-      await bravia.system.invoke('getSystemInformation'); 
-    
-      return;
-      
-    } catch(err) {
-      
-      let error;
-      
-      if(err.error){
-        
-        error = err.error.length
-          ? err.error.length > 1
-            ? err.error[1]
-            : err.error[0]
-          : err.error;
-      
-      } else if(err.message){
-        
-        error = err.message;
-      
-      } else {
-        
-        error = err;
-      
-      }
-   
-      throw new RequestError(error);
-      
-    }
-  
-  }
-  
-  async fetchApps(tv){
-  
-    let options = tv.options;
-    let allInputs = tv.allInputs;
-  
-    const bravia = new Bravia(options);
-    
-    //fetch all applications
-    try {
-      
-      console.log('%s: Fetching all applications', options.name);
-      
-      let apps = await bravia.appControl.invoke('getApplicationList');
-      
-      for(const app of apps){
-        app.type = 'application';
-      }  
-      
-      allInputs.apps = apps;
-    
-    } catch(err) {
-      
-      console.log('%s: An error occured during fetching apps, skip..', options.name);
-      allInputs.apps = allInputs.apps || [];
-    
-    }
-    
-    return allInputs;
-  
-  }
-  
-  async fetchInputs(tv){
-  
-    let options = tv.options;
-    let allInputs = tv.allInputs;
-  
-    const bravia = new Bravia(options);
-    
-    //fetch all inputs
-    try {
-      
-      console.log('%s: Fetching all inputs', options.name);
-      
-      let powerState = await bravia.system.invoke('getPowerStatus');
-      
-      if(powerState.status !== 'active'){
-        await bravia.wake();
-        await TIMEOUT(3000);
-      }
-      
-      let inputs = await bravia.avContent.invoke('getCurrentExternalInputsStatus');
-      
-      for(const input of inputs){
-        input.type = 'input';
-      }              
-      
-      allInputs.inputs = inputs;
-      
-      if(powerState.status !== 'active'){
-        await TIMEOUT(750);
-        await bravia.sleep();
-      }
-    
-    } catch(err) {
-      
-      console.log('%s: An error occured during fetching inputs, skip..', options.name);
-      allInputs.inputs = allInputs.inputs || [];
-    
-    }
-    
-    return allInputs;
-  
-  }
-  
-  async fetchChannels(tv){
-  
-    let options = tv.options;
-    let allInputs = tv.allInputs;
-  
-    const bravia = new Bravia(options);
-    
-    //fetch all channels
-    let channelSources = [
-      'tv:dvbt', 
-      'tv:dvbc', 
-      'tv:dvbs', 
-      'tv:isdbt', 
-      'tv:isdbs', 
-      'tv:isdbc', 
-      'tv:analog'
-    ];
-    
-    let allChannels = [];
-    
-    console.log('%s: Fetching all channels', options.name);
-    
-    for(const source of channelSources){
-      
-      for(let i = 0; i <= 10; i++){ //max channels 10 * 200 for source
-        
-        try {
-          
-          let channels = await bravia.avContent.invoke('getContentList', '1.2', {stIdx: i * 200, cnt: i * 200 + 200, source: source});
-          
-          await TIMEOUT(750);
-          
-          allChannels = allChannels.concat(channels);
-          
-          if(channels[channels.length-1].index !== 199)
-            break;
-        
-        } catch(err) {
-          
-          console.log('%s: Skip fetching ' + source, options.name);
-          
-          break;
-        
-        }
-      
-      }
-    
-    }
-    
-    for(const channel of allChannels){
-      channel.type = 'channel';
-    }
-    
-    allInputs.channels = allChannels;
-    
-    return allInputs;
-  
-  }
-  
-  async fetchCommands(tv){
-  
-    let options = tv.options;
-    let allInputs = tv.allInputs;
-  
-    const bravia = new Bravia(options);
-    
-    //fetch all commands
-    try {
-      
-      console.log('%s: Fetching all commands', options.name);
-      
-      let commands = await bravia.system.invoke('getRemoteControllerInfo');
-      
-      for(const command of commands){
-        command.type = 'ircc';
-      }
-      
-      allInputs.commands = commands;
-    
-    } catch(err) {
-      
-      console.log('%s: An error occured during fetching commands, skip..', options.name);
-      allInputs.commands = allInputs.commands || [];
-    
-    }
-    
-    return allInputs;
-  
-  }
-  
-  async storeInputs(tv){
-  
-    let options = tv.options;
-    let allInputs = tv.allInputs;
-  
-    let fileName = options.name.replace(/\s+/g, '_') + '-inputs.json';
-    
-    console.log('%s: All inputs fetched! Storing to ' + (this.homebridgeStoragePath + '/bravia/' + fileName), options.name);
-    
-    try {
-      
-      await fs.ensureFile(this.homebridgeStoragePath + '/bravia/' + fileName);
-      await fs.writeJson(this.homebridgeStoragePath + '/bravia/' + fileName, allInputs, {spaces: 2});
-    
-    } catch(err) {
-      
-      throw new RequestError(err.message);
-    
-    }
-  
-  }
-  
-  async getInputs(tv){
-  
-    let fileName = tv.replace(/\s+/g, '_') + '-inputs.json';
-    let allInputs = null;
-    
-    try {
-     
-      await fs.ensureFile(this.homebridgeStoragePath + '/bravia/' + fileName);  
-      allInputs = await fs.readJson(this.homebridgeStoragePath + '/bravia/' + fileName, { throws: false });
-    
-    } catch(err) {
-      
-      throw new RequestError(err.message);
-    
-    }
-  
-    return allInputs;
-  
-  }
-  
-  genUUID () {
-    
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      let r = Math.random() * 16 | 0; var v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
+  async auth(form) {
+    this.name = form.name;
+
+    this.bravia = new Bravia({
+      name: form.appName,
+      host: form.ip,
+      mac: form.mac,
+      port: form.port,
+      psk: form.psk,
     });
-  
+
+    if (form.refresh) {
+      return {
+        authenticated: true,
+        ...form,
+      };
+    } else if (form.auth === 'pin' && form.appName && !form.pin) {
+      try {
+        const credentials = await this.bravia.pair(false, false, true);
+        credentials.authenticated = true;
+
+        this.bravia.token = credentials.token;
+        this.bravia.expires = credentials.expires;
+
+        return credentials;
+      } catch (err) {
+        if (err.code === 401) {
+          return {
+            authenticated: false,
+          };
+        } else {
+          throw new RequestError(err.message);
+        }
+      }
+    } else if (form.auth === 'pin' && form.appName && form.pin) {
+      try {
+        const credentials = await this.bravia.pair(form.pin, false, false);
+        credentials.authenticated = true;
+
+        this.bravia.token = credentials.token;
+        this.bravia.expires = credentials.expires;
+
+        return credentials;
+      } catch (err) {
+        throw new RequestError(err.message);
+      }
+    } else if (form.auth === 'psk' && form.psk) {
+      return {
+        authenticated: true,
+        name: form.appName,
+        psk: form.psk,
+      };
+    }
+
+    throw new Error('Not authenticated!');
   }
 
+  async checkAuth() {
+    if (!this.bravia) {
+      throw new RequestError('Not authenticated!');
+    }
+
+    return await this.bravia.exec('system', 'getSystemInformation');
+  }
+
+  async getApps() {
+    if (!this.bravia) {
+      throw new RequestError('Not authenticated!');
+    }
+
+    return await fetchApps(this.name, this.bravia);
+  }
+
+  async getChannels() {
+    if (!this.bravia) {
+      throw new RequestError('Not authenticated!');
+    }
+
+    return await fetchChannels(this.name, this.bravia);
+  }
+
+  async getCommands() {
+    if (!this.bravia) {
+      throw new RequestError('Not authenticated!');
+    }
+
+    return await fetchCommands(this.name, this.bravia);
+  }
+
+  async getInputs() {
+    if (!this.bravia) {
+      throw new RequestError('Not authenticated!');
+    }
+
+    return await fetchInputs(this.name, this.bravia);
+  }
+
+  async changeTV(television) {
+    if (!television.oldName || !television.newName) {
+      throw new RequestError('Can not change television from cache, oldName/newName not defined!');
+    }
+
+    return await changeTVFromCache(television.oldName, television.newName, this.homebridgeStoragePath);
+  }
+
+  async getTV(name) {
+    if (!name) {
+      throw new RequestError('Can not get television from cache. No name defined for television');
+    }
+
+    return await getTvFromCache(name, this.homebridgeStoragePath);
+  }
+
+  async refreshTV(television) {
+    this.pushEvent('refreshTV', `Initializing ${television.name}..`);
+
+    await this.auth({
+      name: television.name,
+      ip: television.ip,
+      mac: television.mac,
+      port: television.port,
+      appName: television.appName,
+      psk: television.psk,
+      refresh: true,
+    });
+
+    await this.checkAuth();
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Authenticated!`);
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Fetching apps..`);
+    const apps = await this.getApps();
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Fetching channels..`);
+    const channels = await this.getChannels();
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Fetching commands..`);
+    const commands = await this.getCommands();
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Fetching inputs..`);
+    const inputs = await this.getInputs();
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Refreshing cache..`);
+    await this.storeTV({
+      name: television.name,
+      inputs: {
+        apps: apps,
+        channels: channels,
+        commands: commands,
+        inputs: inputs,
+        macros: television.macros || [],
+      },
+    });
+
+    await setTimeoutAsync(1000);
+    this.pushEvent('refreshTV', `${television.name}: Done!`);
+  }
+
+  async removeTV(name) {
+    if (!name) {
+      throw new RequestError('Can not remove television from cache. No name defined for television');
+    }
+
+    return await removeTVFromCache(name, this.homebridgeStoragePath);
+  }
+
+  async storeTV(television) {
+    if (!television.name) {
+      throw new RequestError('Can not store television in cache. No name defined for television');
+    }
+
+    if (!television.inputs) {
+      throw new RequestError('No inputs defined!');
+    }
+
+    await writeTvToCache(television.name, this.homebridgeStoragePath, television.inputs);
+  }
 }
 
-
 (() => {
-  return new UiServer;
+  return new UiServer();
 })();

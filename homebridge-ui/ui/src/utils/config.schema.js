@@ -1,0 +1,635 @@
+export default {
+  schema: {
+    name: {
+      title: 'Log Name',
+      type: 'string',
+      default: 'BraviaTVOS',
+      description: 'Name for the log.',
+    },
+    debug: {
+      title: 'Debug',
+      type: 'boolean',
+      description: 'Enables additional output in the log.',
+    },
+    warn: {
+      title: 'Warn Log',
+      type: 'boolean',
+      description: 'Enables additional output (warn) in the log.',
+      default: true,
+    },
+    error: {
+      title: 'Error Log',
+      type: 'boolean',
+      description: 'Enables additional output (error) in the log.',
+      default: true,
+    },
+    extendedError: {
+      title: 'Extended Error Log',
+      type: 'boolean',
+      description: 'Enables additional output (detailed error) in the log.',
+      default: true,
+    },
+    tvs: {
+      type: 'object',
+      properties: {
+        active: {
+          title: 'Active',
+          type: 'boolean',
+          required: true,
+          description: 'If enabled, the device will be exposed to HomeKit.',
+        },
+        name: {
+          title: 'Name',
+          type: 'string',
+          required: true,
+          description: 'Set the device name for display in the Home app.',
+        },
+        ip: {
+          title: 'IP Address',
+          type: 'string',
+          placeholder: '192.168.178.1',
+          required: true,
+          description: 'Sony TV IP Address.',
+        },
+        mac: {
+          title: 'MAC Address',
+          type: 'string',
+          placeholder: '00:11:22:33:44:55',
+          description: 'Sony TV MAC Address.',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
+        port: {
+          title: 'Port',
+          type: 'integer',
+          placeholder: 80,
+          description: 'Sony TV Port.',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
+        psk: {
+          title: 'Pre-Shared Key',
+          type: 'string',
+          required: true,
+          description: 'Authentication through PSK. (If no PSK given, the plugin will use authentication through PIN)',
+        },
+        appName: {
+          title: 'App Name',
+          type: 'string',
+          required: true,
+          description:
+            'Application name used to generate token. (Only required if you want authentication with generated credentials through PIN method)',
+        },
+        manufacturer: {
+          name: 'Manufacturer',
+          type: 'string',
+          placeholder: 'Sony',
+          description: 'Set the manufacturer name for display in the Home app.',
+        },
+        model: {
+          name: 'Model',
+          type: 'string',
+          placeholder: 'Television',
+          description: 'Set the model for display in the Home app.',
+        },
+        serialNumber: {
+          name: 'Serial Number',
+          type: 'string',
+          placeholder: 'SerialNumber',
+          description: 'Set the serial number for display in the Home app.',
+        },
+        refreshInputs: {
+          title: 'Refresh Inputs',
+          type: 'boolean',
+          description:
+            'When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs)',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
+        wol: {
+          title: 'Wake on LAN',
+          type: 'boolean',
+          description:
+            'When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified)',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
+        inputs: {
+          title: 'TV Inputs',
+          type: 'array',
+          items: {
+            title: 'Input',
+            type: 'object',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+                description: 'Name for the input to display in the tv inputs list',
+                required: true,
+              },
+              identifier: {
+                title: 'Identifier',
+                type: 'string',
+                oneOf: [],
+                description: 'Exact name of the Input',
+                required: true,
+              },
+            },
+          },
+        },
+        apps: {
+          title: 'Applications',
+          type: 'array',
+          items: {
+            title: 'Application',
+            type: 'object',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+                description: 'Name for the application to display in the tv inputs list',
+                required: true,
+              },
+              identifier: {
+                title: 'Identifier',
+                type: 'string',
+                oneOf: [],
+                description: 'Exact name of the Application',
+                required: true,
+              },
+            },
+          },
+        },
+        channels: {
+          title: 'Channels',
+          type: 'array',
+          items: {
+            title: 'Application',
+            type: 'object',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+                description: 'Name for the channel to display in the tv inputs list',
+                required: true,
+              },
+              identifier: {
+                title: 'Identifier',
+                type: 'string',
+                oneOf: [],
+                description: 'Exact name of the Application',
+                required: true,
+              },
+            },
+          },
+        },
+        commands: {
+          title: 'Commands',
+          type: 'array',
+          items: {
+            title: 'Command',
+            type: 'object',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+                description: 'Name for the command to display in the tv inputs list',
+                required: true,
+              },
+              value: {
+                title: 'Value',
+                required: true,
+                type: 'string',
+                oneOf: [],
+                description: 'IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)',
+              },
+            },
+          },
+        },
+        displayOrder: {
+          title: 'Display Order',
+          type: 'array',
+          items: {
+            title: 'Category',
+            type: 'string',
+            oneOf: [
+              {
+                title: 'Apps',
+                enum: ['apps'],
+              },
+              {
+                title: 'Channels',
+                enum: ['channels'],
+              },
+              {
+                title: 'Commands',
+                enum: ['commands'],
+              },
+              {
+                title: 'Inputs',
+                enum: ['inputs'],
+              },
+              {
+                title: 'Macros',
+                enum: ['macros'],
+              },
+            ],
+            description: 'Name of the catagory.',
+          },
+        },
+        speaker: {
+          titel: 'Speaker',
+          type: 'object',
+          properties: {
+            active: {
+              title: 'Active',
+              type: 'boolean',
+              required: true,
+              description: 'If enabled, the device will be exposed to HomeKit.',
+            },
+            output: {
+              title: 'Audio Output',
+              required: true,
+              type: 'string',
+              default: 'speaker',
+              oneOf: [
+                {
+                  title: 'Speaker',
+                  enum: ['speaker'],
+                },
+                {
+                  title: 'Headphone',
+                  enum: ['headphone'],
+                },
+                {
+                  title: 'Other',
+                  enum: ['other'],
+                },
+              ],
+              description: 'Audio output.',
+            },
+            increaseBy: {
+              title: 'Increase Volume by',
+              type: 'integer',
+              minimum: 1,
+              maximum: 5,
+              default: 1,
+              description: 'Volume level to increse.',
+            },
+            reduceBy: {
+              title: 'Reduce Volume by',
+              type: 'integer',
+              minimum: 1,
+              maximum: 5,
+              default: 1,
+              description: 'Volume level to set.',
+            },
+            accType: {
+              title: 'Accessory Type',
+              type: 'string',
+              required: true,
+              default: 'lightbulb',
+              oneOf: [
+                {
+                  title: 'Lightbulb',
+                  enum: ['lightbulb'],
+                },
+                {
+                  title: 'Switch',
+                  enum: ['switch'],
+                },
+              ],
+              description: 'Accessory type for the speaker.',
+            },
+          },
+        },
+        macros: {
+          title: 'Macros',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
+                required: true,
+                description: 'Name of the macro.',
+              },
+              delay: {
+                title: 'Delay',
+                type: 'integer',
+                placeholder: 250,
+                description: 'Delay between sending commands (in ms). (Default 1000ms)',
+              },
+              commands: {
+                title: 'Commands',
+                type: 'array',
+                items: {
+                  title: 'Command',
+                  type: 'string',
+                  oneOf: [],
+                  required: true,
+                  description: 'IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)',
+                },
+              },
+            },
+          },
+        },
+        remote: {
+          titel: 'Remote',
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              command: {
+                name: 'Command',
+                type: 'string',
+                description: 'Set custom command for choosen target.',
+                oneOf: [],
+                required: true,
+              },
+              target: {
+                title: 'Target',
+                required: true,
+                type: 'string',
+                oneOf: [
+                  {
+                    title: 'Back',
+                    enum: ['BACK'],
+                  },
+                  {
+                    title: 'Down',
+                    enum: ['ARROW_DOWN'],
+                  },
+                  {
+                    title: 'Exit',
+                    enum: ['EXIT'],
+                  },
+                  {
+                    title: 'Fast Forward',
+                    enum: ['FAST_FORWARD'],
+                  },
+                  {
+                    title: 'Information',
+                    enum: ['INFORMATION'],
+                  },
+                  {
+                    title: 'Left',
+                    enum: ['ARROW_LEFT'],
+                  },
+                  {
+                    title: 'Next Track',
+                    enum: ['NEXT_TRACK'],
+                  },
+                  {
+                    title: 'Pause',
+                    enum: ['PAUSE'],
+                  },
+                  {
+                    title: 'Play',
+                    enum: ['PLAY'],
+                  },
+                  {
+                    title: 'Previous Track',
+                    enum: ['PREVIOUS_TRACK'],
+                  },
+                  {
+                    title: 'Rewind',
+                    enum: ['REWIND'],
+                  },
+                  {
+                    title: 'Right',
+                    enum: ['ARROW_RIGHT'],
+                  },
+                  {
+                    title: 'Select',
+                    enum: ['SELECT'],
+                  },
+                  {
+                    title: 'Settings',
+                    enum: ['SETTINGS'],
+                  },
+                  {
+                    title: 'Stop',
+                    enum: ['STOP'],
+                  },
+                  {
+                    title: 'Up',
+                    enum: ['ARROW_UP'],
+                  },
+                  {
+                    title: 'Volume Down',
+                    enum: ['VOLUME_DOWN'],
+                  },
+                  {
+                    title: 'Volume Up',
+                    enum: ['VOLUME_UP'],
+                  },
+                ],
+                description: 'Target Apple Remote switch.',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  layout: [
+    'name',
+    {
+      title: 'Log',
+      orderable: false,
+      expandable: true,
+      expanded: false,
+      type: 'section',
+      items: ['debug', 'warn', 'error', 'extendedError'],
+    },
+    'tvs.active',
+    'tvs.name',
+    'tvs.ip',
+    'tvs.mac',
+    'tvs.port',
+    'tvs.refreshInputs',
+    'tvs.wol',
+    {
+      key: 'tvs',
+      type: 'section',
+      title: 'Authentication',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      items: ['tvs.psk', 'tvs.appName'],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs',
+      type: 'section',
+      title: 'Branding',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      items: ['tvs.manufacturer', 'tvs.model', 'tvs.serialNumber'],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.inputs',
+      type: 'section',
+      title: 'TV Inputs',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Input',
+      items: [
+        {
+          key: 'tvs.inputs[]',
+          items: ['tvs.inputs[].name', 'tvs.inputs[].identifier'],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.apps',
+      type: 'section',
+      title: 'Applications',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Application',
+      items: [
+        {
+          key: 'tvs.apps[]',
+          items: ['tvs.apps[].name', 'tvs.apps[].identifier'],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.channels',
+      type: 'section',
+      title: 'Channels',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Channel',
+      items: [
+        {
+          key: 'tvs.channels[]',
+          items: ['tvs.channels[].name', 'tvs.channels[].identifier'],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.commands',
+      type: 'section',
+      title: 'Commands',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Command',
+      items: [
+        {
+          key: 'tvs.commands[]',
+          items: ['tvs.commands[].name', 'tvs.commands[].value'],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.macros',
+      type: 'section',
+      title: 'Macros',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Macro',
+      items: [
+        {
+          key: 'tvs.macros[]',
+          items: [
+            'tvs.macros[].name',
+            'tvs.macros[].delay',
+            {
+              key: 'tvs.macros[].commands',
+              type: 'section',
+              title: 'Commands',
+              expandable: true,
+              expanded: false,
+              orderable: true,
+              buttonText: 'Add Command',
+              items: ['tvs.macros[].commands[]'],
+            },
+          ],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.speaker',
+      type: 'section',
+      title: 'Speaker',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      items: [
+        'tvs.speaker.active',
+        'tvs.speaker.output',
+        'tvs.speaker.increaseBy',
+        'tvs.speaker.reduceBy',
+        'tvs.speaker.accType',
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.remote',
+      type: 'section',
+      title: 'Remote',
+      expandable: true,
+      expanded: false,
+      orderable: false,
+      buttonText: 'Add Custom Command',
+      items: [
+        {
+          key: 'tvs.remote[]',
+          items: ['tvs.remote[].target', 'tvs.remote[].command'],
+        },
+      ],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+    {
+      key: 'tvs.displayOrder',
+      type: 'section',
+      title: 'Display Order',
+      expandable: true,
+      expanded: false,
+      orderable: true,
+      buttonText: 'Add Catagory',
+      items: ['tvs.displayOrder[]'],
+      condition: {
+        functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+      },
+    },
+  ],
+};

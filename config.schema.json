@@ -12,9 +12,30 @@
       "description": "Name for the log."
     },
     "debug": {
-      "title": "Debug",
+      "title": "Debug Log",
       "type": "boolean",
-      "description": "Enables additional output in the log."
+      "description": "Enables additional output (debug) in the log."
+    },
+    "warn": {
+      "title": "Warn Log",
+      "type": "boolean",
+      "description": "Enables additional output (warn) in the log.",
+      "default": true
+    },
+    "error": {
+      "title": "Error Log",
+      "type": "boolean",
+      "description": "Enables additional output (error) in the log.",
+      "default": true
+    },
+    "extendedError": {
+      "title": "Extended Error Log",
+      "type": "boolean",
+      "description": "Enables additional output (detailed error) in the log.",
+      "default": true,
+      "condition": {
+        "functionBody": "try { return model.error } catch(e){ return false }"
+      }
     },
     "tvs": {
       "type": "array",
@@ -22,6 +43,12 @@
         "title": "TVs",
         "type": "object",
         "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean",
+            "required": true,
+            "description": "If enabled, the device will be exposed to HomeKit."
+          },
           "name": {
             "title": "Name",
             "type": "string",
@@ -39,35 +66,31 @@
             "title": "MAC Address",
             "type": "string",
             "placeholder": "00:11:22:33:44:55",
-            "description": "Sony TV MAC Address."
+            "description": "Sony TV MAC Address.",
+            "condition": {
+              "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+            }
           },
           "port": {
             "title": "Port",
             "type": "integer",
             "placeholder": 80,
-            "description": "Sony TV Port."
-          },
-          "timeout": {
-            "title": "Timeout",
-            "type": "integer",
-            "placeholder": 5,
-            "minimum": 5,
-            "description": "Timer in seconds to wait for a response."
+            "description": "Sony TV Port.",
+            "condition": {
+              "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+            }
           },
           "psk": {
             "title": "Pre-Shared Key",
             "type": "string",
-            "description": "Authentication through PSK. (If no PSK given, the plugin will use authentication through PIN)"
+            "description": "Authentication through PSK. (If no PSK given, the plugin will use authentication through PIN)",
+            "required": true
           },
           "appName": {
             "title": "App Name",
             "type": "string",
+            "required": true,
             "description": "Application name used to generate token. (Only required if you want authentication with generated credentials through PIN method)"
-          },
-          "appUUID": {
-            "title": "App UUID",
-            "type": "string",
-            "description": "Application UUID obtained by generating a token. (Only required if you want authentication with generated credentials through PIN method)"
           },
           "manufacturer": {
             "name": "Manufacturer",
@@ -90,59 +113,71 @@
           "refreshInputs": {
             "title": "Refresh Inputs",
             "type": "boolean",
-            "description": "When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs)"
+            "description": "When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs)",
+            "condition": {
+              "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+            }
           },
           "wol": {
             "title": "Wake on LAN",
             "type": "boolean",
-            "description": "When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified)"
+            "description": "When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified)",
+            "condition": {
+              "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+            }
           },
           "inputs": {
             "title": "TV Inputs",
             "type": "array",
             "items": {
               "title": "Input",
-              "required": true,
-              "type": "string",
-              "oneOf": [
-                {
-                  "title": "CEC",
-                  "enum": [
-                    "extInput:cec"
-                  ]
+              "type": "object",
+              "properties": {
+                "name": {
+                  "title": "Name",
+                  "type": "string",
+                  "description": "Name for the channel to display in the tv inputs list",
+                  "required": true
                 },
-                {
-                  "title": "Component",
-                  "enum": [
-                    "extInput:component"
-                  ]
+                "identifier": {
+                  "title": "Identifier",
+                  "type": "string",
+                  "description": "Exact name of the input (eg HDMI 1)",
+                  "required": true
                 },
-                {
-                  "title": "Composite",
-                  "enum": [
-                    "extInput:composite"
-                  ]
-                },
-                {
-                  "title": "HDMI",
-                  "enum": [
-                    "extInput:hdmi"
-                  ]
-                },
-                {
-                  "title": "Scart",
-                  "enum": [
-                    "extInput:scart"
-                  ]
-                },
-                {
-                  "title": "WIDI",
-                  "enum": [
-                    "extInput:widi"
-                  ]
+                "source": {
+                  "title": "Input",
+                  "required": true,
+                  "type": "string",
+                  "oneOf": [
+                    {
+                      "title": "CEC",
+                      "enum": ["cec"]
+                    },
+                    {
+                      "title": "Component",
+                      "enum": ["component"]
+                    },
+                    {
+                      "title": "Composite",
+                      "enum": ["composite"]
+                    },
+                    {
+                      "title": "HDMI",
+                      "enum": ["hdmi"]
+                    },
+                    {
+                      "title": "Scart",
+                      "enum": ["scart"]
+                    },
+                    {
+                      "title": "WIDI",
+                      "enum": ["widi"]
+                    }
+                  ],
+                  "description": "Type of the tv input."
                 }
-              ],
-              "description": "Type of the tv input."
+              }
             }
           },
           "apps": {
@@ -150,16 +185,36 @@
             "type": "array",
             "items": {
               "title": "Application",
-              "type": "string",
-              "description": "Name of the application."
+              "type": "object",
+              "properties": {
+                "name": {
+                  "title": "Name",
+                  "type": "string",
+                  "description": "Name for the application to display in the tv inputs list",
+                  "required": true
+                },
+                "identifier": {
+                  "title": "Identifier",
+                  "type": "string",
+                  "description": "Exact name of the Application",
+                  "required": true
+                }
+              }
             }
           },
           "channels": {
             "title": "Channels",
             "type": "array",
             "items": {
+              "title": "Channel",
               "type": "object",
               "properties": {
+                "name": {
+                  "title": "Name",
+                  "type": "string",
+                  "description": "Name for the channel to display in the tv inputs list",
+                  "required": true
+                },
                 "channel": {
                   "title": "Channel Number",
                   "type": "integer",
@@ -173,45 +228,31 @@
                   "oneOf": [
                     {
                       "title": "DVBT",
-                      "enum": [
-                        "tv:dvbt"
-                      ]
+                      "enum": ["dvbt"]
                     },
                     {
                       "title": "DVBC",
-                      "enum": [
-                        "tv:dvbc"
-                      ]
+                      "enum": ["dvbc"]
                     },
                     {
                       "title": "DVBS",
-                      "enum": [
-                        "tv:dvbs"
-                      ]
+                      "enum": ["dvbs"]
                     },
                     {
                       "title": "ISDBT",
-                      "enum": [
-                        "tv:isdbt"
-                      ]
+                      "enum": ["isdbt"]
                     },
                     {
                       "title": "ISDBS",
-                      "enum": [
-                        "tv:isdbs"
-                      ]
+                      "enum": ["isdbs"]
                     },
                     {
                       "title": "ISDBC",
-                      "enum": [
-                        "tv:isdbc"
-                      ]
+                      "enum": ["isdbc"]
                     },
                     {
                       "title": "Analog",
-                      "enum": [
-                        "tv:analog"
-                      ]
+                      "enum": ["analog"]
                     }
                   ],
                   "description": "Source of the channel."
@@ -224,8 +265,21 @@
             "type": "array",
             "items": {
               "title": "Command",
-              "type": "string",
-              "description": "IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)"
+              "type": "object",
+              "properties": {
+                "name": {
+                  "title": "Name",
+                  "type": "string",
+                  "description": "Name for the command to display in the tv inputs list",
+                  "required": true
+                },
+                "value": {
+                  "title": "Value",
+                  "required": true,
+                  "type": "string",
+                  "description": "IRCC code or name of the command. (eg. AAAAAQAAAAEAAABgAw== or PowerOff)"
+                }
+              }
             }
           },
           "displayOrder": {
@@ -237,33 +291,23 @@
               "oneOf": [
                 {
                   "title": "Apps",
-                  "enum": [
-                    "apps"
-                  ]
+                  "enum": ["apps"]
                 },
                 {
                   "title": "Channels",
-                  "enum": [
-                    "channels"
-                  ]
+                  "enum": ["channels"]
                 },
                 {
                   "title": "Commands",
-                  "enum": [
-                    "commands"
-                  ]
+                  "enum": ["commands"]
                 },
                 {
                   "title": "Inputs",
-                  "enum": [
-                    "inputs"
-                  ]
+                  "enum": ["inputs"]
                 },
                 {
                   "title": "Macros",
-                  "enum": [
-                    "macros"
-                  ]
+                  "enum": ["macros"]
                 }
               ],
               "description": "Name of the catagory."
@@ -273,31 +317,35 @@
             "titel": "Speaker",
             "type": "object",
             "properties": {
+              "active": {
+                "title": "Active",
+                "type": "boolean",
+                "required": true,
+                "description": "If enabled, the device will be exposed to HomeKit."
+              },
               "output": {
                 "title": "Audio Output",
                 "required": true,
                 "type": "string",
+                "default": "speaker",
                 "oneOf": [
                   {
                     "title": "Speaker",
-                    "enum": [
-                      "speaker"
-                    ]
+                    "enum": ["speaker"]
                   },
                   {
                     "title": "Headphone",
-                    "enum": [
-                      "headphone"
-                    ]
+                    "enum": ["headphone"]
                   },
                   {
                     "title": "Other",
-                    "enum": [
-                      "other"
-                    ]
+                    "enum": ["other"]
                   }
                 ],
-                "description": "Audio output."
+                "description": "Audio output.",
+                "condition": {
+                  "functionBody": "try { return model.tvs[arrayIndices[0]].speaker.active } catch(e){ return false }"
+                }
               },
               "increaseBy": {
                 "title": "Increase Volume by",
@@ -305,7 +353,10 @@
                 "minimum": 1,
                 "maximum": 5,
                 "default": 1,
-                "description": "Volume level to increse."
+                "description": "Volume level to increse.",
+                "condition": {
+                  "functionBody": "try { return model.tvs[arrayIndices[0]].speaker.active } catch(e){ return false }"
+                }
               },
               "reduceBy": {
                 "title": "Reduce Volume by",
@@ -313,39 +364,37 @@
                 "minimum": 1,
                 "maximum": 5,
                 "default": 1,
-                "description": "Volume level to set."
+                "description": "Volume level to set.",
+                "condition": {
+                  "functionBody": "try { return model.tvs[arrayIndices[0]].speaker.active } catch(e){ return false }"
+                }
               },
               "accType": {
                 "title": "Accessory Type",
                 "type": "string",
+                "required": true,
+                "default": "lightbulb",
                 "oneOf": [
                   {
-                    "title": "Speaker",
-                    "enum": [
-                      "speaker"
-                    ]
-                  },
-                  {
                     "title": "Lightbulb",
-                    "enum": [
-                      "lightbulb"
-                    ]
+                    "enum": ["lightbulb"]
                   },
                   {
                     "title": "Switch",
-                    "enum": [
-                      "switch"
-                    ]
+                    "enum": ["switch"]
                   }
                 ],
-                "description": "Accessory type for the speaker."
+                "description": "Accessory type for the speaker.",
+                "condition": {
+                  "functionBody": "try { return model.tvs[arrayIndices[0]].speaker.active } catch(e){ return false }"
+                }
               }
             }
           },
           "macros": {
             "title": "Macros",
             "type": "array",
-            "items":{
+            "items": {
               "type": "object",
               "properties": {
                 "name": {
@@ -353,10 +402,11 @@
                   "type": "string",
                   "required": true,
                   "description": "Name of the macro."
-                }, 
+                },
                 "delay": {
                   "title": "Delay",
                   "type": "integer",
+                  "placeholder": 250,
                   "description": "Delay between sending commands (in ms). (Default 1000ms)"
                 },
                 "commands": {
@@ -391,105 +441,75 @@
                   "oneOf": [
                     {
                       "title": "Back",
-                      "enum": [
-                        "BACK"
-                      ]
+                      "enum": ["BACK"]
                     },
                     {
                       "title": "Down",
-                      "enum": [
-                        "ARROW_DOWN"
-                      ]
+                      "enum": ["ARROW_DOWN"]
                     },
                     {
                       "title": "Exit",
-                      "enum": [
-                        "EXIT"
-                      ]
+                      "enum": ["EXIT"]
                     },
                     {
                       "title": "Fast Forward",
-                      "enum": [
-                        "FAST_FORWARD"
-                      ]
+                      "enum": ["FAST_FORWARD"]
                     },
                     {
                       "title": "Information",
-                      "enum": [
-                        "INFORMATION"
-                      ]
+                      "enum": ["INFORMATION"]
                     },
                     {
                       "title": "Left",
-                      "enum": [
-                        "ARROW_LEFT"
-                      ]
+                      "enum": ["ARROW_LEFT"]
                     },
                     {
                       "title": "Next Track",
-                      "enum": [
-                        "NEXT_TRACK"
-                      ]
+                      "enum": ["NEXT_TRACK"]
                     },
                     {
                       "title": "Pause",
-                      "enum": [
-                        "PAUSE"
-                      ]
+                      "enum": ["PAUSE"]
                     },
                     {
                       "title": "Play",
-                      "enum": [
-                        "PLAY"
-                      ]
+                      "enum": ["PLAY"]
                     },
                     {
                       "title": "Previous Track",
-                      "enum": [
-                        "PREVIOUS_TRACK"
-                      ]
+                      "enum": ["PREVIOUS_TRACK"]
                     },
                     {
                       "title": "Rewind",
-                      "enum": [
-                        "REWIND"
-                      ]
+                      "enum": ["REWIND"]
                     },
                     {
                       "title": "Right",
-                      "enum": [
-                        "ARROW_RIGHT"
-                      ]
+                      "enum": ["ARROW_RIGHT"]
                     },
                     {
                       "title": "Select",
-                      "enum": [
-                        "SELECT"
-                      ]
+                      "enum": ["SELECT"]
                     },
                     {
                       "title": "Settings",
-                      "enum": [
-                        "SETTINGS"
-                      ]
+                      "enum": ["SETTINGS"]
+                    },
+                    {
+                      "title": "Stop",
+                      "enum": ["STOP"]
                     },
                     {
                       "title": "Up",
-                      "enum": [
-                        "ARROW_UP"
-                      ]
+                      "enum": ["ARROW_UP"]
                     },
                     {
                       "title": "Volume Down",
-                      "enum": [
-                        "VOLUME_DOWN"
-                      ]
+                      "enum": ["VOLUME_DOWN"]
                     },
                     {
                       "title": "Volume Up",
-                      "enum": [
-                        "VOLUME_UP"
-                      ]
+                      "enum": ["VOLUME_UP"]
                     }
                   ],
                   "description": "Target Apple Remote switch."
@@ -503,7 +523,14 @@
   },
   "layout": [
     "name",
-    "debug",
+    {
+      "title": "Log",
+      "orderable": false,
+      "expandable": true,
+      "expanded": false,
+      "type": "section",
+      "items": ["debug", "warn", "error", "extendedError"]
+    },
     {
       "type": "section",
       "title": "TVs",
@@ -516,12 +543,13 @@
           "type": "array",
           "orderable": false,
           "items": [
+            "tvs[].active",
             "tvs[].name",
             "tvs[].ip",
             "tvs[].mac",
             "tvs[].port",
-            "tvs[].timeout",
             "tvs[].refreshInputs",
+            "tvs[].wol",
             {
               "key": "tvs[]",
               "type": "section",
@@ -529,11 +557,10 @@
               "expandable": true,
               "expanded": false,
               "orderable": false,
-              "items": [
-                "tvs[].psk",
-                "tvs[].appName",
-                "tvs[].appUUID"
-              ]
+              "items": ["tvs[].psk", "tvs[].appName"],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[]",
@@ -542,11 +569,10 @@
               "expandable": true,
               "expanded": false,
               "orderable": false,
-              "items": [
-                "tvs[].manufacturer",
-                "tvs[].model",
-                "tvs[].serialNumber"
-              ]
+              "items": ["tvs[].manufacturer", "tvs[].model", "tvs[].serialNumber"],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].inputs",
@@ -557,8 +583,14 @@
               "orderable": false,
               "buttonText": "Add Input",
               "items": [
-                "tvs[].inputs[]"
-              ]
+                {
+                  "key": "tvs[].inputs[]",
+                  "items": ["tvs[].inputs[].name", "tvs[].inputs[].identifier", "tvs[].inputs[].source"]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].apps",
@@ -569,8 +601,14 @@
               "orderable": false,
               "buttonText": "Add Application",
               "items": [
-                "tvs[].apps[]"
-              ]
+                {
+                  "key": "tvs[].apps[]",
+                  "items": ["tvs[].apps[].name", "tvs[].apps[].identifier"]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].channels",
@@ -583,12 +621,12 @@
               "items": [
                 {
                   "key": "tvs[].channels[]",
-                  "items": [
-                    "tvs[].channels[].channel",
-                    "tvs[].channels[].source"
-                  ]
+                  "items": ["tvs[].channels[].name", "tvs[].channels[].channel", "tvs[].channels[].source"]
                 }
-              ]
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].commands",
@@ -599,8 +637,14 @@
               "orderable": false,
               "buttonText": "Add Command",
               "items": [
-                "tvs[].commands[]"
-              ]
+                {
+                  "key": "tvs[].commands[]",
+                  "items": ["tvs[].commands[].name", "tvs[].commands[].value"]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].macros",
@@ -608,11 +652,12 @@
               "title": "Macros",
               "expandable": true,
               "expanded": false,
-              "orderable": true,
+              "orderable": false,
               "buttonText": "Add Macro",
               "items": [
                 {
                   "key": "tvs[].macros[]",
+                  "orderable": true,
                   "items": [
                     "tvs[].macros[].name",
                     "tvs[].macros[].delay",
@@ -624,13 +669,14 @@
                       "expanded": false,
                       "orderable": true,
                       "buttonText": "Add Command",
-                      "items": [
-                        "tvs[].macros[].commands[]"
-                      ]
+                      "items": ["tvs[].macros[].commands[]"]
                     }
                   ]
                 }
-              ]
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].speaker",
@@ -640,11 +686,15 @@
               "expanded": false,
               "orderable": false,
               "items": [
+                "tvs[].speaker.active",
                 "tvs[].speaker.output",
                 "tvs[].speaker.increaseBy",
                 "tvs[].speaker.reduceBy",
                 "tvs[].speaker.accType"
-              ]
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].remote",
@@ -657,12 +707,12 @@
               "items": [
                 {
                   "key": "tvs[].remote[]",
-                  "items": [
-                    "tvs[].remote[].command",
-                    "tvs[].remote[].target"
-                  ]
+                  "items": ["tvs[].remote[].command", "tvs[].remote[].target"]
                 }
-              ]
+              ],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             },
             {
               "key": "tvs[].displayOrder",
@@ -672,9 +722,10 @@
               "expanded": false,
               "orderable": false,
               "buttonText": "Add Catagory",
-              "items": [
-                "tvs[].displayOrder[]"
-              ]
+              "items": ["tvs[].displayOrder[]"],
+              "condition": {
+                "functionBody": "try { return model.tvs[arrayIndices[0]].active } catch(e){ return false }"
+              }
             }
           ]
         }

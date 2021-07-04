@@ -1,6 +1,6 @@
 {
   "name": "homebridge-bravia-tvos",
-  "version": "4.1.12",
+  "version": "5.0.0-beta.0",
   "description": "Homebridge plugin for Sony Bravia Android TVs",
   "main": "index.js",
   "repository": {
@@ -22,7 +22,12 @@
     }
   ],
   "scripts": {
-    "lint": "eslint --fix ."
+    "build": "concurrently \"npm run build:homebridge-ui\"",
+    "build:homebridge-ui": "npm run build --prefix homebridge-ui/ui",
+    "lint": "concurrently \"npm run lint:homebridge-ui\" \"npm run lint:plugin\"",
+    "lint:plugin": "eslint --fix .",
+    "lint:homebridge-ui": "npm run lint --prefix homebridge-ui/ui",
+    "prepublishOnly": "npm i --package-lock-only && npm run lint && npm run build"
   },
   "author": "SeydX (https://github.com/SeydX/homebridge-bravia-tvos)",
   "license": "MIT",
@@ -41,21 +46,22 @@
   ],
   "engines": {
     "node": ">=12.18.3",
-    "homebridge": "^1.1.6"
+    "homebridge": "^1.3.0"
   },
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^0.0.19",
-    "@seydx/bravia": "^1.1.0-beta.8",
+    "@seydx/bravia": "^2.0.0-beta.10",
     "fs-extra": "^10.0.0"
   },
   "devDependencies": {
-    "@babel/core": "7.14.3",
-    "@babel/eslint-parser": "7.14.4",
-    "@babel/eslint-plugin": "7.13.16",
-    "eslint": "^7.27.0",
+    "@babel/core": "7.14.6",
+    "@babel/eslint-parser": "7.14.7",
+    "@babel/eslint-plugin": "7.14.5",
+    "concurrently": "^6.2.0",
+    "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.4.0",
-    "prettier": "^2.3.0"
+    "prettier": "^2.3.2"
   }
 }
