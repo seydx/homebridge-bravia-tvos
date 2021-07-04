@@ -1,5 +1,5 @@
 {
-  "name": "braviatvos-homebridge.ui",
+  "name": "homebridge-bravia-tvos.ui",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -23,7 +23,7 @@
     "@vue/cli-service": "~4.5.13",
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.29.0",
+    "eslint": "^7.30.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.12.1",
     "node-sass": "^6.0.1",
