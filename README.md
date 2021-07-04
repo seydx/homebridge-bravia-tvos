@@ -3,7 +3,7 @@
 </p>
 
 
-# homebridge-bravia-tvos
+# homebridge-bravia-tvos v5
 
 [![npm](https://img.shields.io/npm/v/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
 [![npm](https://img.shields.io/npm/dt/homebridge-bravia-tvos.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-bravia-tvos)
@@ -27,10 +27,12 @@ This plugin supports following functions:
 - **Inputs:** like HDMI, Scart, CEC Devices, AV, WIFI etc.
 - **Apps:** like YouTube, Prime Video etc.
 - **Channels:** Your favourite channels as inputs.
+- **Commands:** IRCC commands s inputs.
+- **Macros:** A set of IRCC commands as one input
 - **Remote control:** native iOS Remote control with customizable commands
-- **Login:** with Pre-Shared Key or Token (PIN)
+- **Authentication:** with Pre-Shared Key or PIN
 - **WOL:** supports Wake on Lan
-- **Speaker:** with support for three types of speaker (speaker, switch with custom charactersitic or lightbulb)
+- **Speaker:** with support for two types of speaker (switch or lightbulb)
 - **Config UI X Custom UI** 
 
 ## Installation instructions
@@ -74,12 +76,11 @@ And to be able to use the plugin with the PIN procedure your credentials must be
 
 You can create the credentials as follows:
 
-``bravia pair <host> -p 80 -n MyTV -t 5``
+``bravia pair <host> -p 80 -n MyTV``
 
-- \<host\>: The address of your Bravia TV (eg 192.168.178.1)
-- -n: Name for the app (Default Bravia)
-- -p: The port of your Bravia TV (Default: 80)
-- -t: The amount of time (in seconds) to wait for the response (Default 5s)
+- \<host\>: The address of your Bravia TV _(eg 192.168.178.99)_
+- -n: Name for the app (Default `"@seydx/bravia"`)
+- -p: The port of your Bravia TV (Default: `80`)
 
 The PIN displayed on the TV must then be entered in the terminal. This will generate a credentials ``<Object>`` like this:
     
@@ -92,16 +93,18 @@ The PIN displayed on the TV must then be entered in the terminal. This will gene
 }
 ```
 
-You need to put the application name and application uuid in your config.json.
+Once that is done, you just need to add the "name" to your config.json under "appName". (E.g.: `"appName": "MyTV"`)
 
 **Example:**
 
-```
+```javascript
 {
+  ...
+  "active": true,
   "name": "Sony TV",
   "ip": "192.168.178.123",
+  "port": 80,
   "appName": "MyTV",
-  "appUUID": "e9812807-d394-407c-b657-c89a98804e65",
   ...
 }
 ```
@@ -125,7 +128,7 @@ You need to put the PSK entered in your tv also in your config.json.
 
 ## Example BASIC config
 
- ```
+ ```javascript
 {
  "bridge": {
    ...
@@ -144,24 +147,36 @@ You need to put the PSK entered in your tv also in your config.json.
           "ip": "192.168.178.123",
           "psk": "0000",
           "inputs": [
-            "extInput:cec",
-            "extInput:hdmi"
+             {
+              "name": "Apple TV",
+              "identifier": "Wohnzimmer",
+              "source": "cec"
+            }
           ],
           "apps": [
-            "YouTube",
-            "Smart IPTV"
+            {
+              "name": "You Tube",
+              "identifier": "YouTube"
+            }
           ],
           "channels": [
             {
+              "name": "Planet HD",
               "channel": 97,
-              "source": "tv:dvbt"
+              "source": "dvbt"
             }
           ],
           "commands": [
-            "AAAAAQAAAAEAAABgAw=="
+            {
+              "name": "Volume Up",
+              "value": "AAAAAQAAAAEAAABgAw=="
+            }
           ],
           "speaker": {
+            "active": true,
             "output": "speaker",
+            "increaseBy": 1,
+            "reduceBy": 1,
             "accType": "lightbulb"
           },
         }
@@ -175,43 +190,94 @@ You need to put the PSK entered in your tv also in your config.json.
  See [Example Config](https://github.com/SeydX/homebridge-bravia-tvos/blob/beta/example-config.json) for a **FULL** config example.
 
  
- ## Options Genral
+ ## Options General
 
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| name | **X** | Name for the log. | BraviaTVOS
-| debug |  | Enables additional output in the log. | false | true/false
-| polling |  | Polling interval in seconds. | 10s
+| name | **X** | Name for the log. | `BraviaTVOS`
+| debug |  | Enables additional output (debug) in the log. | `false` | `true`, `false`
+| warn |  | Enables additional output (warn) in the log. | `true` | `true`, `false`
+| error |  | Enables additional output (error) in the log. | `true` | `true`, `false`
+| extendedError |  | Enables additional output (detailed error) in the log. | `true` | `true`, `false`
+| polling |  | Polling interval in seconds. | `10` (s)
 
  ## Options TV
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| ip | **X** | Sony TV IP Address. | 
-| mac | | Sony TV MAC Address. |
-| port |  | Sony TV Port. | 80
-| psk | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
-| appName | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
-| appUUID | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above) |
-| timeout |  | Timer in seconds to wait for a response. | 5s
-| manufacturer | | Manufacturer name for display in the Home app. | Sony
-| model |  | Model name for display in the Home app. | tv/speaker
-| serialNumber |  | Serialnumber for display in the Home app. | Homebridge
-| refreshInputs |  | When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs) | false | true/false
-| inputs |  | Type of the tv input(s) to display in Apple Home. | [] | extInput:cec, extInput:component, extInput:composite, extInput:hdmi, extInput:scart, extInput:widi
-| apps |  | Name of the app(s) to display in Apple Home. | []
-| channels |  | Channel(s) to display in Apple Home. (see channels.channel and channels.source) |
-| channels.channel |  | Number of the channel as seen on the TV. |
-| channels.source |  | Source of the channel. | tv:dvbt | tv:dvbt, tv:dvbc, tv:dvbs, tv:analog
-| commands |  | IRCC code or name of the command to display in Apple Home. (eg. AAAAAQAAAAEAAABgAw== or PowerOff) |
-| speaker.output |  | Audio output. | speaker | speaker, headphone, other
-| speaker.increaseBy |  | Volume level to increse. (for Apple Remote) | 1
-| speaker.reduceBy |  | Volume level to reduce. (for Apple Remote) | 1
-| speaker.accType |  | Accessory type for the speaker. | false | speaker, switch, lightbulb
-| displayOrder |  | Array of catagories to sort inputs | ["apps", "channels", "commands", "inputs"] | "apps", "channels", "commands", "inputs"
-| remote |  | Customizable commands for Apple Remote |
-| remote.command | | IRCC command for choosen target
-| remote.target | | Target Apple Remote switch. | | ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT, ARROW_UP, BACK, EXIT, FAST_FORWARD, INFORMATION, NEXT_TRACK, PAUSE, PLAY, PREVIOUS_TRACK, REWIND, SELECT, SETTINGS, VOLUME_DOWN, VOLUME_UP
+| active | **X** | If enabled, the device will be exposed to HomeKit | `false` | `true`, `false`
+| ip | **X** | Sony TV IP Address.
+| mac | | Sony TV MAC Address.
+| port |  | Sony TV Port. | `80`
+| psk | **X** | Either psk **OR** appName/appUUID must be setted. (see preparing the TV above)
+| appName | **X** | Either psk **OR** appName must be setted. (see preparing the TV above)
+| manufacturer | | Manufacturer name for display in the Home app. `Sony`
+| model |  | Model name for display in the Home app. | `Bravia`
+| serialNumber |  | Serialnumber for display in the Home app. | `00000000`
+| refreshInputs |  | When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs) | `false` | `true`, `false`
+| wol |  | When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified) | `false` | `true`, `false`
+
+
+ ## Options TV Inputs
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| inputs.name | **X** | Name for the channel to display in the tv inputs list
+| inputs.identifier | **X** | Exact name of the input (eg HDMI 1)
+| inputs.source | **X** | Type of the tv input |  | `cec`, `component`, `composite`, `hdmi`, `scart`, `widi`
+
+ ## Options TV Apps
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| apps.name | **X** | Name for the application to display in the tv inputs list
+| apps.identifier | **X** | Exact name of the Application
+
+ ## Options TV Channels
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| channels.name | **X** | Name for the channel to display in the tv inputs list
+| channels.channel | **X** | Number of the channel as seen on the TV.
+| channels.source | **X** | Source of the channel. |  | `dvbt`, `dvbc`, `dvbs`, `isdbt`, `isdbc`, `isdbs`, `analog`
+
+ ## Options TV Commands
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| commands.name | **X** | Name for the command to display in the tv inputs list
+| commands.value | **X** | IRCC code or name of the command to display in Apple Home. (eg. "AAAAAQAAAAEAAABgAw==" or "PowerOff")
+
+ ## Options TV Macros
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| macros.name | **X** | Name for the macro to display in the tv inputs list
+| macros.delay |  | Delay between sending commands (in ms). (Default 1000ms)
+| macros.commands | **X** | An array of IRCC codes/names to perform the macro
+
+ ## Options TV Speaker
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| speaker.active | **X** | If enabled, the device will be exposed to HomeKit (as service within the TV accessory) | `false` | `true`, `false`
+| speaker.output |  | Audio output. | `speaker` | `speaker`, `headphone`, `other`
+| speaker.increaseBy |  | Volume level to increse. (for Apple Remote) | `1`
+| speaker.reduceBy |  | Volume level to reduce. (for Apple Remote) | `1`
+| speaker.accType |  | Accessory type for the speaker. | `lightbulb` | `switch`, `lightbulb`
+
+ ## Options TV Remote
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| remote.command | **X** | IRCC command/name for choosen target
+| remote.target | **X** | Apple remote target. | | `ARROW_DOWN`, `ARROW_LEFT`, `ARROW_RIGHT`, `ARROW_UP`, `BACK`, `EXIT`, `FAST_FORWARD`, `INFORMATION`, `NEXT_TRACK`, `PAUSE`, `PLAY`, `PREVIOUS_TRACK`, `REWIND`, `SELECT`, `SETTINGS`, `STOP`, `VOLUME_DOWN`, `VOLUME_UP`
+
+ ## Options TV Display Order
+ 
+| **Attributes** | **Required** | **Usage** | **Default** | **Options** |
+|----------------|--------------|-----------|-------------|-------------|
+| displayOrder |  | Array of catagories to sort inputs | `["apps", "channels", "commands", "inputs", "macros"]` | `apps`, `channels`, `commands`, `inputs`, `macros`
 
 ## Supported clients
 
@@ -219,8 +285,7 @@ This plugin has been verified to work with the following apps on iOS 14:
 
 * iOS 14
 * Apple Home
-* 3rd party apps like Elgato EVE (TV accessory still not supported because apple blocking it)
-* Homebridge v1.1.6+
+* Homebridge v1.3.0+
 
 
 ## Contributing
@@ -237,8 +302,7 @@ Pull requests are accepted.
 
 ## Troubleshooting
 
-If you have any issues with the plugin or TV services then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues. Just enable ``Debug`` in your config and restart homebridge.
-
+If you have any issues with the plugin or TV services then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues. Just enable ``"debug"`` in your config and restart homebridge.
 
 ## Disclaimer
 
