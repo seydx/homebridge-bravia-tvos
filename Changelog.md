@@ -1,9 +1,9 @@
 # Changelog
 
-# v5.0.0
+# v5.0.0 - 2021-07-04
 I am happy to present you version 5 of homebridge-bravia-tvos. The plugin has been redesigned from scratch, offers a new config UI and works much faster than v4. However, most of the changes have been done in the backend to make the plugin even more stable.
 
-Unfortunately some changes had to be made in config.json to improve readability and adapt it to the new version. For this reason I recommend you to delete the TV from your config.json and then reconfigure it via homebridge-config-ui-x. (If you enter the same name as before as TV name, the TV does not have to be removed from HomeKit).
+Unfortunately some changes had to be made in config.json to improve readability and adapt it to the new version. For this reason I recommend you to delete the TV from your config.json and then reconfigure it via homebridge-config-ui-x. And please take a look at the [example-config.json](https://github.com/SeydX/homebridge-bravia-tvos/blob/master/example-config.json) (If you enter the same name as before as TV name, the TV does not have to be removed from HomeKit).
 
 Have fun with version 5
 
