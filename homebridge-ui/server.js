@@ -129,7 +129,7 @@ class UiServer extends HomebridgePluginUiServer {
       throw new RequestError('Not authenticated!');
     }
 
-    return await fetchInputs(this.name, this.bravia);
+    return await fetchInputs(this.name, this.bravia, true);
   }
 
   async changeTV(television) {
@@ -168,32 +168,93 @@ class UiServer extends HomebridgePluginUiServer {
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Fetching apps..`);
+
     const apps = await this.getApps();
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Fetching channels..`);
+
     const channels = await this.getChannels();
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Fetching commands..`);
+
     const commands = await this.getCommands();
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Fetching inputs..`);
+
     const inputs = await this.getInputs();
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Refreshing cache..`);
-    await this.storeTV({
-      name: television.name,
-      inputs: {
-        apps: apps,
-        channels: channels,
-        commands: commands,
-        inputs: inputs,
-        macros: television.macros || [],
-      },
-    });
+
+    let tvCache = await this.getTV(television.name);
+
+    if (tvCache) {
+      tvCache.name = tvCache.name || television.name;
+
+      //REFRESH APPS
+      apps.forEach((app) => {
+        const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
+        if (!cachedApp) {
+          tvCache.apps.push(app);
+        }
+      });
+
+      tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
+
+      //REFRESH CHANNELS
+      channels.forEach((channel) => {
+        const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
+        if (!cachedChannel) {
+          tvCache.apps.push(channel);
+        }
+      });
+
+      tvCache.channels = tvCache.channels.filter((cachedChannel) =>
+        channels.find((channel) => channel.uri === cachedChannel.uri)
+      );
+
+      //REFRESH COMMANDS
+      commands.forEach((command) => {
+        const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
+        if (!cachedCommand) {
+          tvCache.apps.push(command);
+        }
+      });
+
+      tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+        commands.find((command) => command.value === cachedCommand.value)
+      );
+
+      //REFRESH INPUTS
+      inputs.forEach((exInput) => {
+        const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
+        if (!cachedExInput) {
+          tvCache.apps.push(exInput);
+        }
+      });
+
+      tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+        inputs.find((exInput) => exInput.uri === cachedExInput.uri)
+      );
+
+      await this.storeTV(tvCache);
+    } else {
+      tvCache = {
+        name: television.name,
+        inputs: {
+          apps: apps,
+          channels: channels,
+          commands: commands,
+          inputs: inputs,
+          macros: television.macros || [],
+        },
+      };
+    }
+
+    await this.storeTV(tvCache);
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Done!`);

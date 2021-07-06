@@ -19,20 +19,22 @@ exports.fetchApps = async (deviceName, bravia) => {
     });
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
-    logger.error(err);
+    logger.error(err, deviceName);
   }
 
   return apps;
 };
 
-exports.fetchInputs = async (deviceName, bravia) => {
+exports.fetchInputs = async (deviceName, bravia, wakeUp) => {
   let inputs = [];
 
   try {
     logger.debug('Fetching inputs', deviceName);
 
-    await bravia.wake();
-    await setTimeoutAsync(1000);
+    if (wakeUp) {
+      await bravia.wake();
+      await setTimeoutAsync(5000);
+    }
 
     const response = await bravia.exec('avContent', 'getCurrentExternalInputsStatus');
     inputs = response.result[0].map((input) => {
@@ -44,7 +46,7 @@ exports.fetchInputs = async (deviceName, bravia) => {
     });
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
-    logger.error(err);
+    logger.error(err, deviceName);
   }
 
   return inputs;
@@ -85,7 +87,7 @@ exports.fetchChannels = async (deviceName, bravia) => {
           //3: Illegal Argument, TV does not allow query channels with given parameter - DONE
           //14: Unsupported Version, TV does not support fetching channels - DONE
           logger.warn(`An error occured during fetching channels for source ${source}!`, deviceName);
-          logger.error(err);
+          logger.error(err, deviceName);
         }
       }
 
@@ -98,7 +100,7 @@ exports.fetchChannels = async (deviceName, bravia) => {
     }
   } catch (err) {
     logger.warn('An error occured during fetching channels!', deviceName);
-    logger.error(err);
+    logger.error(err, deviceName);
   }
 
   return channels;
@@ -113,7 +115,7 @@ exports.fetchCommands = async (deviceName, bravia) => {
     commands = await bravia.getIRCCCodes();
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
-    logger.error(err);
+    logger.error(err, deviceName);
   }
 
   return commands;
@@ -134,9 +136,9 @@ exports.removeTVFromCache = async (deviceName, storagePath) => {
   return await fs.remove(`${storagePath}/bravia/${deviceName}.json`);
 };
 
-exports.writeTvToCache = async (deviceName, storagePath, inputs) => {
+exports.writeTvToCache = async (deviceName, storagePath, tvCache) => {
   await fs.ensureDir(`${storagePath}/bravia`, { throws: false });
-  return await fs.writeJson(`${storagePath}/bravia/${deviceName}.json`, inputs, {
+  return await fs.writeJson(`${storagePath}/bravia/${deviceName}.json`, tvCache, {
     spaces: 4,
     throws: false,
   });

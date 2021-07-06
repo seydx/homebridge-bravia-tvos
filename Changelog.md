@@ -1,5 +1,18 @@
 # Changelog
 
+# v5.0.1 - 2021-07-06
+
+## Notable Changes
+- **Sheduled Refresh**
+  - Added new `sheduledRefresh` option to config.json. Sheduled Refresh enables automatic refreshing of the inputs list in the background.
+
+## Other Changes
+- **Config**
+  - Moved `polling` from **config.polling** to **config.tvs[].polling** to allow specific polling timer for each tv
+
+## Bugfixes
+- Fixed an issue where refreshing television (inputs) also removed the television cache (name, input visibility)
+
 # v5.0.0 - 2021-07-04
 I am happy to present you version 5 of homebridge-bravia-tvos. The plugin has been redesigned from scratch, offers a new config UI and works much faster than v4. However, most of the changes have been done in the backend to make the plugin even more stable.
 
@@ -34,8 +47,10 @@ _- seydx_
 - The code has been refactored (again)
 - The backend module `@seydx/bravia` was completely rewritten
 - Adjusted config.schema.json to reflect the changes mentioned above
-- Bug fixes
 - Updated dependencies
+
+## Bugfixes
+- Some minor bugfixes
 
 ## v4.1.12 - 2021-05-20
 - Fix [#127](https://github.com/SeydX/homebridge-bravia-tvos/issues/127)

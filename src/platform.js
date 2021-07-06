@@ -27,7 +27,6 @@ function BraviaOSPlatform(log, config, api) {
   this.api = api;
   this.accessories = [];
   this.config = generateConfig(config);
-  this.polling = this.config.polling;
   this.devices = new Map();
 
   this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
@@ -43,6 +42,8 @@ BraviaOSPlatform.prototype = {
       logger.info('Configuring new accessory...', device.name);
 
       const accessory = new Accessory(device.name, uuid);
+      accessory.category = this.api.hap.Categories.TELEVISION;
+
       this.setupAccessory(accessory, device);
       this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 
@@ -65,8 +66,6 @@ BraviaOSPlatform.prototype = {
 
     accessory.context.busy = false;
     accessory.context.config = device;
-    accessory.context.config.polling = this.polling;
-    accessory.category = this.api.hap.Categories.TELEVISION;
 
     new TelevisionAccessory(this.api, accessory, bravia);
   },

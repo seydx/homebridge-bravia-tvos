@@ -27,6 +27,7 @@
           "serialNumber": "123456",
           "wol": false,
           "refreshInputs": false,
+          "sheduledRefresh": 12,
           "inputs": [
             {
               "name": "Apple TV",

@@ -362,6 +362,8 @@ export default {
           serialNumber: '00000000',
           wol: false,
           refreshInputs: false,
+          polling: 10,
+          sheduledRefresh: 12,
           inputs: [],
           apps: [],
           channels: [],

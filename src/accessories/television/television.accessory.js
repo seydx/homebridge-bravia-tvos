@@ -15,15 +15,18 @@ class Accessory {
     this.handler = new Handler(api, accessory, this.inputs, bravia);
     this.getService();
 
-    this.api.on(
-      'shutdown',
-      async () =>
-        await writeTvToCache(
-          this.accessory.displayName,
-          this.api.user.storagePath(),
-          this.accessory.context.config.tvCache
-        )
-    );
+    this.api.on('shutdown', async () => {
+      await writeTvToCache(
+        this.accessory.displayName,
+        this.api.user.storagePath(),
+        this.accessory.context.config.tvCache
+      );
+
+      logger.debug(
+        `Televison cached: ${this.api.user.storagePath()}/bravia/${this.accessory.displayName}.json`,
+        this.accessory.displayName
+      );
+    });
   }
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -92,20 +95,20 @@ class Accessory {
             };
           }
         } else if (configInput.type === 'inputs') {
-          const input = this.tvCache.inputs.find(
-            (tvInput) => tvInput.source === configInput.source && tvInput.name === configInput.name
+          const exInput = this.tvCache.inputs.find(
+            (exInput) => exInput.source === configInput.source && exInput.name === configInput.name
           );
           const inputIndex = this.tvCache.inputs.findIndex(
             (tvInput) => tvInput.source === configInput.source && tvInput.name === configInput.name
           );
 
-          if (input) {
+          if (exInput) {
             return {
               ...configInput,
-              ...input,
+              ...exInput,
               origin: inputIndex,
-              inputSourceType: getInputSourceType(input.source),
-              inputDeviceType: getInputDeviceType(input.source),
+              inputSourceType: getInputSourceType(exInput.source),
+              inputDeviceType: getInputDeviceType(exInput.source),
             };
           }
         } else if (configInput.type === 'macros') {

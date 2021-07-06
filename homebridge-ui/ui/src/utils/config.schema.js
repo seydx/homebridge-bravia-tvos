@@ -118,6 +118,24 @@ export default {
             functionBody: 'try { return model.tvs.active } catch(e){ return false }',
           },
         },
+        polling: {
+          title: 'Polling',
+          type: 'integer',
+          default: 10,
+          description: 'Polling interval in seconds.',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
+        sheduledRefresh: {
+          title: 'Sheduled Refresh',
+          type: 'integer',
+          default: 12,
+          description: 'Sheduled television (inputs) cache refresh in hours (0 = disabled).',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
         inputs: {
           title: 'TV Inputs',
           type: 'array',
@@ -453,6 +471,8 @@ export default {
     'tvs.ip',
     'tvs.mac',
     'tvs.port',
+    'tvs.polling',
+    'tvs.sheduledRefresh',
     'tvs.refreshInputs',
     'tvs.wol',
     {

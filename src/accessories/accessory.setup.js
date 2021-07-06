@@ -13,6 +13,86 @@ const {
   writeTvToCache,
 } = require('./accessory.utils');
 
+const refreshCache = async (device, bravia, storagePath) => {
+  try {
+    logger.debug('Running scheduled cache refresh...', device.name);
+
+    let tvCache = await getTvFromCache(device.name, storagePath);
+
+    if (tvCache) {
+      const apps = await fetchApps(device.name, bravia);
+      const channels = await fetchChannels(device.name, bravia);
+      const commands = await fetchCommands(device.name, bravia);
+      const inputs = await fetchInputs(device.name, bravia);
+
+      tvCache.name = tvCache.name || device.name;
+
+      //REFRESH APPS
+      apps.forEach((app) => {
+        const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
+        if (!cachedApp) {
+          tvCache.apps.push(app);
+        }
+      });
+
+      tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
+
+      //REFRESH CHANNELS
+      channels.forEach((channel) => {
+        const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
+        if (!cachedChannel) {
+          tvCache.apps.push(channel);
+        }
+      });
+
+      tvCache.channels = tvCache.channels.filter((cachedChannel) =>
+        channels.find((channel) => channel.uri === cachedChannel.uri)
+      );
+
+      //REFRESH COMMANDS
+      commands.forEach((command) => {
+        const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
+        if (!cachedCommand) {
+          tvCache.apps.push(command);
+        }
+      });
+
+      tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+        commands.find((command) => command.value === cachedCommand.value)
+      );
+
+      //REFRESH INPUTS
+      inputs.forEach((exInput) => {
+        const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
+        if (!cachedExInput) {
+          tvCache.apps.push(exInput);
+        }
+      });
+
+      tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+        inputs.find((exInput) => exInput.uri === cachedExInput.uri)
+      );
+
+      await writeTvToCache(device.name, storagePath, tvCache);
+
+      logger.debug(`Television cached: ${storagePath}/bravia/${device.name}.json`, device.name);
+      logger.debug('Next sheduled cache refresh in 12h', device.name);
+
+      setTimeout(() => refreshCache(device, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
+    } else {
+      logger.debug(
+        'Can not refresh television during sheduled cache refresh. No television found in cache!',
+        device.name
+      );
+    }
+  } catch (err) {
+    logger.warn('An error occured during running sheduled cache refresh! Trying again in 1h', device.name);
+    logger.error(err, device.name);
+
+    setTimeout(() => refreshCache(device, storagePath), 1 * 60 * 60 * 1000); //1h
+  }
+};
+
 const Setup = async (devices, tvConfigs, storagePath) => {
   for (const config of tvConfigs) {
     let error = false;
@@ -39,7 +119,7 @@ const Setup = async (devices, tvConfigs, storagePath) => {
       } else {
         logger.info('Initializing Television...', device.name);
 
-        device.bravia = new Bravia({
+        const bravia = new Bravia({
           name: device.appName,
           host: device.ip,
           mac: device.mac,
@@ -47,34 +127,96 @@ const Setup = async (devices, tvConfigs, storagePath) => {
           psk: device.psk,
         });
 
+        device.bravia = bravia;
+
         //Configure inputs
         let tvCache = await getTvFromCache(device.name, storagePath);
 
         if (device.refreshInputs || !tvCache) {
           if (device.refreshInputs) {
-            logger.debug('Refreshing inputs..', device.name);
+            logger.debug('"refreshInputs" enabled - refreshing inputs..', device.name);
           } else {
             logger.debug('No cached inputs found, refreshing inputs..', device.name);
           }
 
-          tvCache = {
-            name: device.name,
-            apps: (await fetchApps(device.name, device.bravia)) || [],
-            inputs: (await fetchInputs(device.name, device.bravia)) || [],
-            channels: (await fetchChannels(device.name, device.bravia)) || [],
-            commands: (await fetchCommands(device.name, device.bravia)) || [],
-            macros: device.macros,
-          };
+          const apps = await fetchApps(device.name, device.bravia);
+          const channels = await fetchChannels(device.name, device.bravia);
+          const commands = await fetchCommands(device.name, device.bravia);
+          const inputs = await fetchInputs(device.name, device.bravia, true);
+
+          if (tvCache) {
+            tvCache.name = tvCache.name || device.name;
+
+            //REFRESH APPS
+            apps.forEach((app) => {
+              const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
+              if (!cachedApp) {
+                tvCache.apps.push(app);
+              }
+            });
+
+            tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
+
+            //REFRESH CHANNELS
+            channels.forEach((channel) => {
+              const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
+              if (!cachedChannel) {
+                tvCache.apps.push(channel);
+              }
+            });
+
+            tvCache.channels = tvCache.channels.filter((cachedChannel) =>
+              channels.find((channel) => channel.uri === cachedChannel.uri)
+            );
+
+            //REFRESH COMMANDS
+            commands.forEach((command) => {
+              const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
+              if (!cachedCommand) {
+                tvCache.apps.push(command);
+              }
+            });
+
+            tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+              commands.find((command) => command.value === cachedCommand.value)
+            );
+
+            //REFRESH INPUTS
+            inputs.forEach((exInput) => {
+              const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
+              if (!cachedExInput) {
+                tvCache.apps.push(exInput);
+              }
+            });
+
+            tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+              inputs.find((exInput) => exInput.uri === cachedExInput.uri)
+            );
+          } else {
+            //NEW
+            tvCache = {
+              name: device.name,
+              apps: apps,
+              channels: channels,
+              commands: commands,
+              inputs: inputs,
+              macros: device.macros,
+            };
+          }
 
           await writeTvToCache(device.name, storagePath, tvCache);
+          logger.debug(`Television cached: ${storagePath}/bravia/${device.name}.json`, device.name);
 
-          logger.debug(`Inputs written into cache: ${storagePath}/bravia/${device.name}.json`, device.name);
           device.tvCache = tvCache;
         } else {
           logger.debug(`Getting inputs from cache: ${storagePath}/bravia/${device.name}.json`, device.name);
 
           tvCache.macros = device.macros;
           device.tvCache = tvCache;
+        }
+
+        if (device.sheduledRefresh) {
+          setTimeout(() => refreshCache(device, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
         }
 
         devices.set(uuid, device);

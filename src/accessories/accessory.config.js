@@ -58,6 +58,8 @@ const Config = (tvConfig) => {
     model: tvConfig.model || 'Bravia',
     serialNumber: tvConfig.serialNumber || '000000000',
     refreshInputs: tvConfig.refreshInputs || false,
+    polling: tvConfig.polling >= 10 ? tvConfig.polling : 10,
+    sheduledRefresh: tvConfig.sheduledRefresh >= 0 ? tvConfig.sheduledRefresh : 0,
     inputs: (tvConfig.inputs || [])
       .map((input) => {
         if (input.name && input.identifier && validInputSources.includes(input.source)) {

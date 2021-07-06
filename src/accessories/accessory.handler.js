@@ -49,7 +49,7 @@ class Handler {
       }
     } catch (err) {
       logger.warn('An error occured during getting television state!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     }
   }
 
@@ -94,7 +94,7 @@ class Handler {
       this.changeSpeakerAccessory(mute, volume);
     } catch (err) {
       logger.warn('An error occured during getting speaker state!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     }
   }
 
@@ -140,7 +140,7 @@ class Handler {
       }
     } catch (err) {
       logger.warn('An error occured during setting state!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }
@@ -222,7 +222,7 @@ class Handler {
             await this.bravia.execCommand(input.commands, input.delay);
           } catch (err) {
             logger.warn('An error occured during executing macro!', this.accessory.displayName);
-            logger.error(err);
+            logger.error(err, this.accessory.displayName);
           }
         }, 1);
 
@@ -241,7 +241,7 @@ class Handler {
       }
     } catch (err) {
       logger.warn('An error occured during setting identifier state!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }
@@ -358,7 +358,7 @@ class Handler {
       }
     } catch (err) {
       logger.warn('An error occured during setting remote key!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }
@@ -387,7 +387,7 @@ class Handler {
       this.accessory.context.speakerMute = state;
     } catch (err) {
       logger.warn('An error occured during setting mute state!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }
@@ -415,7 +415,7 @@ class Handler {
       this.accessory.context.speakerVolume = state;
     } catch (err) {
       logger.warn('An error occured during setting volume!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }
@@ -445,7 +445,7 @@ class Handler {
       });
     } catch (err) {
       logger.warn('An error occured during setting volume (selctor)!', this.accessory.displayName);
-      logger.error(err);
+      logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;
     }

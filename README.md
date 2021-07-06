@@ -201,7 +201,6 @@ You need to put the PSK entered in your tv also in your config.json.
 | warn |  | Enables additional output (warn) in the log. | `true` | `true`, `false`
 | error |  | Enables additional output (error) in the log. | `true` | `true`, `false`
 | extendedError |  | Enables additional output (detailed error) in the log. | `true` | `true`, `false`
-| polling |  | Polling interval in seconds. | `10` (s)
 
  ## Options TV
  
@@ -218,6 +217,8 @@ You need to put the PSK entered in your tv also in your config.json.
 | serialNumber |  | Serialnumber for display in the Home app. | `00000000`
 | refreshInputs |  | When this option is enabled, the TV updates all inputs and saves them to disk for further use. (Please turn on the TV before restarting homebridge with this option enabled, otherwise the plugin will turn on the TV to also retrieve CEC inputs) | `false` | `true`, `false`
 | wol |  | When this option is enabled, the plugin uses WOL instead of API to turn on the TV. (WOL must be enabled on the TV and a MAC address must be specified) | `false` | `true`, `false`
+| polling |  | Polling interval in seconds. | `10` (s)
+| sheduledRefresh |  | Sheduled television (inputs) cache refresh in hours. | `12` (h)
 
 
  ## Options TV Inputs
