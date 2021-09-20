@@ -86,7 +86,7 @@ class Handler {
           this.accessory.context.speakerVolume = volume;
         } else {
           logger.warn(
-            `Defined speaker output "${target}" not found! Can not change speaker state/volume!`,
+            `Defined speaker output "${target}" not found! Can not update speaker state/volume!`,
             this.accessory.displayName
           );
           logger.warn(`Available speaker outputs: ${availableTargets.toString()}`, this.accessory.displayName);
@@ -502,7 +502,7 @@ class Handler {
         volume: volumeLevel,
       });
     } catch (err) {
-      logger.warn('An error occured during setting volume (selctor)!', this.accessory.displayName);
+      logger.warn('An error occured during setting volume (selector)!', this.accessory.displayName);
       logger.error(err, this.accessory.displayName);
     } finally {
       this.accessory.context.busy = false;

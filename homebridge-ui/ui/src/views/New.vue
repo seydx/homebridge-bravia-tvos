@@ -361,6 +361,7 @@ export default {
           model: 'Bravia',
           serialNumber: '00000000',
           wol: false,
+          oldModel: false,
           refreshInputs: false,
           polling: 10,
           sheduledRefresh: 12,
