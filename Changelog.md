@@ -1,5 +1,13 @@
 # Changelog
 
+# v5.0.3 - 2021-09-20
+
+## Other Changes
+- Refactored `volume selector`: IRCC instead of API calls
+
+## Bugfixes
+- Minor Bugfixes
+
 # v5.0.2 - 2021-09-20
 
 ## Other Changes

@@ -448,11 +448,9 @@ class Handler {
       }
 
       const target =
-        this.accessory.context.config.speaker.output === 'other'
-          ? 'speaker'
-          : this.accessory.context.config.speaker.output;
+        this.accessory.context.config.speaker.output === 'other' ? '' : this.accessory.context.config.speaker.output;
 
-      logger.info(`Volume: ${state} (${target})`);
+      logger.info(`Volume: ${state} (${this.accessory.context.config.speaker.output})`);
 
       this.accessory.context.busy = true;
 
@@ -481,6 +479,42 @@ class Handler {
         return;
       }
 
+      // Volume Control through IRCC
+
+      const target =
+        this.accessory.context.config.speaker.output === 'other'
+          ? 'speaker'
+          : this.accessory.context.config.speaker.output;
+
+      const volumeLevel = state
+        ? this.accessory.context.config.speaker.reduceBy
+        : this.accessory.context.config.speaker.increaseBy;
+
+      const volumeCommand = state
+        ? this.accessory.context.config.remote.VOLUME_DOWN
+        : this.accessory.context.config.remote.VOLUME_UP;
+
+      const irccCommands = [];
+
+      for (let i = 0; i < volumeLevel; i++) {
+        irccCommands.push(volumeCommand);
+      }
+
+      logger.info(
+        `${state ? 'Reducing' : 'Increasing'} volume by ${volumeLevel} (${target})`,
+        this.accessory.displayName
+      );
+
+      logger.debug(`Execute Command: ${volumeCommand}`, this.accessory.displayName);
+
+      this.accessory.context.busy = true;
+
+      await this.bravia.execCommand(irccCommands);
+
+      /*
+
+      //Volume control through API
+      
       const target =
         this.accessory.context.config.speaker.output === 'other'
           ? 'speaker'
@@ -490,17 +524,14 @@ class Handler {
         ? `-${this.accessory.context.config.speaker.reduceBy}`
         : `+${this.accessory.context.config.speaker.increaseBy}`;
 
-      logger.info(
-        `${state ? 'Reducing' : 'Increasing'} volume by ${volumeLevel} (${target})`,
-        this.accessory.displayName
-      );
-
       this.accessory.context.busy = true;
 
       await this.bravia.exec('audio', 'setAudioVolume', '1.0', {
         target: '',
         volume: volumeLevel,
       });
+      
+      */
     } catch (err) {
       logger.warn('An error occured during setting volume (selector)!', this.accessory.displayName);
       logger.error(err, this.accessory.displayName);
