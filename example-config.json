@@ -26,6 +26,7 @@
           "model": "KD5050",
           "serialNumber": "123456",
           "wol": false,
+          "oldModel": false,
           "refreshInputs": false,
           "sheduledRefresh": 12,
           "inputs": [
