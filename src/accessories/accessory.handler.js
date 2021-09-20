@@ -48,8 +48,10 @@ class Handler {
           .updateValue(identifier);
       }
     } catch (err) {
-      logger.warn('An error occured during getting television state!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      if (!(err && err.title === 'No response' && this.accessory.context.config.oldModel)) {
+        logger.warn('An error occured during getting television state!', this.accessory.displayName);
+        logger.error(err, this.accessory.displayName);
+      }
     }
   }
 
@@ -93,8 +95,10 @@ class Handler {
 
       this.changeSpeakerAccessory(mute, volume);
     } catch (err) {
-      logger.warn('An error occured during getting speaker state!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      if (!(err && err.title === 'No response' && this.accessory.context.config.oldModel)) {
+        logger.warn('An error occured during getting speaker state!', this.accessory.displayName);
+        logger.error(err, this.accessory.displayName);
+      }
     }
   }
 
@@ -257,61 +261,96 @@ class Handler {
       switch (state) {
         case this.api.hap.Characteristic.RemoteKey.REWIND:
           logger.info('Rewind', this.accessory.displayName);
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.REWIND}`, this.accessory.displayName);
           await this.bravia.execCommand(this.accessory.context.config.remote.REWIND);
           break;
         case this.api.hap.Characteristic.RemoteKey.FAST_FORWARD:
           logger.info('Fast Forward', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.FAST_FORWARD}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.FAST_FORWARD);
           break;
         case this.api.hap.Characteristic.RemoteKey.NEXT_TRACK:
           logger.info('Next Track', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.NEXT_TRACK}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.NEXT_TRACK);
           break;
         case this.api.hap.Characteristic.RemoteKey.PREVIOUS_TRACK:
           logger.info('Previous Track', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.PREVIOUS_TRACK}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.PREVIOUS_TRACK);
           break;
         case this.api.hap.Characteristic.RemoteKey.ARROW_UP:
           logger.info('Up', this.accessory.displayName);
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.ARROW_UP}`, this.accessory.displayName);
           await this.bravia.execCommand(this.accessory.context.config.remote.ARROW_UP);
           break;
         case this.api.hap.Characteristic.RemoteKey.ARROW_DOWN:
           logger.info('Down', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.ARROW_DOWN}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.ARROW_DOWN);
           break;
         case this.api.hap.Characteristic.RemoteKey.ARROW_LEFT:
           logger.info('Left', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.ARROW_LEFT}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.ARROW_LEFT);
           break;
         case this.api.hap.Characteristic.RemoteKey.ARROW_RIGHT:
           logger.info('Right', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.ARROW_RIGHT}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.ARROW_RIGHT);
           break;
         case this.api.hap.Characteristic.RemoteKey.SELECT:
           logger.info('Select', this.accessory.displayName);
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.SELECT}`, this.accessory.displayName);
           await this.bravia.execCommand(this.accessory.context.config.remote.SELECT);
           break;
         case this.api.hap.Characteristic.RemoteKey.BACK:
           logger.info('Back', this.accessory.displayName);
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.BACK}`, this.accessory.displayName);
           await this.bravia.execCommand(this.accessory.context.config.remote.BACK);
           break;
         case this.api.hap.Characteristic.RemoteKey.EXIT:
           logger.info('Exit', this.accessory.displayName);
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.EXIT}`, this.accessory.displayName);
           await this.bravia.execCommand(this.accessory.context.config.remote.EXIT);
           break;
         case this.api.hap.Characteristic.RemoteKey.PLAY_PAUSE:
           if (this.pause) {
             this.pause = false;
             logger.info('Pause', this.accessory.displayName);
+            logger.debug(`Execute Command: ${this.accessory.context.config.remote.PAUSE}`, this.accessory.displayName);
             await this.bravia.execCommand(this.accessory.context.config.remote.PAUSE);
           } else {
             this.pause = true;
             logger.info('Play', this.accessory.displayName);
+            logger.debug(`Execute Command: ${this.accessory.context.config.remote.PLAY}`, this.accessory.displayName);
             await this.bravia.execCommand(this.accessory.context.config.remote.PLAY);
           }
           break;
         case this.api.hap.Characteristic.RemoteKey.INFORMATION:
           logger.info('Information', this.accessory.displayName);
+          logger.debug(
+            `Execute Command: ${this.accessory.context.config.remote.INFORMATION}`,
+            this.accessory.displayName
+          );
           await this.bravia.execCommand(this.accessory.context.config.remote.INFORMATION);
           break;
         case 'MEDIA': {
@@ -334,6 +373,8 @@ class Handler {
             return;
           }
 
+          logger.debug(`Execute Command: ${command}`, this.accessory.displayName);
+
           await this.bravia.execCommand(command);
           break;
         }
@@ -348,6 +389,8 @@ class Handler {
             logger.warn('Can not open TV Settings, Television is not active!', this.accessory.displayName);
             return;
           }
+
+          logger.debug(`Execute Command: ${this.accessory.context.config.remote.SETTINGS}`, this.accessory.displayName);
 
           await this.bravia.execCommand(this.accessory.context.config.remote.SETTINGS);
           break;
@@ -404,11 +447,17 @@ class Handler {
         return;
       }
 
+      const target =
+        this.accessory.context.config.speaker.output === 'other'
+          ? 'speaker'
+          : this.accessory.context.config.speaker.output;
+
+      logger.info(`Volume: ${state} (${target})`);
+
       this.accessory.context.busy = true;
-      logger.info(`Volume: ${state}`);
 
       await this.bravia.exec('audio', 'setAudioVolume', '1.0', {
-        target: '',
+        target: target,
         volume: state.toString(),
       });
 
@@ -432,12 +481,21 @@ class Handler {
         return;
       }
 
+      const target =
+        this.accessory.context.config.speaker.output === 'other'
+          ? 'speaker'
+          : this.accessory.context.config.speaker.output;
+
       const volumeLevel = state
         ? `-${this.accessory.context.config.speaker.reduceBy}`
         : `+${this.accessory.context.config.speaker.increaseBy}`;
 
+      logger.info(
+        `${state ? 'Reducing' : 'Increasing'} volume by ${volumeLevel} (${target})`,
+        this.accessory.displayName
+      );
+
       this.accessory.context.busy = true;
-      logger.info(`${state ? 'Reducing' : 'Increasing'} volume by ${volumeLevel}`, this.accessory.displayName);
 
       await this.bravia.exec('audio', 'setAudioVolume', '1.0', {
         target: '',

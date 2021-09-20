@@ -1,5 +1,21 @@
 # Changelog
 
+# v5.0.2 - 2021-09-20
+
+## Other Changes
+- **Custom UI**
+  - Added a `popover` to **Configs** (navi)
+- **Homebridge**
+  - Added new `oldModel` option to the config.json, which allows to hide errors in the log when the API is not available
+- Updated dependencies
+
+## Bugfixes
+- Fixed an issue where reloading/fetching inputs didnt work
+- Fixed an issue where editing the config with custom ui didnt work
+- Fixed an issue where custom remote commands were ignored
+- Fixed an issue where changing volume didnt work on some tvs
+- Minor Bugfixes
+  
 # v5.0.1 - 2021-07-06
 
 ## Notable Changes

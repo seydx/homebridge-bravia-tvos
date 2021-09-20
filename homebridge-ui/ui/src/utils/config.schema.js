@@ -118,6 +118,15 @@ export default {
             functionBody: 'try { return model.tvs.active } catch(e){ return false }',
           },
         },
+        oldModel: {
+          title: 'Old Model',
+          type: 'boolean',
+          description:
+            'Some TV models go offline after a certain time (when the TV is turned off) and the API is no longer accessible, which causes errors in the log. Enable this option to hide these errors in the log. (Note: For these types of TVs, please also specify the Mac address in config.json).',
+          condition: {
+            functionBody: 'try { return model.tvs.active } catch(e){ return false }',
+          },
+        },
         polling: {
           title: 'Polling',
           type: 'integer',
@@ -475,6 +484,7 @@ export default {
     'tvs.sheduledRefresh',
     'tvs.refreshInputs',
     'tvs.wol',
+    'tvs.oldModel',
     {
       key: 'tvs',
       type: 'section',

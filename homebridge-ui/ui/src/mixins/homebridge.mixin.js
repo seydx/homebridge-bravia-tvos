@@ -41,7 +41,7 @@ export default {
     generatePluginShema: async (pluginConfig, tv, inputs) => {
       console.log('Generating Custom Schema');
 
-      if (!inputs.apps.length) {
+      if (inputs.apps && !inputs.apps.length) {
         delete configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf;
       } else {
         inputs.apps.forEach((app) => {
@@ -52,7 +52,7 @@ export default {
         });
       }
 
-      if (!inputs.channels.length) {
+      if (inputs.channels && !inputs.channels.length) {
         configSchema.schema.tvs.properties.channels = {
           title: 'Channels',
           type: 'array',
@@ -154,7 +154,7 @@ export default {
         });
       }
 
-      if (!inputs.commands.length) {
+      if (inputs.commands && !inputs.commands.length) {
         delete configSchema.schema.tvs.properties.commands.items.properties.value.oneOf;
         delete configSchema.schema.tvs.properties.remote.items.properties.command.oneOf;
         delete configSchema.schema.tvs.properties.macros.items.properties.commands.items.oneOf;
@@ -219,7 +219,7 @@ export default {
         });
       }
 
-      if (!inputs.inputs.length) {
+      if (inputs.inputs && !inputs.inputs.length) {
         configSchema.schema.tvs.properties.inputs = {
           title: 'TV Inputs',
           type: 'array',

@@ -191,12 +191,19 @@ class UiServer extends HomebridgePluginUiServer {
 
     let tvCache = await this.getTV(television.name);
 
+    tvCache.apps = tvCache.apps || [];
+    tvCache.channels = tvCache.channels || [];
+    tvCache.commands = tvCache.commands || [];
+    tvCache.inputs = tvCache.inputs || [];
+    tvCache.macros = tvCache.macros || [];
+
     if (tvCache) {
       tvCache.name = tvCache.name || television.name;
 
       //REFRESH APPS
       apps.forEach((app) => {
         const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
+
         if (!cachedApp) {
           tvCache.apps.push(app);
         }
@@ -207,6 +214,7 @@ class UiServer extends HomebridgePluginUiServer {
       //REFRESH CHANNELS
       channels.forEach((channel) => {
         const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
+
         if (!cachedChannel) {
           tvCache.apps.push(channel);
         }
@@ -219,6 +227,7 @@ class UiServer extends HomebridgePluginUiServer {
       //REFRESH COMMANDS
       commands.forEach((command) => {
         const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
+
         if (!cachedCommand) {
           tvCache.apps.push(command);
         }
@@ -231,6 +240,7 @@ class UiServer extends HomebridgePluginUiServer {
       //REFRESH INPUTS
       inputs.forEach((exInput) => {
         const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
+
         if (!cachedExInput) {
           tvCache.apps.push(exInput);
         }

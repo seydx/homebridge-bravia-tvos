@@ -40,8 +40,8 @@ const Config = (tvConfig) => {
   };
 
   (tvConfig.remote || []).forEach((cmd) => {
-    if (tvConfig.remote[cmd.target]) {
-      tvConfig.remote[cmd.target] = cmd.command;
+    if (cmd.target && cmd.command && tvRemote[cmd.target]) {
+      tvRemote[cmd.target] = cmd.command;
     }
   });
 
@@ -54,6 +54,7 @@ const Config = (tvConfig) => {
     mac: validMAC(tvConfig.mac),
     port: tvConfig.port || 80,
     psk: tvConfig.psk,
+    oldModel: tvConfig.oldMode || false,
     manufacturer: tvConfig.manufacturer || 'Sony',
     model: tvConfig.model || 'Bravia',
     serialNumber: tvConfig.serialNumber || '000000000',

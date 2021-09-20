@@ -11,12 +11,15 @@ exports.fetchApps = async (deviceName, bravia) => {
     logger.debug('Fetching applications', deviceName);
 
     const response = await bravia.exec('appControl', 'getApplicationList');
-    apps = response.result[0].map((input) => {
-      return {
-        name: input.title || input.name || input.label,
-        uri: input.uri,
-      };
-    });
+
+    if (response.result[0].length) {
+      apps = response.result[0].map((input) => {
+        return {
+          name: input.title || input.name || input.label,
+          uri: input.uri,
+        };
+      });
+    }
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
     logger.error(err, deviceName);
@@ -37,13 +40,16 @@ exports.fetchInputs = async (deviceName, bravia, wakeUp) => {
     }
 
     const response = await bravia.exec('avContent', 'getCurrentExternalInputsStatus');
-    inputs = response.result[0].map((input) => {
-      return {
-        name: input.title || input.name || input.label,
-        uri: input.uri,
-        source: input.uri.split('?')[0].split('extInput:')[1],
-      };
-    });
+
+    if (response.result[0].length) {
+      inputs = response.result[0].map((input) => {
+        return {
+          name: input.title || input.name || input.label,
+          uri: input.uri,
+          source: input.uri.split('?')[0].split('extInput:')[1],
+        };
+      });
+    }
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
     logger.error(err, deviceName);

@@ -19,6 +19,7 @@ import {
   FormGroupPlugin,
   LinkPlugin,
   ModalPlugin,
+  PopoverPlugin,
 } from 'bootstrap-vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -41,6 +42,7 @@ Vue.use(FormInputPlugin);
 Vue.use(FormGroupPlugin);
 Vue.use(LinkPlugin);
 Vue.use(ModalPlugin);
+Vue.use(PopoverPlugin);
 Vue.use(VueEllipseProgress);
 
 new Vue({

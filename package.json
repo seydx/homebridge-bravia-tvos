@@ -1,6 +1,6 @@
 {
   "name": "homebridge-bravia-tvos",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Homebridge plugin for Sony Bravia Android TVs",
   "main": "index.js",
   "repository": {
@@ -50,18 +50,18 @@
   },
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^0.0.19",
-    "@seydx/bravia": "^2.0.0-beta.10",
+    "@seydx/bravia": "^2.0.0-beta.12",
     "fs-extra": "^10.0.0"
   },
   "devDependencies": {
-    "@babel/core": "7.14.6",
-    "@babel/eslint-parser": "7.14.7",
+    "@babel/core": "7.15.5",
+    "@babel/eslint-parser": "7.15.7",
     "@babel/eslint-plugin": "7.14.5",
-    "concurrently": "^6.2.0",
-    "eslint": "^7.30.0",
+    "concurrently": "^6.2.1",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.23.4",
-    "eslint-plugin-prettier": "^3.4.0",
-    "prettier": "^2.3.2"
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.1"
   }
 }

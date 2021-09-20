@@ -71,7 +71,7 @@ If you cannot use the custom user interface or want to edit the config.json manu
 To use the PIN authentication you must first install the bravia module:
 
 ``
-sudo npm i -g @seydx/bravia@latest
+sudo npm i -g @seydx/bravia@beta
 ``
 
 And to be able to use the plugin with the PIN procedure your credentials must be created first.

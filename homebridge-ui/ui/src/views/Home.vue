@@ -19,7 +19,7 @@
     #nav
       router-link(to="/") Home
       span(style="font-weight: bold !important;")  · 
-      router-link(to="/config") Configs
+      router-link(to="/config" v-b-popover.hover.top="'This is the old (static) config.schema! With this it is not possible to dynamically display the inputs for a TV. Only for experienced.'" title="Attention") Configs
       span(style="font-weight: bold !important;")  · 
       router-link(to="/new") New 
       b-form-select.seelectTV(v-model="selected" :options="televisions", v-if="televisions.length")
