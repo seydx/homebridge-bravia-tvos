@@ -110,6 +110,16 @@ class Handler {
         .getService(this.api.hap.Service.Switch)
         .getCharacteristic(this.api.hap.Characteristic.On)
         .updateValue(!mute);
+    } else if (speakerType === 'fan') {
+      this.accessory
+        .getService(this.api.hap.Service.Fanv2)
+        .getCharacteristic(this.api.hap.Characteristic.Active)
+        .updateValue(mute ? 0 : 1);
+
+      this.accessory
+        .getService(this.api.hap.Service.Fanv2)
+        .getCharacteristic(this.api.hap.Characteristic.RotationSpeed)
+        .updateValue(volume);
     } else {
       this.accessory
         .getService(this.api.hap.Service.Lightbulb)

@@ -1,5 +1,17 @@
 # Changelog
 
+# v5.0.5 - 2021-09-21
+
+## Notable Changes
+- New Speaker Type: `fan`
+
+## Other Changes
+- Refreshing tv cache through config ui x will no longer cached inputs (like hdmi, cec etc.)
+
+## Bugfixes
+- Fixed an issue where updating the TV via the config ui x saved incorrect data
+- Minor bugfixes
+
 # v5.0.3 - 2021-09-20
 
 ## Other Changes

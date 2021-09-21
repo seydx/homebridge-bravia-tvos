@@ -324,13 +324,11 @@ export default {
         this.progressState = 'Storing..';
         await window.homebridge.request('/storeTV', {
           name: this.form.name,
-          inputs: {
-            apps: apps,
-            channels: channels,
-            commands: commands,
-            inputs: inputs,
-            macros: [],
-          },
+          apps: apps,
+          channels: channels,
+          commands: commands,
+          inputs: inputs,
+          macros: [],
         });
 
         this.progress = 90;

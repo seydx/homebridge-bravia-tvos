@@ -209,6 +209,7 @@ class UiServer extends HomebridgePluginUiServer {
         }
       });
 
+      //REMOVE NOT EXISTING APPS
       tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
 
       //REFRESH CHANNELS
@@ -220,6 +221,7 @@ class UiServer extends HomebridgePluginUiServer {
         }
       });
 
+      //REMOVE NOT EXISTING APPS
       tvCache.channels = tvCache.channels.filter((cachedChannel) =>
         channels.find((channel) => channel.uri === cachedChannel.uri)
       );
@@ -233,9 +235,9 @@ class UiServer extends HomebridgePluginUiServer {
         }
       });
 
-      tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+      /*tvCache.commands = tvCache.commands.filter((cachedCommand) =>
         commands.find((command) => command.value === cachedCommand.value)
-      );
+      );*/
 
       //REFRESH INPUTS
       inputs.forEach((exInput) => {
@@ -246,25 +248,23 @@ class UiServer extends HomebridgePluginUiServer {
         }
       });
 
-      tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+      /*tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
         inputs.find((exInput) => exInput.uri === cachedExInput.uri)
-      );
+      );*/
 
-      await this.storeTV(tvCache);
+      await this.storeTV(tvCache, television.name);
     } else {
       tvCache = {
         name: television.name,
-        inputs: {
-          apps: apps,
-          channels: channels,
-          commands: commands,
-          inputs: inputs,
-          macros: television.macros || [],
-        },
+        apps: apps,
+        channels: channels,
+        commands: commands,
+        inputs: inputs,
+        macros: television.macros || [],
       };
-    }
 
-    await this.storeTV(tvCache);
+      await this.storeTV(tvCache);
+    }
 
     await setTimeoutAsync(1000);
     this.pushEvent('refreshTV', `${television.name}: Done!`);
@@ -278,16 +278,12 @@ class UiServer extends HomebridgePluginUiServer {
     return await removeTVFromCache(name, this.homebridgeStoragePath);
   }
 
-  async storeTV(television) {
+  async storeTV(television, fileName) {
     if (!television.name) {
       throw new RequestError('Can not store television in cache. No name defined for television');
     }
 
-    if (!television.inputs) {
-      throw new RequestError('No inputs defined!');
-    }
-
-    await writeTvToCache(television.name, this.homebridgeStoragePath, television.inputs);
+    await writeTvToCache(fileName || television.name, this.homebridgeStoragePath, television);
   }
 }
 

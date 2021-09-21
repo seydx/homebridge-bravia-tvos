@@ -259,6 +259,22 @@ class Accessory {
         speakerService
           .getCharacteristic(this.api.hap.Characteristic.On)
           .onSet((state) => this.handler.setMute(state, true));
+      } else if (speakerType === 'fan') {
+        let speakerService = this.accessory.addService(
+          this.api.hap.Service.Fanv2,
+          `${this.accessory.displayName} Speaker`,
+          'speaker'
+        );
+
+        speakerService.addCharacteristic(this.api.hap.Characteristic.RotationSpeed);
+
+        speakerService
+          .getCharacteristic(this.api.hap.Characteristic.Active)
+          .onSet((state) => this.handler.setMute(state, true));
+
+        speakerService
+          .getCharacteristic(this.api.hap.Characteristic.RotationSpeed)
+          .onSet((state) => this.handler.setVolume(state));
       } else {
         let speakerService = this.accessory.addService(
           this.api.hap.Service.Lightbulb,

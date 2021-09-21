@@ -329,6 +329,10 @@ export default {
                   title: 'Switch',
                   enum: ['switch'],
                 },
+                {
+                  title: 'Fan',
+                  enum: ['fan'],
+                },
               ],
               description: 'Accessory type for the speaker.',
             },
