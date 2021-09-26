@@ -1,5 +1,16 @@
 # Changelog
 
+# v5.0.6 - 2021-09-26
+
+## Other Changes
+- Support for older TV models which does not support all methods used by this plugin
+- Bump dependencies
+
+## Bugfixes
+- Fixed an issue where updating the TV via `refreshInputs` saved incorrect data
+- Fixed an issue where `oldModel` didnt work properly
+- Minor UI bugfixes
+
 # v5.0.5 - 2021-09-21
 
 ## Notable Changes

@@ -129,7 +129,15 @@ exports.fetchCommands = async (deviceName, bravia) => {
 
 exports.getTvFromCache = async (deviceName, storagePath) => {
   await fs.ensureFile(`${storagePath}/bravia/${deviceName}.json`);
-  return await fs.readJson(`${storagePath}/bravia/${deviceName}.json`, { throws: false });
+  const tv = await fs.readJson(`${storagePath}/bravia/${deviceName}.json`, { throws: false });
+
+  tv.name = tv.name || deviceName;
+  tv.apps = tv.apps || [];
+  tv.channels = tv.channels || [];
+  tv.inputs = tv.inputs || [];
+  tv.macros = tv.macros || [];
+
+  return tv;
 };
 
 exports.changeTVFromCache = async (oldDeviceName, newDeviceName, storagePath) => {

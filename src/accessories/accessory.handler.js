@@ -48,10 +48,7 @@ class Handler {
           .updateValue(identifier);
       }
     } catch (err) {
-      if (!(err && err.title === 'No response' && this.accessory.context.config.oldModel)) {
-        logger.warn('An error occured during getting television state!', this.accessory.displayName);
-        logger.error(err, this.accessory.displayName);
-      }
+      this.handleError(this.accessory.displayName, err, 'An error occured during getting television state!');
     }
   }
 
@@ -87,18 +84,18 @@ class Handler {
         } else {
           logger.warn(
             `Defined speaker output "${target}" not found! Can not update speaker state/volume!`,
-            this.accessory.displayName
+            `${this.accessory.displayName} Speaker`
           );
-          logger.warn(`Available speaker outputs: ${availableTargets.toString()}`, this.accessory.displayName);
+          logger.warn(
+            `Available speaker outputs: ${availableTargets.toString()}`,
+            `${this.accessory.displayName} Speaker`
+          );
         }
       }
 
       this.changeSpeakerAccessory(mute, volume);
     } catch (err) {
-      if (!(err && err.title === 'No response' && this.accessory.context.config.oldModel)) {
-        logger.warn('An error occured during getting speaker state!', this.accessory.displayName);
-        logger.error(err, this.accessory.displayName);
-      }
+      this.handleError(`${this.accessory.displayName} Speaker`, err, 'An error occured during getting speaker state!');
     }
   }
 
@@ -153,8 +150,7 @@ class Handler {
         this.changeSpeakerAccessory(mute, volume);
       }
     } catch (err) {
-      logger.warn('An error occured during setting state!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(this.accessory.displayName, err, 'An error occured during setting televion state!');
     } finally {
       this.accessory.context.busy = false;
     }
@@ -170,7 +166,7 @@ class Handler {
       if (input.type === 'apps') {
         //apps
         logger.info(`Open: ${input.inputName}`, this.accessory.displayName);
-        logger.debug(input);
+        logger.debug(input, this.accessory.displayName);
 
         await this.bravia.exec('appControl', 'setActiveApp', '1.0', {
           uri: input.uri,
@@ -188,7 +184,7 @@ class Handler {
       } else if (input.type === 'channels') {
         //channels
         logger.info(`Open: ${input.inputName}`, this.accessory.displayName);
-        logger.debug(input);
+        logger.debug(input, this.accessory.displayName);
 
         await this.bravia.exec('avContent', 'setPlayContent', '1.0', {
           uri: input.uri,
@@ -196,7 +192,7 @@ class Handler {
       } else if (input.type === 'commands') {
         //commands
         logger.info(`Send command: ${input.inputName} (${input.value})`, this.accessory.displayName);
-        logger.debug(input);
+        logger.debug(input, this.accessory.displayName);
 
         await this.bravia.execCommand(input.value);
 
@@ -212,7 +208,7 @@ class Handler {
       } else if (input.type === 'inputs') {
         //inputs
         logger.info(`Open: ${input.inputName}`, this.accessory.displayName);
-        logger.debug(input);
+        logger.debug(input, this.accessory.displayName);
 
         await this.bravia.exec('avContent', 'setPlayContent', '1.0', {
           uri: input.uri,
@@ -223,7 +219,7 @@ class Handler {
           `Send Command(s): ${JSON.stringify(input.commands)} - Delay ${input.delay}ms`,
           this.accessory.displayName
         );
-        logger.debug(input);
+        logger.debug(input, this.accessory.displayName);
 
         /*
          * Due to the fact that "macros" have a delay
@@ -235,12 +231,11 @@ class Handler {
           try {
             await this.bravia.execCommand(input.commands, input.delay);
           } catch (err) {
-            logger.warn('An error occured during executing macro!', this.accessory.displayName);
-            logger.error(err, this.accessory.displayName);
+            this.handleError(this.accessory.displayName, err, 'An error occured during setting active identifier!');
           }
         }, 1);
 
-        //Reset ActiveIdentifier, because "MAcros" does not support state control
+        //Reset ActiveIdentifier, because "Macros" does not support state control
         setTimeout(
           () =>
             this.accessory
@@ -254,8 +249,7 @@ class Handler {
         logger.warn(`Unknown identifier: ${value}`, this.accessory.displayName);
       }
     } catch (err) {
-      logger.warn('An error occured during setting identifier state!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(this.accessory.displayName, err, 'An error occured during setting active identifier');
     } finally {
       this.accessory.context.busy = false;
     }
@@ -410,8 +404,7 @@ class Handler {
           break;
       }
     } catch (err) {
-      logger.warn('An error occured during setting remote key!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(this.accessory.displayName, err, 'An error occured during setting remote key!');
     } finally {
       this.accessory.context.busy = false;
     }
@@ -424,7 +417,7 @@ class Handler {
         .getCharacteristic(this.api.hap.Characteristic.Active).value;
 
       if (!tvState) {
-        logger.warn('Can not change Mute, Television is not active!', this.accessory.displayName);
+        logger.warn('Can not change Mute, Television is not active!', `${this.accessory.displayName} Speaker`);
         return;
       }
 
@@ -433,14 +426,13 @@ class Handler {
       }
 
       this.accessory.context.busy = true;
-      logger.info(`Mute ${state ? 'ON' : 'OFF'}`);
+      logger.info(`Mute ${state ? 'ON' : 'OFF'}`, `${this.accessory.displayName} Speaker`);
 
       await this.bravia.exec('audio', 'setAudioMute', '1.0', { status: state });
 
       this.accessory.context.speakerMute = state;
     } catch (err) {
-      logger.warn('An error occured during setting mute state!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(`${this.accessory.displayName} Speaker`, err, 'An error occured during setting speaker state!');
     } finally {
       this.accessory.context.busy = false;
     }
@@ -453,14 +445,17 @@ class Handler {
         .getCharacteristic(this.api.hap.Characteristic.Active).value;
 
       if (!tvState) {
-        logger.warn('Can not change Volume, Television is not active!', this.accessory.displayName);
+        logger.warn('Can not change Volume, Television is not active!', `${this.accessory.displayName} Speaker`);
         return;
       }
 
       const target =
         this.accessory.context.config.speaker.output === 'other' ? '' : this.accessory.context.config.speaker.output;
 
-      logger.info(`Volume: ${state} (${this.accessory.context.config.speaker.output})`);
+      logger.info(
+        `Volume: ${state} (${this.accessory.context.config.speaker.output})`,
+        `${this.accessory.displayName} Speaker`
+      );
 
       this.accessory.context.busy = true;
 
@@ -471,8 +466,7 @@ class Handler {
 
       this.accessory.context.speakerVolume = state;
     } catch (err) {
-      logger.warn('An error occured during setting volume!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(`${this.accessory.displayName} Speaker`, err, 'An error occured during setting speaker volume!');
     } finally {
       this.accessory.context.busy = false;
     }
@@ -485,7 +479,10 @@ class Handler {
         .getCharacteristic(this.api.hap.Characteristic.Active).value;
 
       if (!tvState) {
-        logger.warn('Can not change Volume (selector), Television is not active!', this.accessory.displayName);
+        logger.warn(
+          'Can not change Volume (selector), Television is not active!',
+          `${this.accessory.displayName} Speaker`
+        );
         return;
       }
 
@@ -512,10 +509,10 @@ class Handler {
 
       logger.info(
         `${state ? 'Reducing' : 'Increasing'} volume by ${volumeLevel} (${target})`,
-        this.accessory.displayName
+        `${this.accessory.displayName} Speaker`
       );
 
-      logger.debug(`Execute Command: ${volumeCommand}`, this.accessory.displayName);
+      logger.debug(`Execute Command: ${volumeCommand}`, `${this.accessory.displayName} Speaker`);
 
       this.accessory.context.busy = true;
 
@@ -543,8 +540,11 @@ class Handler {
       
       */
     } catch (err) {
-      logger.warn('An error occured during setting volume (selector)!', this.accessory.displayName);
-      logger.error(err, this.accessory.displayName);
+      this.handleError(
+        `${this.accessory.displayName} Speaker`,
+        err,
+        'An error occured during setting speaker volume (selector)!'
+      );
     } finally {
       this.accessory.context.busy = false;
     }
@@ -564,6 +564,27 @@ class Handler {
     }
 
     setTimeout(() => this.poll(), this.polling * 1000);
+  }
+
+  handleError(accessoryName, err, message) {
+    //err.code = APIERROR means that protocol/service/method could not be found
+    if (err && err.code === 'APIERROR') {
+      logger.debug(err.message, accessoryName);
+    } else {
+      if (err.title === 'No Response' || err.code === 'EHOSTUNREACH') {
+        if (this.accessory.context.config.oldModel) {
+          logger.debug('Old tv model - Warnings are ignored.');
+        } else {
+          logger.warn('API not reachable - It seems the TV can not handle API calls if its not turned on.');
+          logger.debug(
+            'To continue using the plugin without errors, please enable WOL in your config and enter the MAC address of the TV.'
+          );
+        }
+      } else {
+        logger.warn(message, accessoryName);
+        logger.error(err, accessoryName);
+      }
+    }
   }
 }
 

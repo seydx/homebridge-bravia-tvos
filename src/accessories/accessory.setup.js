@@ -57,9 +57,9 @@ const refreshCache = async (device, bravia, storagePath) => {
         }
       });
 
-      tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+      /*tvCache.commands = tvCache.commands.filter((cachedCommand) =>
         commands.find((command) => command.value === cachedCommand.value)
-      );
+      );*/
 
       //REFRESH INPUTS
       inputs.forEach((exInput) => {
@@ -69,9 +69,9 @@ const refreshCache = async (device, bravia, storagePath) => {
         }
       });
 
-      tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+      /*tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
         inputs.find((exInput) => exInput.uri === cachedExInput.uri)
-      );
+      );*/
 
       await writeTvToCache(device.name, storagePath, tvCache);
 
@@ -177,9 +177,9 @@ const Setup = async (devices, tvConfigs, storagePath) => {
               }
             });
 
-            tvCache.commands = tvCache.commands.filter((cachedCommand) =>
+            /*tvCache.commands = tvCache.commands.filter((cachedCommand) =>
               commands.find((command) => command.value === cachedCommand.value)
-            );
+            );*/
 
             //REFRESH INPUTS
             inputs.forEach((exInput) => {
@@ -189,9 +189,9 @@ const Setup = async (devices, tvConfigs, storagePath) => {
               }
             });
 
-            tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
+            /*tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
               inputs.find((exInput) => exInput.uri === cachedExInput.uri)
-            );
+            );*/
           } else {
             //NEW
             tvCache = {

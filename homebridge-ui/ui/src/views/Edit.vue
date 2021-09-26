@@ -45,15 +45,9 @@ export default {
         return this.$router.push({ path: '/' });
       }
 
-      const inputs = (await window.homebridge.request('/getTV', this.newName)) || {
-        apps: [],
-        channels: [],
-        commands: [],
-        inputs: [],
-        macros: [],
-      };
+      const tvCache = await window.homebridge.request('/getTV', this.newName);
 
-      this.customSchema = await this.generatePluginShema(pluginConfig, this.television, inputs);
+      this.customSchema = await this.generatePluginShema(pluginConfig, this.television, tvCache);
 
       this.customSchema.onChange(async (config) => {
         if (this.waitForChanges) {
@@ -71,7 +65,7 @@ export default {
 
             pluginConfig.tvs = pluginConfig.tvs.map((tv) => {
               if (tv.name === this.newName) {
-                if (inputs.channels.length) {
+                if (tvCache.channels.length) {
                   config.tvs.channels = (config.tvs.channels || []).map((channel) => {
                     return {
                       name: channel.name,
@@ -81,9 +75,9 @@ export default {
                   });
                 }
 
-                if (inputs.commands.length) {
+                if (tvCache.commands.length) {
                   config.tvs.commands = (config.tvs.commands || []).map((command) => {
-                    const inputCommand = inputs.commands.find(
+                    const inputCommand = tvCache.commands.find(
                       (cmd) => cmd.name === command.value || cmd.value === command.value
                     );
 
@@ -117,7 +111,9 @@ export default {
 
                   config.tvs.macros = (config.tvs.macros || []).map((macro) => {
                     macro.commands = (macro.commands || []).map((command) => {
-                      const inputCommand = inputs.commands.find((cmd) => cmd.name === command || cmd.value === command);
+                      const inputCommand = tvCache.commands.find(
+                        (cmd) => cmd.name === command || cmd.value === command
+                      );
 
                       if (inputCommand) {
                         command = inputCommand.name;
@@ -130,7 +126,7 @@ export default {
                   });
 
                   config.tvs.remote = (config.tvs.remote || []).map((remote) => {
-                    const inputCommand = inputs.commands.find(
+                    const inputCommand = tvCache.commands.find(
                       (cmd) => cmd.name === remote.command || cmd.value === remote.command
                     );
 
@@ -142,7 +138,7 @@ export default {
                   });
                 }
 
-                if (inputs.inputs.length) {
+                if (tvCache.inputs.length) {
                   config.tvs.inputs = (config.tvs.inputs || []).map((input) => {
                     return {
                       name: input.name,
