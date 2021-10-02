@@ -45,7 +45,7 @@ export default {
 
       if ((tvCache.apps && !tvCache.apps.length) || !tvCache.apps) {
         delete configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf;
-      } else if (tvCache.apps && tvCache.apps.length) {
+      } else {
         tvCache.apps.forEach((app) => {
           if (app && app.name) {
             configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf.push({
@@ -164,7 +164,7 @@ export default {
           .filter((channel) => channel);
       }
 
-      if (tvCache.commands && !tvCache.commands.length) {
+      if ((tvCache.commands && !tvCache.commands.length) || !tvCache.commands) {
         delete configSchema.schema.tvs.properties.commands.items.properties.value.oneOf;
         delete configSchema.schema.tvs.properties.remote.items.properties.command.oneOf;
         delete configSchema.schema.tvs.properties.macros.items.properties.commands.items.oneOf;
@@ -241,7 +241,7 @@ export default {
           .filter((command) => command);
       }
 
-      if (tvCache.inputs && !tvCache.inputs.length) {
+      if ((tvCache.inputs && !tvCache.inputs.length) || !tvCache.inputs) {
         configSchema.schema.tvs.properties.inputs = {
           title: 'TV Inputs',
           type: 'array',
