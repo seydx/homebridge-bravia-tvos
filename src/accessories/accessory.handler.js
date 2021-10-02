@@ -9,6 +9,8 @@ class Handler {
     this.inputs = inputs;
     this.polling = accessory.context.config.polling;
     this.bravia = bravia;
+
+    this.warningMuted = false;
   }
 
   async getTelevisionState() {
@@ -575,10 +577,23 @@ class Handler {
         if (this.accessory.context.config.oldModel) {
           logger.debug('Old tv model - Warnings are ignored.');
         } else {
-          logger.warn('API not reachable - It seems the TV can not handle API calls if its not turned on.');
-          logger.debug(
-            'To continue using the plugin without errors, please enable WOL in your config and enter the MAC address of the TV.'
-          );
+          const msg1 = 'API not reachable - It seems the TV can not handle API calls if its not turned on.';
+          const msg2 =
+            'To continue using the plugin without errors, please enable "wol" in your config and enter the MAC address of the TV.';
+          const msg3 =
+            'This warning is displayed only once. To mute the warnings, please enable also "oldModel" in your config.json';
+
+          if (this.warningMuted) {
+            logger.debug(msg1);
+            logger.debug(msg2);
+            logger.debug(msg3);
+          } else {
+            logger.warn(msg1);
+            logger.warn(msg2);
+            logger.warn(msg3);
+          }
+
+          this.warningMuted = true;
         }
       } else {
         logger.warn(message, accessoryName);

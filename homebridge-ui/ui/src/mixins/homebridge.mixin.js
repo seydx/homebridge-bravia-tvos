@@ -38,21 +38,25 @@ export default {
 
       return pluginConfig[0];
     },
-    generatePluginShema: async (pluginConfig, tv, inputs) => {
-      console.log('Generating Custom Schema');
+    generatePluginShema: async (pluginConfig, tvConfig, tvCache) => {
+      tvCache = tvCache || {};
 
-      if (inputs.apps && !inputs.apps.length) {
+      console.log(`Generating Custom Schema for ${tvConfig.name}`, tvConfig);
+
+      if ((tvCache.apps && !tvCache.apps.length) || !tvCache.apps) {
         delete configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf;
-      } else {
-        inputs.apps.forEach((app) => {
-          configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf.push({
-            enum: [app.name],
-            title: app.name,
-          });
+      } else if (tvCache.apps && tvCache.apps.length) {
+        tvCache.apps.forEach((app) => {
+          if (app && app.name) {
+            configSchema.schema.tvs.properties.apps.items.properties.identifier.oneOf.push({
+              enum: [app.name],
+              title: app.name,
+            });
+          }
         });
       }
 
-      if (inputs.channels && !inputs.channels.length) {
+      if ((tvCache.channels && !tvCache.channels.length) || !tvCache.channels) {
         configSchema.schema.tvs.properties.channels = {
           title: 'Channels',
           type: 'array',
@@ -137,89 +141,107 @@ export default {
           return layout;
         });
       } else {
-        inputs.channels.forEach((channel) => {
-          const enumValue = `[${channel.source}] ${channel.index + 1}`;
+        tvCache.channels.forEach((channel) => {
+          if (channel && channel.name && channel.source && channel.index !== undefined) {
+            const enumValue = `[${channel.source}] ${channel.index + 1}`;
 
-          configSchema.schema.tvs.properties.channels.items.properties.identifier.oneOf.push({
-            enum: [enumValue],
-            title: channel.name,
-          });
+            configSchema.schema.tvs.properties.channels.items.properties.identifier.oneOf.push({
+              enum: [enumValue],
+              title: channel.name,
+            });
+          }
         });
 
-        tv.channels = (tv.channels || []).map((channel) => {
-          return {
-            name: channel.name,
-            identifier: `[${channel.source}] ${channel.channel}`,
-          };
-        });
+        tvConfig.channels = (tvConfig.channels || [])
+          .map((channel) => {
+            if (channel && channel.name && channel.source && channel.channel !== undefined) {
+              return {
+                name: channel.name,
+                identifier: `[${channel.source}] ${channel.channel}`,
+              };
+            }
+          })
+          .filter((channel) => channel);
       }
 
-      if (inputs.commands && !inputs.commands.length) {
+      if (tvCache.commands && !tvCache.commands.length) {
         delete configSchema.schema.tvs.properties.commands.items.properties.value.oneOf;
         delete configSchema.schema.tvs.properties.remote.items.properties.command.oneOf;
         delete configSchema.schema.tvs.properties.macros.items.properties.commands.items.oneOf;
       } else {
-        inputs.commands.forEach((command) => {
-          configSchema.schema.tvs.properties.commands.items.properties.value.oneOf.push({
-            enum: [command.value],
-            title: command.name,
-          });
+        tvCache.commands.forEach((command) => {
+          if (command && command.name && command.value) {
+            configSchema.schema.tvs.properties.commands.items.properties.value.oneOf.push({
+              enum: [command.value],
+              title: command.name,
+            });
 
-          configSchema.schema.tvs.properties.remote.items.properties.command.oneOf.push({
-            enum: [command.value],
-            title: command.name,
-          });
+            configSchema.schema.tvs.properties.remote.items.properties.command.oneOf.push({
+              enum: [command.value],
+              title: command.name,
+            });
 
-          configSchema.schema.tvs.properties.macros.items.properties.commands.items.oneOf.push({
-            enum: [command.value],
-            title: command.name,
-          });
-        });
-
-        tv.commands = (tv.commands || []).map((command) => {
-          const inputCommand = inputs.commands.find((cmd) => cmd.name === command.value || cmd.value === command.value);
-
-          if (inputCommand) {
-            return {
-              name: command.name,
-              value: inputCommand.value,
-            };
-          } else {
-            return {
-              name: command.name,
-              value: command.value,
-            };
+            configSchema.schema.tvs.properties.macros.items.properties.commands.items.oneOf.push({
+              enum: [command.value],
+              title: command.name,
+            });
           }
         });
 
-        tv.macros = (tv.macros || []).map((macro) => {
-          macro.commands = (macro.commands || []).map((command) => {
-            const inputCommand = inputs.commands.find((cmd) => cmd.name === command || cmd.value === command);
+        tvConfig.commands = (tvConfig.commands || [])
+          .map((command) => {
+            if (command && command.name && command.value) {
+              const inputCommand = tvCache.commands.find(
+                (cmd) => cmd && (cmd.name === command.value || cmd.value === command.value)
+              );
+
+              if (inputCommand) {
+                return {
+                  name: command.name,
+                  value: inputCommand.value,
+                };
+              } else {
+                return {
+                  name: command.name,
+                  value: command.value,
+                };
+              }
+            }
+          })
+          .filter((command) => command);
+
+        tvConfig.macros = (tvConfig.macros || [])
+          .map((macro) => {
+            macro.commands = (macro.commands || []).map((command) => {
+              const inputCommand = tvCache.commands.find((cmd) => cmd.name === command || cmd.value === command);
+
+              if (inputCommand) {
+                command = inputCommand.value;
+              }
+
+              return command;
+            });
+
+            return macro;
+          })
+          .filter((command) => command);
+
+        tvConfig.remote = (tvConfig.remote || [])
+          .map((remote) => {
+            const inputCommand = tvCache.commands.find(
+              (cmd) => cmd.name === remote.command || cmd.value === remote.command
+            );
 
             if (inputCommand) {
-              command = inputCommand.value;
+              remote.command = inputCommand.value;
             }
 
-            return command;
-          });
-
-          return macro;
-        });
-
-        tv.remote = (tv.remote || []).map((remote) => {
-          const inputCommand = inputs.commands.find(
-            (cmd) => cmd.name === remote.command || cmd.value === remote.command
-          );
-
-          if (inputCommand) {
-            remote.command = inputCommand.value;
-          }
-
-          return remote;
-        });
+            return remote;
+          })
+          .filter((command) => command);
       }
 
-      if (inputs.inputs && !inputs.inputs.length) {
+      if (tvCache.inputs && !tvCache.inputs.length) {
         configSchema.schema.tvs.properties.inputs = {
           title: 'TV Inputs',
           type: 'array',
@@ -300,21 +322,27 @@ export default {
           return layout;
         });
       } else {
-        inputs.inputs.forEach((input) => {
-          const enumValue = `[${input.source}] ${input.name}`;
+        tvCache.inputs.forEach((input) => {
+          if (input && input.source && input.name) {
+            const enumValue = `[${input.source}] ${input.name}`;
 
-          configSchema.schema.tvs.properties.inputs.items.properties.identifier.oneOf.push({
-            enum: [enumValue],
-            title: input.name,
-          });
+            configSchema.schema.tvs.properties.inputs.items.properties.identifier.oneOf.push({
+              enum: [enumValue],
+              title: input.name,
+            });
+          }
         });
 
-        tv.inputs = (tv.inputs || []).map((input) => {
-          return {
-            name: input.name,
-            identifier: `[${input.source}] ${input.identifier}`,
-          };
-        });
+        tvConfig.inputs = (tvConfig.inputs || [])
+          .map((input) => {
+            if (input && input.name && input.source && input.identifier) {
+              return {
+                name: input.name,
+                identifier: `[${input.source}] ${input.identifier}`,
+              };
+            }
+          })
+          .filter((input) => input);
       }
 
       const config = {
@@ -323,9 +351,10 @@ export default {
         warn: pluginConfig.warn,
         error: pluginConfig.error,
         extendedError: pluginConfig.extendedError,
-        tvs: tv || {},
+        tvs: tvConfig || {},
       };
 
+      console.log('Config Scheme created', configSchema);
       console.log('Config created!', config);
 
       return window.homebridge.createForm(configSchema, config);

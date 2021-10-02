@@ -1,5 +1,14 @@
 # Changelog
 
+# v5.0.7 - 2021-10-02
+
+## Bugfixes
+- Fixed an issue where editing tv via config-ui-x displayed a blank screen
+- Fixed an issue where `oldModel` TVs would repeatedly display warnings in the log
+- Fixed an issue where `sheduledRefresh` was causing an error
+- Fixed several issues where channels, inputs and commands were moved to the application cache
+- Minor bugfixes
+
 # v5.0.6 - 2021-09-26
 
 ## Other Changes

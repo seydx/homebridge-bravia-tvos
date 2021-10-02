@@ -38,7 +38,7 @@ export default {
       this.newName = this.name;
 
       const pluginConfig = await this.getPluginConfig();
-      this.television = pluginConfig.tvs.find((tv) => tv.name === this.newName);
+      this.television = pluginConfig.tvs.find((tv) => tv && tv.name === this.newName);
 
       if (!this.television) {
         window.homebridge.toast.error(`${this.newName} not found in config.json!`, 'Error');
@@ -63,96 +63,121 @@ export default {
             pluginConfig.error = config.error;
             pluginConfig.extendedError = config.extendedError;
 
-            pluginConfig.tvs = pluginConfig.tvs.map((tv) => {
-              if (tv.name === this.newName) {
-                if (tvCache.channels.length) {
-                  config.tvs.channels = (config.tvs.channels || []).map((channel) => {
-                    return {
-                      name: channel.name,
-                      channel: channel.identifier ? parseInt(channel.identifier.split('] ')[1]) : undefined,
-                      source: channel.identifier ? channel.identifier.split('[')[1].split(']')[0] : undefined,
-                    };
-                  });
+            pluginConfig.tvs = pluginConfig.tvs
+              .map((tv) => {
+                if (tv && tv.name === this.newName) {
+                  if (tvCache.channels.length) {
+                    config.tvs.channels = (config.tvs.channels || [])
+                      .map((channel) => {
+                        if (channel && channel.name && channel.identifier) {
+                          return {
+                            name: channel.name,
+                            channel: channel.identifier ? parseInt(channel.identifier.split('] ')[1]) : undefined,
+                            source: channel.identifier ? channel.identifier.split('[')[1].split(']')[0] : undefined,
+                          };
+                        }
+                      })
+                      .filter((channel) => channel);
+                  }
+
+                  if (tvCache.commands.length) {
+                    config.tvs.commands = (config.tvs.commands || [])
+                      .map((command) => {
+                        if (command && command.value && command.name) {
+                          const inputCommand = tvCache.commands.find(
+                            (cmd) => cmd && (cmd.name === command.value || cmd.value === command.value)
+                          );
+
+                          if (inputCommand) {
+                            const oldCmd = this.television.commands.find(
+                              (cmd) => cmd && (cmd.value === inputCommand.name || cmd.value === inputCommand.value)
+                            );
+
+                            if (oldCmd) {
+                              //Changed old one
+
+                              return {
+                                name: command.name,
+                                value: oldCmd.value,
+                              };
+                            } else {
+                              //Created new one
+
+                              return {
+                                name: inputCommand.name,
+                                value: inputCommand.value,
+                              };
+                            }
+                          }
+
+                          return {
+                            name: command,
+                            value: command,
+                          };
+                        }
+                      })
+                      .filter((command) => command);
+
+                    config.tvs.macros = (config.tvs.macros || [])
+                      .map((macro) => {
+                        if (macro && macro.commands) {
+                          macro.commands = (macro.commands || [])
+                            .map((command) => {
+                              if (command) {
+                                const inputCommand = tvCache.commands.find(
+                                  (cmd) => cmd && (cmd.name === command || cmd.value === command)
+                                );
+
+                                if (inputCommand) {
+                                  command = inputCommand.name;
+                                }
+
+                                return command;
+                              }
+                            })
+                            .filter((channel) => channel);
+
+                          return macro;
+                        }
+                      })
+                      .filter((macro) => macro);
+
+                    config.tvs.remote = (config.tvs.remote || [])
+                      .map((remote) => {
+                        if (remote && remote.command) {
+                          const inputCommand = tvCache.commands.find(
+                            (cmd) => cmd && (cmd.name === remote.command || cmd.value === remote.command)
+                          );
+
+                          if (inputCommand) {
+                            remote.command = inputCommand.name;
+                          }
+
+                          return remote;
+                        }
+                      })
+                      .filter((channel) => channel);
+                  }
+
+                  if (tvCache.inputs.length) {
+                    config.tvs.inputs = (config.tvs.inputs || [])
+                      .map((input) => {
+                        if (input && input.name && input.identifier) {
+                          return {
+                            name: input.name,
+                            identifier: input.identifier ? input.identifier.split('] ')[1] : undefined,
+                            source: input.identifier ? input.identifier.split('[')[1].split(']')[0] : undefined,
+                          };
+                        }
+                      })
+                      .filter((app) => app);
+                  }
+
+                  return config.tvs;
                 }
-
-                if (tvCache.commands.length) {
-                  config.tvs.commands = (config.tvs.commands || []).map((command) => {
-                    const inputCommand = tvCache.commands.find(
-                      (cmd) => cmd.name === command.value || cmd.value === command.value
-                    );
-
-                    if (inputCommand) {
-                      const oldCmd = this.television.commands.find(
-                        (cmd) => cmd.value === inputCommand.name || cmd.value === inputCommand.value
-                      );
-
-                      if (oldCmd) {
-                        //Changed old one
-
-                        return {
-                          name: command.name,
-                          value: oldCmd.value,
-                        };
-                      } else {
-                        //Created new one
-
-                        return {
-                          name: inputCommand.name,
-                          value: inputCommand.value,
-                        };
-                      }
-                    }
-
-                    return {
-                      name: command,
-                      value: command,
-                    };
-                  });
-
-                  config.tvs.macros = (config.tvs.macros || []).map((macro) => {
-                    macro.commands = (macro.commands || []).map((command) => {
-                      const inputCommand = tvCache.commands.find(
-                        (cmd) => cmd.name === command || cmd.value === command
-                      );
-
-                      if (inputCommand) {
-                        command = inputCommand.name;
-                      }
-
-                      return command;
-                    });
-
-                    return macro;
-                  });
-
-                  config.tvs.remote = (config.tvs.remote || []).map((remote) => {
-                    const inputCommand = tvCache.commands.find(
-                      (cmd) => cmd.name === remote.command || cmd.value === remote.command
-                    );
-
-                    if (inputCommand) {
-                      remote.command = inputCommand.name;
-                    }
-
-                    return remote;
-                  });
-                }
-
-                if (tvCache.inputs.length) {
-                  config.tvs.inputs = (config.tvs.inputs || []).map((input) => {
-                    return {
-                      name: input.name,
-                      identifier: input.identifier ? input.identifier.split('] ')[1] : undefined,
-                      source: input.identifier ? input.identifier.split('[')[1].split(']')[0] : undefined,
-                    };
-                  });
-                }
-
-                return config.tvs;
-              }
-
-              return tv;
-            });
+                return tv;
+              })
+              .filter((tv) => tv);
 
             if (config.tvs.name && config.tvs.name !== this.newName) {
               await window.homebridge.request('/changeTV', {

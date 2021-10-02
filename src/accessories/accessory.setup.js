@@ -29,48 +29,67 @@ const refreshCache = async (device, bravia, storagePath) => {
 
       //REFRESH APPS
       apps.forEach((app) => {
-        const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
-        if (!cachedApp) {
-          tvCache.apps.push(app);
+        if (app) {
+          const cachedApp = tvCache.apps.find((cachedApp) => cachedApp && cachedApp.name === app.name);
+          if (!cachedApp) {
+            tvCache.apps.push(app);
+          }
         }
       });
 
-      tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
+      tvCache.apps = tvCache.apps.filter(
+        (cachedApp) => cachedApp && apps.find((app) => app && app.name === cachedApp.name)
+      );
 
       //REFRESH CHANNELS
       channels.forEach((channel) => {
-        const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
-        if (!cachedChannel) {
-          tvCache.apps.push(channel);
+        if (channel) {
+          const cachedChannel = tvCache.channels.find(
+            (cachedChannel) => cachedChannel && cachedChannel.uri === channel.uri
+          );
+
+          if (!cachedChannel) {
+            tvCache.channels.push(channel);
+          }
         }
       });
 
-      tvCache.channels = tvCache.channels.filter((cachedChannel) =>
-        channels.find((channel) => channel.uri === cachedChannel.uri)
+      tvCache.channels = tvCache.channels.filter(
+        (cachedChannel) => cachedChannel && channels.find((channel) => channel && channel.uri === cachedChannel.uri)
       );
 
       //REFRESH COMMANDS
       commands.forEach((command) => {
-        const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
-        if (!cachedCommand) {
-          tvCache.apps.push(command);
+        if (command) {
+          const cachedCommand = tvCache.commands.find(
+            (cachedCommand) => cachedCommand && cachedCommand.value === command.value
+          );
+
+          if (!cachedCommand) {
+            tvCache.commands.push(command);
+          }
         }
       });
 
-      /*tvCache.commands = tvCache.commands.filter((cachedCommand) =>
-        commands.find((command) => command.value === cachedCommand.value)
+      /*tvCache.commands = tvCache.commands.filter(
+        (cachedCommand) => cachedCommand && commands.find((command) => command && command.value === cachedCommand.value)
       );*/
 
       //REFRESH INPUTS
       inputs.forEach((exInput) => {
-        const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
-        if (!cachedExInput) {
-          tvCache.apps.push(exInput);
+        if (exInput) {
+          const cachedExInput = tvCache.inputs.find(
+            (cachedExInput) => cachedExInput && cachedExInput.uri === exInput.uri
+          );
+
+          if (!cachedExInput) {
+            tvCache.inputs.push(exInput);
+          }
         }
       });
 
-      /*tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
-        inputs.find((exInput) => exInput.uri === cachedExInput.uri)
+      /*tvCache.inputs = tvCache.inputs.filter(
+        (cachedExInput) => cachedExInput && inputs.find((exInput) => exInput && exInput.uri === cachedExInput.uri)
       );*/
 
       await writeTvToCache(device.name, storagePath, tvCache);
@@ -78,7 +97,7 @@ const refreshCache = async (device, bravia, storagePath) => {
       logger.debug(`Television cached: ${storagePath}/bravia/${device.name}.json`, device.name);
       logger.debug('Next sheduled cache refresh in 12h', device.name);
 
-      setTimeout(() => refreshCache(device, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
+      setTimeout(() => refreshCache(device, bravia, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
     } else {
       logger.debug(
         'Can not refresh television during sheduled cache refresh. No television found in cache!',
@@ -89,7 +108,7 @@ const refreshCache = async (device, bravia, storagePath) => {
     logger.warn('An error occured during running sheduled cache refresh! Trying again in 1h', device.name);
     logger.error(err, device.name);
 
-    setTimeout(() => refreshCache(device, storagePath), 1 * 60 * 60 * 1000); //1h
+    setTimeout(() => refreshCache(device, bravia, storagePath), 1 * 60 * 60 * 1000); //1h
   }
 };
 
@@ -161,7 +180,7 @@ const Setup = async (devices, tvConfigs, storagePath) => {
             channels.forEach((channel) => {
               const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
               if (!cachedChannel) {
-                tvCache.apps.push(channel);
+                tvCache.channels.push(channel);
               }
             });
 
@@ -173,7 +192,7 @@ const Setup = async (devices, tvConfigs, storagePath) => {
             commands.forEach((command) => {
               const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
               if (!cachedCommand) {
-                tvCache.apps.push(command);
+                tvCache.commands.push(command);
               }
             });
 
@@ -185,7 +204,7 @@ const Setup = async (devices, tvConfigs, storagePath) => {
             inputs.forEach((exInput) => {
               const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
               if (!cachedExInput) {
-                tvCache.apps.push(exInput);
+                tvCache.inputs.push(exInput);
               }
             });
 
@@ -216,7 +235,7 @@ const Setup = async (devices, tvConfigs, storagePath) => {
         }
 
         if (device.sheduledRefresh) {
-          setTimeout(() => refreshCache(device, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
+          setTimeout(() => refreshCache(device, bravia, storagePath), device.sheduledRefresh * 60 * 60 * 1000);
         }
 
         devices.set(uuid, device);

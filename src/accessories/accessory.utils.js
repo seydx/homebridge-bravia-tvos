@@ -77,12 +77,15 @@ exports.fetchChannels = async (deviceName, bravia) => {
 
         if (response.result[0].length) {
           const result = response.result[0].map((input) => {
+            const source = input.uri.split('?')[0].split('tv:')[1];
+            const name = input.title || input.name || input.label || `${source.toUpperCase()} ${input.dispNum}`;
+
             return {
-              name: input.title || input.name || input.label,
+              name: name,
               uri: input.uri,
               index: input.index,
               displayNumber: input.dispNum,
-              source: input.uri.split('?')[0].split('tv:')[1],
+              source: source,
             };
           });
           channels = channels.concat(result);
@@ -129,13 +132,16 @@ exports.fetchCommands = async (deviceName, bravia) => {
 
 exports.getTvFromCache = async (deviceName, storagePath) => {
   await fs.ensureFile(`${storagePath}/bravia/${deviceName}.json`);
-  const tv = await fs.readJson(`${storagePath}/bravia/${deviceName}.json`, { throws: false });
+  let tv = (await fs.readJson(`${storagePath}/bravia/${deviceName}.json`, { throws: false })) || {};
 
-  tv.name = tv.name || deviceName;
-  tv.apps = tv.apps || [];
-  tv.channels = tv.channels || [];
-  tv.inputs = tv.inputs || [];
-  tv.macros = tv.macros || [];
+  tv = {
+    name: tv.name || deviceName,
+    apps: tv.apps || [],
+    channels: tv.channels || [],
+    commands: tv.commands || [],
+    inputs: tv.inputs || [],
+    macros: tv.macros || [],
+  };
 
   return tv;
 };

@@ -217,7 +217,7 @@ class UiServer extends HomebridgePluginUiServer {
         const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
 
         if (!cachedChannel) {
-          tvCache.apps.push(channel);
+          tvCache.channels.push(channel);
         }
       });
 
@@ -231,7 +231,7 @@ class UiServer extends HomebridgePluginUiServer {
         const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
 
         if (!cachedCommand) {
-          tvCache.apps.push(command);
+          tvCache.commands.push(command);
         }
       });
 
@@ -244,7 +244,7 @@ class UiServer extends HomebridgePluginUiServer {
         const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
 
         if (!cachedExInput) {
-          tvCache.apps.push(exInput);
+          tvCache.inputs.push(exInput);
         }
       });
 
