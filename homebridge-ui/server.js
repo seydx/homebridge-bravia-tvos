@@ -202,7 +202,7 @@ class UiServer extends HomebridgePluginUiServer {
 
       //REFRESH APPS
       apps.forEach((app) => {
-        const cachedApp = tvCache.apps.find((cachedApp) => cachedApp.name === app.name);
+        const cachedApp = tvCache.apps.find((cachedApp) => cachedApp && cachedApp.name === app.name);
 
         if (!cachedApp) {
           tvCache.apps.push(app);
@@ -210,11 +210,13 @@ class UiServer extends HomebridgePluginUiServer {
       });
 
       //REMOVE NOT EXISTING APPS
-      tvCache.apps = tvCache.apps.filter((cachedApp) => apps.find((app) => app.name === cachedApp.name));
+      tvCache.apps = tvCache.apps.filter((cachedApp) => cachedApp && apps.find((app) => app.name === cachedApp.name));
 
       //REFRESH CHANNELS
       channels.forEach((channel) => {
-        const cachedChannel = tvCache.channels.find((cachedChannel) => cachedChannel.uri === channel.uri);
+        const cachedChannel = tvCache.channels.find(
+          (cachedChannel) => cachedChannel && cachedChannel.uri === channel.uri
+        );
 
         if (!cachedChannel) {
           tvCache.channels.push(channel);
@@ -222,26 +224,30 @@ class UiServer extends HomebridgePluginUiServer {
       });
 
       //REMOVE NOT EXISTING APPS
-      tvCache.channels = tvCache.channels.filter((cachedChannel) =>
-        channels.find((channel) => channel.uri === cachedChannel.uri)
+      tvCache.channels = tvCache.channels.filter(
+        (cachedChannel) => cachedChannel && channels.find((channel) => channel.uri === cachedChannel.uri)
       );
 
       //REFRESH COMMANDS
       commands.forEach((command) => {
-        const cachedCommand = tvCache.commands.find((cachedCommand) => cachedCommand.value === command.value);
+        const cachedCommand = tvCache.commands.find(
+          (cachedCommand) => cachedCommand && cachedCommand.value === command.value
+        );
 
         if (!cachedCommand) {
           tvCache.commands.push(command);
         }
       });
 
-      /*tvCache.commands = tvCache.commands.filter((cachedCommand) =>
-        commands.find((command) => command.value === cachedCommand.value)
-      );*/
+      tvCache.commands = tvCache.commands.filter(
+        (cachedCommand) => cachedCommand && commands.find((command) => command.value === cachedCommand.value)
+      );
 
       //REFRESH INPUTS
       inputs.forEach((exInput) => {
-        const cachedExInput = tvCache.inputs.find((cachedExInput) => cachedExInput.uri === exInput.uri);
+        const cachedExInput = tvCache.inputs.find(
+          (cachedExInput) => cachedExInput && cachedExInput.uri === exInput.uri
+        );
 
         if (!cachedExInput) {
           tvCache.inputs.push(exInput);
@@ -249,7 +255,7 @@ class UiServer extends HomebridgePluginUiServer {
       });
 
       /*tvCache.inputs = tvCache.inputs.filter((cachedExInput) =>
-        inputs.find((exInput) => exInput.uri === cachedExInput.uri)
+        inputs.find((exInput) => exInput && exInput.uri === cachedExInput.uri)
       );*/
 
       await this.storeTV(tvCache, television.name);

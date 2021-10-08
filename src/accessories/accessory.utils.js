@@ -2,7 +2,7 @@
 
 const fs = require('fs-extra');
 const logger = require('../utils/logger');
-const { setTimeoutAsync } = require('../utils/utils');
+const { countValues, setTimeoutAsync } = require('../utils/utils');
 
 exports.fetchApps = async (deviceName, bravia) => {
   let apps = [];
@@ -60,7 +60,16 @@ exports.fetchInputs = async (deviceName, bravia, wakeUp) => {
 
 exports.fetchChannels = async (deviceName, bravia) => {
   let channels = [];
-  let validChannelSources = ['tv:dvbt', 'tv:dvbc', 'tv:dvbs', 'tv:isdbt', 'tv:isdbs', 'tv:isdbc', 'tv:analog'];
+  let validChannelSources = [
+    'tv:dvbt',
+    'tv:dvbc',
+    'tv:dvbs',
+    'tv:isdbt',
+    'tv:isdbs',
+    'tv:isdbc',
+    'tv:atsct',
+    'tv:analog',
+  ];
 
   try {
     logger.debug('Fetching channels', deviceName);
@@ -117,17 +126,42 @@ exports.fetchChannels = async (deviceName, bravia) => {
 
 exports.fetchCommands = async (deviceName, bravia) => {
   let commands = [];
+  let mergedCommands = [];
 
   try {
     logger.debug('Fetching commands', deviceName);
 
     commands = await bravia.getIRCCCodes();
+
+    //merge duplicated ircc codes with different name
+    const countList = countValues(commands);
+    const duplicateCmds = Object.keys(countList).filter((cmd) => countList[cmd] > 1);
+
+    let cmdDups = commands.filter((cmd) => duplicateCmds.includes(cmd.value));
+    let cmdWithoutDups = commands.filter((cmd) => !duplicateCmds.includes(cmd.value));
+
+    let cmdMergedDups = [];
+
+    cmdDups.forEach((cmd) => {
+      const cmdExist = cmdMergedDups.find((cmd2) => cmd2.value === cmd.value);
+
+      if (!cmdExist) {
+        const duplicate = cmdDups.find((cmd2) => cmd2.value === cmd.value && cmd2.name !== cmd.name);
+
+        cmdMergedDups.push({
+          name: `${cmd.name} / ${duplicate.name}`,
+          value: cmd.value,
+        });
+      }
+    });
+
+    mergedCommands = cmdWithoutDups.concat(cmdMergedDups);
   } catch (err) {
     logger.warn('An error occured during fetching applications!', deviceName);
     logger.error(err, deviceName);
   }
 
-  return commands;
+  return mergedCommands;
 };
 
 exports.getTvFromCache = async (deviceName, storagePath) => {

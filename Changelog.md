@@ -1,5 +1,16 @@
 # Changelog
 
+# v5.0.8 - 2021-10-08
+
+## Breaking Changes
+- Commands with the same values are now merged. If you have used commands as inputs, please remove the TV cache and create a new one by clicking the "refresh" button in the UI and revise your config
+
+## Notable Changes
+- Added new tv channel source: `ATSCT`
+
+## Bugfixes
+- Minor Bugfixes
+
 # v5.0.7 - 2021-10-02
 
 ## Bugfixes

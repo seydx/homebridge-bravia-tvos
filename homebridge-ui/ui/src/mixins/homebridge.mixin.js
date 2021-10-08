@@ -106,6 +106,10 @@ export default {
                     enum: ['isdbc'],
                   },
                   {
+                    title: 'ATSCT',
+                    enum: ['atsct'],
+                  },
+                  {
                     title: 'Analog',
                     enum: ['analog'],
                   },

@@ -48,4 +48,18 @@ exports.validMAC = (mac) => {
   }
 };
 
+exports.countValues = (arr = []) => {
+  const res = {};
+  for (let i = 0; i < arr.length; i++) {
+    const { value } = arr[i];
+    // eslint-disable-next-line no-prototype-builtins
+    if (res.hasOwnProperty(value)) {
+      res[value]++;
+    } else {
+      res[value] = 1;
+    }
+  }
+  return res;
+};
+
 exports.setTimeoutAsync = (ms) => new Promise((res) => setTimeout(res, ms));

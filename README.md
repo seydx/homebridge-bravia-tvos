@@ -242,7 +242,7 @@ You need to put the PSK entered in your tv also in your config.json.
 |----------------|--------------|-----------|-------------|-------------|
 | channels.name | **X** | Name for the channel to display in the tv inputs list
 | channels.channel | **X** | Number of the channel as seen on the TV.
-| channels.source | **X** | Source of the channel. |  | `dvbt`, `dvbc`, `dvbs`, `isdbt`, `isdbc`, `isdbs`, `analog`
+| channels.source | **X** | Source of the channel. |  | `dvbt`, `dvbc`, `dvbs`, `isdbt`, `isdbc`, `atsct`, `isdbs`, `analog`
 
  ## Options TV Commands
  

@@ -6,7 +6,7 @@ const Config = (tvConfig) => {
   const validDisplayCatagories = ['apps', 'channels', 'commands', 'inputs', 'macros'];
   const validSpeakerOutput = ['speaker', 'headphone', 'other'];
   const validSpeakerAccTypes = ['lightbulb', 'switch', 'fan'];
-  const validChannelSources = ['dvbt', 'dvbc', 'dvbs', 'isdbt', 'isdbs', 'isdbc', 'analog'];
+  const validChannelSources = ['dvbt', 'dvbc', 'dvbs', 'isdbt', 'isdbs', 'isdbc', 'atsct', 'analog'];
   const validInputSources = ['cec', 'component', 'composite', 'hdmi', 'scart', 'widi'];
 
   tvConfig.speaker = tvConfig.speaker || {};
