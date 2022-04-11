@@ -72,8 +72,9 @@ class Handler {
         const response = await this.bravia.exec('audio', 'getVolumeInformation');
         logger.debug(response, `${this.accessory.displayName} Speaker`);
 
-        const targetSpeaker = response.result[0].find((speaker) => speaker.target === target);
-        const availableTargets = response.result[0].map((speaker) => {
+        const speakers = (response.result && response.result.length) ? response.result[0] : [];
+        const targetSpeaker = speakers.find((speaker) => speaker.target === target);
+        const availableTargets = speakers.map((speaker) => {
           return speaker.target;
         });
 
