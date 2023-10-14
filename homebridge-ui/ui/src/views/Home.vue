@@ -14,7 +14,7 @@
       .mt-3.mb-2.text-muted Homebridge plugin for Sony Bravia Android TVs.
       b-link.github-link(href="https://github.com/SeydX/homebridge-bravia-tvos" target="_blank")
         b-icon(icon="github")
-        |  Github
+        |  GitHub
     
     #nav
       router-link(to="/") Home
