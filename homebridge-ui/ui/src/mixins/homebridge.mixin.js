@@ -67,7 +67,7 @@ export default {
               name: {
                 title: 'Name',
                 type: 'string',
-                description: 'Name for the channel to display in the tv inputs list',
+                description: 'Name for the channel to display in the TV inputs list',
                 required: true,
               },
               channel: {
@@ -256,7 +256,7 @@ export default {
               name: {
                 title: 'Name',
                 type: 'string',
-                description: 'Name for the channel to display in the tv inputs list',
+                description: 'Name for the channel to display in the TV inputs list',
                 required: true,
               },
               identifier: {

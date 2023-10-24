@@ -14,12 +14,12 @@
       .mt-3.mb-2.text-muted Homebridge plugin for Sony Bravia Android TVs.
       b-link.github-link(href="https://github.com/SeydX/homebridge-bravia-tvos" target="_blank")
         b-icon(icon="github")
-        |  Github
+        |  GitHub
     
     #nav
       router-link(to="/") Home
       span(style="font-weight: bold !important;")  · 
-      router-link(to="/config" v-b-popover.hover.top="'This is the old (static) config.schema! With this it is not possible to dynamically display the inputs for a TV. Only for experienced.'" title="Attention") Configs
+      router-link(to="/config" v-b-popover.hover.top="'This is the old (static) config.schema! With this it is not possible to dynamically display the inputs for a TV. Only for experienced users.'" title="Attention") Configs
       span(style="font-weight: bold !important;")  · 
       router-link(to="/new") New 
       b-form-select.seelectTV(v-model="selected" :options="televisions", v-if="televisions.length")

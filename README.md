@@ -225,7 +225,7 @@ You need to put the PSK entered in your tv also in your config.json.
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| inputs.name | **X** | Name for the channel to display in the tv inputs list
+| inputs.name | **X** | Name for the channel to display in the TV inputs list
 | inputs.identifier | **X** | Exact name of the input (eg HDMI 1)
 | inputs.source | **X** | Type of the tv input |  | `cec`, `component`, `composite`, `hdmi`, `scart`, `widi`
 
@@ -233,14 +233,14 @@ You need to put the PSK entered in your tv also in your config.json.
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| apps.name | **X** | Name for the application to display in the tv inputs list
+| apps.name | **X** | Name for the application to display in the TV inputs list
 | apps.identifier | **X** | Exact name of the Application
 
  ## Options TV Channels
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| channels.name | **X** | Name for the channel to display in the tv inputs list
+| channels.name | **X** | Name for the channel to display in the TV inputs list
 | channels.channel | **X** | Number of the channel as seen on the TV.
 | channels.source | **X** | Source of the channel. |  | `dvbt`, `dvbc`, `dvbs`, `isdbt`, `isdbc`, `atsct`, `isdbs`, `analog`
 
@@ -248,14 +248,14 @@ You need to put the PSK entered in your tv also in your config.json.
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| commands.name | **X** | Name for the command to display in the tv inputs list
+| commands.name | **X** | Name for the command to display in the TV inputs list
 | commands.value | **X** | IRCC code or name of the command to display in Apple Home. (eg. "AAAAAQAAAAEAAABgAw==" or "PowerOff")
 
  ## Options TV Macros
  
 | **Attributes** | **Required** | **Usage** | **Default** | **Options** |
 |----------------|--------------|-----------|-------------|-------------|
-| macros.name | **X** | Name for the macro to display in the tv inputs list
+| macros.name | **X** | Name for the macro to display in the TV inputs list
 | macros.delay |  | Delay between sending commands (in ms). (Default 1000ms)
 | macros.commands | **X** | An array of IRCC codes/names to perform the macro
 
